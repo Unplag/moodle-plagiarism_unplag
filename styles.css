@@ -1,0 +1,70 @@
+span.plagiarismreport span.rank10,
+span.plagiarismreport span.rank9,
+span.plagiarismreport span.rank8,
+span.plagiarismreport span.rank7,
+span.plagiarismreport span.rank6,
+span.plagiarismreport span.rank5,
+span.plagiarismreport span.rank4,
+span.plagiarismreport span.rank3,
+span.plagiarismreport span.rank2,
+span.plagiarismreport span.rank1 {
+       color: #FFFFFF;
+       font-weight: bold;
+       padding: 2px;
+}
+
+span.plagiarismreport span.rank1 {
+       color: #000000;
+}
+
+span.plagiarismreport span.rank2 {
+       color: #000000;
+}
+
+span.plagiarismreport span.rank3 {
+       color: #ae2721;
+}
+
+span.plagiarismreport span.rank4 {
+       color: #d82c2a;
+}
+
+span.plagiarismreport span.rank5 {
+       color: #ee5d5a;
+}
+
+span.plagiarismreport span.rank6 {
+       color: #f07110;
+}
+
+span.plagiarismreport span.rank7 {
+       color: #ffca08;
+}
+
+span.plagiarismreport span.rank8 {
+       color: #ffea59;
+}
+
+span.plagiarismreport span.rank9 {
+       color: #ffff9d;
+}
+
+span.plagiarismreport span.rank10 {
+       color: #669934;
+}
+
+span.plagiarismreport img {
+      
+}
+span.plagiarismreport a {
+       text-decoration: none;
+}
+span.plagiarismreport .un_progress{
+    width: 30px;
+}
+
+span.plagiarismreport img.un_progress{
+    vertical-align: middle;
+    margin-left:5px;
+}
+    
