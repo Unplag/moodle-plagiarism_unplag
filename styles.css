@@ -1,69 +1,70 @@
-span.plagiarismreport span.rank10,
-span.plagiarismreport span.rank9,
-span.plagiarismreport span.rank8,
-span.plagiarismreport span.rank7,
-span.plagiarismreport span.rank6,
-span.plagiarismreport span.rank5,
-span.plagiarismreport span.rank4,
-span.plagiarismreport span.rank3,
-span.plagiarismreport span.rank2,
-span.plagiarismreport span.rank1 {
+span.un_report span.rank10,
+span.un_report span.rank9,
+span.un_report span.rank8,
+span.un_report span.rank7,
+span.un_report span.rank6,
+span.un_report span.rank5,
+span.un_report span.rank4,
+span.un_report span.rank3,
+span.un_report span.rank2,
+span.un_report span.rank1 {
        color: #FFFFFF;
        font-weight: bold;
        padding: 2px;
 }
 
-span.plagiarismreport span.rank1 {
-       color: #000000;
+span.un_report span.rank1 {
+       background-color: #000000;
 }
 
-span.plagiarismreport span.rank2 {
-       color: #000000;
+span.un_report span.rank2 {
+       background-color: #000000;
 }
 
-span.plagiarismreport span.rank3 {
-       color: #ae2721;
+span.un_report span.rank3 {
+       background-color: #ae2721;
 }
 
-span.plagiarismreport span.rank4 {
-       color: #d82c2a;
+span.un_report span.rank4 {
+       background-color: #d82c2a;
 }
 
-span.plagiarismreport span.rank5 {
-       color: #ee5d5a;
+span.un_report span.rank5 {
+       background-color: #ee5d5a;
 }
 
-span.plagiarismreport span.rank6 {
-       color: #f07110;
+span.un_report span.rank6 {
+       background-color: #f07110;
 }
 
-span.plagiarismreport span.rank7 {
-       color: #ffca08;
+span.un_report span.rank7 {
+       background-color: #ffca08;
 }
 
-span.plagiarismreport span.rank8 {
-       color: #ffea59;
+span.un_report span.rank8 {
+       background-color: #ffea59;
 }
 
-span.plagiarismreport span.rank9 {
-       color: #ffff9d;
+span.un_report span.rank9 {
+       background-color: #ffff9d;
 }
 
-span.plagiarismreport span.rank10 {
-       color: #669934;
+span.un_report span.rank10 {
+       background-color: #669934;
 }
 
-span.plagiarismreport img {
-      
+span.un_report img {
+   vertical-align: middle;
+   position: relative;
 }
-span.plagiarismreport a {
+span.un_report a {
        text-decoration: none;
 }
-span.plagiarismreport .un_progress{
+span.un_report .un_progress{
     width: 30px;
 }
 
-span.plagiarismreport img.un_progress{
+span.un_report img.un_progress{
     vertical-align: middle;
     margin-left:5px;
 }

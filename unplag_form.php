@@ -25,7 +25,7 @@ class unplag_setup_form extends moodleform {
         global $CFG;
 
         $mform =& $this->_form;
-        $mform->addElement('html', get_string('unplagexplain', 'plagiarism_unplag'));
+        //$mform->addElement('html', get_string('unplagexplain', 'plagiarism_unplag'));
         $mform->addElement('checkbox', 'unplag_use', get_string('useunplag', 'plagiarism_unplag'));
 
         $mform->addElement('text', 'unplag_client_id', get_string('unplag_client_id', 'plagiarism_unplag'));

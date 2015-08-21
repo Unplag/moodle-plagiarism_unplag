@@ -23,34 +23,28 @@
  */
 
 $string['pluginname'] = 'UNPLAG plagiarism plugin';
-$string['studentdisclosuredefault']  = 'All files uploaded will be submitted to the plagiarism detection service UNPLAG,
-If you wish to prevent your document from being used as a source for analysis outside this site by other organisations you can use the opt-out link provided after the report has been generated.';
-$string['studentdisclosure'] = 'Student Disclosure';
+$string['studentdisclosuredefault']  = 'All  uploaded files will be submitted to the plagiarism detection system UNPLAG.';
+$string['studentdisclosure'] = 'Familiarize students with the UNPLAG Privacy Policy';
 $string['studentdisclosure_help'] = 'This text will be displayed to all students on the file upload page.';
-$string['unplagexplain'] = 'For more information on this plugin see: <a href="http://www.unplag.com/int/en/" target="_blank">http://www.unplag.com/int/en/</a>';
 $string['unplag'] = 'UNPLAG plagiarism plugin';
-$string['unplag_api'] = 'UNPLAG Integration Address';
-$string['unplag_api_help'] = 'This is the address of the UNPLAG API';
 $string['unplag_client_id'] = 'Client ID';
-$string['unplag_client_id_help'] = 'Username provided by UNPLAG to access the API';
+$string['unplag_client_id_help'] = 'ID of Client provided by UNPLAG to access the API you can find it on <a href="https://unplag.com/profile/apisettings">https://unplag.com/profile/apisettings</a>';
 $string['unplag_lang'] = 'Language';
 $string['unplag_lang_help'] = 'Language code provided by UNPLAG';
 $string['unplag_api_secret'] = 'API Secret';
-$string['unplag_api_secret_help'] = 'Password provided by UNPLAG to access the API';
+$string['unplag_api_secret_help'] = 'API Secret provided by UNPLAG to access the API you can find it on <a href="https://unplag.com/profile/apisettings">https://unplag.com/profile/apisettings</a>';
 $string['useunplag'] = 'Enable UNPLAG';
 $string['unplag_enableplugin'] = 'Enable UNPLAG for {$a}';
-$string['savedconfigsuccess'] = 'Plagiarism Settings Saved';
-$string['savedconfigfailed'] = 'An incorrect username/password combination has been entered, UNPLAG has been disabled, please try again.';
+$string['savedconfigsuccess'] = 'Plagiarism Detection Settings Saved';
+$string['savedconfigfailed'] = 'An incorrect Client ID/API Secret combination has been entered. UNPLAG has been disabled, please try again.';
 $string['unplag_show_student_score'] = 'Show similarity score to student';
 $string['unplag_show_student_score_help'] = 'The similarity score is the percentage of the submission that has been matched with other content.';
 $string['unplag_show_student_report'] = 'Show similarity report to student';
-$string['unplag_show_student_report_help'] = 'The similarity report gives a breakdown on what parts of the submission were plagiarised and the location that UNPLAG first saw this content';
+$string['unplag_show_student_report_help'] = 'The similarity report gives a breakdown on what parts of the submission were plagiarised and the location that UNPLAG found this content. ';
 $string['unplag_draft_submit'] = 'When should the file be submitted to UNPLAG';
 $string['showwhenclosed'] = 'When Activity closed';
 $string['submitondraft'] = 'Submit file when first uploaded';
-$string['submitonfinal'] = 'Submit file when student sends for marking';
-$string['unplag_receiver'] = 'Receiver address';
-$string['unplag_receiver_help'] = 'This is the unique address provided from UNPLAG for the teacher';
+$string['submitonfinal'] = 'Submit file when student sends it for grading';
 $string['defaultupdated'] = 'Default values updated';
 $string['defaultsdesc'] = 'The following settings are the defaults set when enabling UNPLAG within an Activity Module';
 $string['unplagdefaults'] = 'UNPLAG defaults';
@@ -58,26 +52,23 @@ $string['similarity'] = 'UNPLAG';
 $string['processing'] = 'This file has been submitted to UNPLAG, now waiting for the analysis to be available';
 $string['pending'] = 'This file is pending submission to UNPLAG';
 $string['previouslysubmitted'] = 'Previously submitted as';
-$string['report'] = 'report';
-$string['unknownwarning'] = 'An error occurred trying to send this file to UNPLAG';
+$string['report'] = 'Report';
+$string['unknownwarning'] = 'An error occurred when trying to send this file to UNPLAG';
 $string['unsupportedfiletype'] = 'This filetype is not supported by UNPLAG';
 $string['toolarge'] = 'This file is too large for UNPLAG to process';
-$string['plagiarism'] = 'Unplag Potential plagiarism report';
+$string['plagiarism'] = 'Potential plagiarism ';
 $string['report'] = 'View full report';
 $string['progress'] = 'Scan';
-$string['unplag_studentemail'] = 'Send Student email';
-$string['unplag_studentemail_help'] = 'This will send an e-mail to the student when a file has been processed to let them know that a report is available, the e-mail also includes the opt-out link.';
+$string['unplag_studentemail'] = 'Send email to Student';
+$string['unplag_studentemail_help'] = 'This will send an email to the student when a file has been processed to let them know that a report is available.';
 $string['studentemailsubject'] = 'File processed by UNPLAG';
-$string['studentemailcontent'] = 'The file you submitted to {$a->modulename} in {$a->coursename} has now been processed by the Plagiarism tool UNPLAG.
-{$a->modulelink}
-
-If you wish to prevent your document from being used as a source for analysis outside this site by other organisations you can use this link to opt-out:.
-{$a->optoutlink}';
+$string['studentemailcontent'] = 'The file you submitted to {$a->modulename} in {$a->coursename} has already been processed by the plagiarism detection system UNPLAG
+{$a->modulelink}';
 
 $string['filereset'] = 'A file has been reset for re-submission to UNPLAG';
 $string['noreceiver'] = 'No receiver address was specified';
 $string['unplag:enable'] = 'Allow the teacher to enable/disable UNPLAG inside an activity';
-$string['unplag:resetfile'] = 'Allow the teacher to resubmit the file to UNPLAG after an error';
+$string['unplag:resetfile'] = 'Allow the teacher to resubmit the file to UNPLAG after an error occurred';
 $string['unplag:viewreport'] = 'Allow the teacher to view the full report from UNPLAG';
 $string['unplagdebug'] = 'Debugging';
 $string['explainerrors'] = 'This page lists any files that are currently in an error state. <br/>When files are deleted on this page they will not be able to be resubmitted and errors will no longer display to teachers or students';
@@ -94,7 +85,7 @@ $string['cronwarning'] = 'The <a href="../../admin/cron.php">cron.php</a> mainte
 $string['waitingevents'] = 'There are {$a->countallevents} events waiting for cron and {$a->countheld} events are being held for resubmission';
 $string['deletedwarning'] = 'This file could not be found - it may have been deleted by the user';
 $string['heldevents'] = 'Held events';
-$string['heldeventsdescription'] = 'These are events that did not complete on the first attempt and were queued for resubmission - these prevent subsequent events from completing and may need further investigation. Some of these events may not be relevant to UNPLAG.';
+$string['heldeventsdescription'] = 'These are events that did not complete on the first attempt and were queued for resubmission - this prevents subsequent events from completing and may need further investigation. Some of these events may not be relevant to UNPLAG.';
 $string['unplagfiles'] = 'Unplag Files';
 $string['getscore'] = 'Get score';
 $string['scorenotavailableyet'] = 'This file has not been processed by UNPLAG yet.';

@@ -46,18 +46,12 @@ define('UNPLAG_MAX_STATUS_DELAY', 1440); // Maximum time to wait between checks 
 define('UNPLAG_STATUS_DELAY', 30); // Initial delay, doubled each time a check is made until the max_status_delay is met.
 define('UNPLAG_STATUSCODE_PROCESSED', '200');
 define('UNPLAG_STATUSCODE_ACCEPTED', '202');
-define('UNPLAG_STATUSCODE_BAD_REQUEST', '400');
-define('UNPLAG_STATUSCODE_NOT_FOUND', '404');
-define('UNPLAG_STATUSCODE_GONE', '410'); // Receiver is inactive or deleted.
 define('UNPLAG_STATUSCODE_UNSUPPORTED', '415');
-define('UNPLAG_STATUSCODE_TOO_LARGE', '413');
-define('UNPLAG_STATUSCODE_NORECEIVER', '444');
 define('UNPLAG_STATUSCODE_INVALID_RESPONSE', '613'); // Invalid response received from UNPLAG.
 
 // Url to external xml that states UNPLAGS allowed file type list.
 define('UNPLAG_DOMAIN', 'http://plag.karmastat.in/');
 
-define('UNPLAG_FILETYPE_URL_UPDATE', '168'); // How often to check for updated file types (defined in hours).
 
 define('PLAGIARISM_UNPLAG_SHOW_NEVER', 0);
 define('PLAGIARISM_UNPLAG_SHOW_ALWAYS', 1);
@@ -98,7 +92,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public function config_options() {
         return array('use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
-                     'unplag_draft_submit', 'unplag_receiver', 'unplag_studentemail');
+                     'unplag_draft_submit', 'unplag_studentemail');
     }
     /**
      * Hook to allow plagiarism specific information to be displayed beside a submission.
@@ -146,11 +140,11 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if ($results['statuscode'] == UNPLAG_STATUSCODE_PROCESSED) {
             // Normal situation - UNPLAG has successfully analyzed the file.
             $rank = unplag_get_css_rank($results['score']);
-            $output .= '<span class="plagiarismreport">';
+            $output .= '<span class="un_report">';
             if (!empty($results['optoutlink'])) {
                 // User is allowed to view the report.
                 // Score is contained in report, so they can see the score too.
-                $output .= ' <a href="' . UNPLAG_DOMAIN.$results['optoutlink'] . '" title="'.get_string('plagiarism', 'plagiarism_unplag').'">';
+                $output .= ' <a class="un_tooltip" href="' . UNPLAG_DOMAIN.$results['optoutlink'] . '" title="'.get_string('plagiarism', 'plagiarism_unplag').'">';
                 $output .= '<img  width="32" height="32" src="'.$OUTPUT->pix_url('unplag', 'plagiarism_unplag').'"> ';
                 $output .= '<span class="'.$rank.'">'.$results['score'].'%</span>';
                 $output .= '</a>';
@@ -163,7 +157,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 // Display opt-out link.
                 $output .= '&nbsp;<span class"plagiarismoptout">' .
                         '<a title="'.get_string('report', 'plagiarism_unplag').'" href="' . UNPLAG_DOMAIN.$results['optoutlink'] . '" >' .
-                        '<img src="'.$OUTPUT->pix_url('dwnld', 'plagiarism_unplag').'">'.
+                        '<img class="un_tooltip" src="'.$OUTPUT->pix_url('dwnld', 'plagiarism_unplag').'">'.
                         '</a></span>';
             }
             if (!empty($results['renamed'])) {
@@ -171,14 +165,14 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             }
             $output .= '</span>';
         } elseif ($results['statuscode'] == UNPLAG_STATUSCODE_ACCEPTED) {
-            $output .= '<span class="plagiarismreport">'.
-                       '<img class="un_progress" src="'.$OUTPUT->pix_url('progress', 'plagiarism_unplag') .
+            $output .= '<span class="un_report">'.
+                       '<img class="un_progress un_tooltip" src="'.$OUTPUT->pix_url('scan', 'plagiarism_unplag') .
                         '" alt="'.get_string('processing', 'plagiarism_unplag').'" '.
                         '" title="'.get_string('processing', 'plagiarism_unplag').'" /> '.
                         get_string('progress', 'plagiarism_unplag').' : '.$results['progress'].'%</span>';
         } else if ($results['statuscode'] == UNPLAG_STATUSCODE_INVALID_RESPONSE && $errors && array_key_exists('format', $errors)) {
-            $output .= '<span class="plagiarismreport">'.
-                       '<img  width="40" height="40" src="'.$OUTPUT->pix_url('warn', 'plagiarism_unplag') .
+            $output .= '<span class="un_report">'.
+                       '<img class="un_tooltip" src="'.$OUTPUT->pix_url('error', 'plagiarism_unplag') .
                         '" alt="'.get_string('unsupportedfiletype', 'plagiarism_unplag').'" '.
                         '" title="'.get_string('unsupportedfiletype', 'plagiarism_unplag').'" />'.
                         '</span>';
@@ -188,16 +182,19 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             if (has_capability('plagiarism/unplag:resetfile', $modulecontext) &&
                 !empty($results['error'])) { // This is a teacher viewing the responses.
                 // Strip out some possible known text to tidy it up.
-                $erroresponse = format_text(implode(',',  array_values($errors)), FORMAT_PLAIN);
+                if(is_array($errors))
+                    $erroresponse = format_text(implode(',',  array_values($errors)), FORMAT_PLAIN);
+                else
+                    $erroresponse = get_string('unknownwarning', 'plagiarism_unplag');
                 $erroresponse = str_replace('{&quot;LocalisedMessage&quot;:&quot;', '', $erroresponse);
                 $erroresponse = str_replace('&quot;,&quot;Message&quot;:null}', '', $erroresponse);
                 $title .= ': ' . $erroresponse;
                 $url = new moodle_url('/plagiarism/unplag/reset.php', array('cmid' => $cmid, 'pf' => $results['pid'],
                                                                             'sesskey' => sesskey()));
-                $reset = " <a href='$url'>".get_string('reset')."</a>";
+                $reset = " <a href='$url'><img src='".$OUTPUT->pix_url('reset', 'plagiarism_unplag')."' title='".get_string('reset')."'></a>";
             }
-            $output .= '<span class="plagiarismreport">'.
-                       '<img width="40" height="40" src="'.$OUTPUT->pix_url('warn', 'plagiarism_unplag') .
+            $output .= '<span class="un_report">'.
+                       '<img class="un_tooltip" src="'.$OUTPUT->pix_url('error', 'plagiarism_unplag') .
                         '" alt="'.get_string('unknownwarning', 'plagiarism_unplag').'" '.
                         '" title="'.$title.'" />'.$reset.'</span>';
         }
@@ -346,9 +343,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 }
 
             }
-            if (!empty($data->unplag_receiver)) {
-                set_user_preference('unplag_receiver', trim($data->unplag_receiver));
-            }
+           
         }
     }
 
@@ -391,10 +386,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     $mform->disabledIf($element, 'use_unplag', 'eq', 0);
                 }
             }
-            // Check if files have been submitted and we need to disable the receiver address.
-            if ($DB->record_exists('plagiarism_unplag_files', array('cm' => $cmid, 'statuscode' => 'pending'))) {
-                $mform->disabledIf('unplag_receiver', 'use_unplag');
-            }
+
         } else { // Add plagiarism settings as hidden vars.
             foreach ($plagiarismelements as $element) {
                 $mform->addElement('hidden', $element);
@@ -402,7 +394,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 $mform->setType('unplag_show_student_score', PARAM_INT);
                 $mform->setType('unplag_show_student_report', PARAM_INT);
                 $mform->setType('unplag_draft_submit', PARAM_INT);
-                $mform->setType('unplag_receiver', PARAM_TEXT);
+              
                 $mform->setType('unplag_studentemail', PARAM_INT);
             }
         }
@@ -410,13 +402,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         foreach ($plagiarismelements as $element) {
             if (isset($plagiarismvalues[$element])) {
                 $mform->setDefault($element, $plagiarismvalues[$element]);
-            } else if ($element == 'unplag_receiver') {
-                $def = get_user_preferences($element);
-                if (!empty($def)) {
-                    $mform->setDefault($element, $def);
-                } else if (isset($plagiarismdefaults[$element])) {
-                    $mform->setDefault($element, $plagiarismdefaults[$element]);
-                }
             } else if (isset($plagiarismdefaults[$element])) {
                 $mform->setDefault($element, $plagiarismdefaults[$element]);
             }
@@ -425,12 +410,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         // Now add JS to validate receiver indicator using Ajax.
         if (has_capability('plagiarism/unplag:enable', $context)) {
-            $jsmodule = array(
-                'name' => 'plagiarism_unplag',
-                'fullpath' => '/plagiarism/unplag/checkreceiver.js',
-                'requires' => array('json'),
-            );
-            $PAGE->requires->js_init_call('M.plagiarism_unplag.init', array($context->instanceid), true, $jsmodule);
+         
         }
     }
 
@@ -770,9 +750,7 @@ function unplag_get_form_elements($mform) {
 
     $mform->addElement('header', 'plagiarismdesc', get_string('unplag', 'plagiarism_unplag'));
     $mform->addElement('select', 'use_unplag', get_string("useunplag", "plagiarism_unplag"), $ynoptions);
-    $mform->addElement('text', 'unplag_receiver', get_string("unplag_receiver", "plagiarism_unplag"), array('size' => 40));
-    $mform->addHelpButton('unplag_receiver', 'unplag_receiver', 'plagiarism_unplag');
-    $mform->setType('unplag_receiver', PARAM_TEXT);
+
     $mform->addElement('select', 'unplag_show_student_score',
                        get_string("unplag_show_student_score", "plagiarism_unplag"), $tiioptions);
     $mform->addHelpButton('unplag_show_student_score', 'unplag_show_student_score', 'plagiarism_unplag');
