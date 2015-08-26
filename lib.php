@@ -102,7 +102,11 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public function get_links($linkarray) {
         //online submission view is unavailable due https://tracker.moodle.org/browse/MDL-40460
-        global $COURSE, $OUTPUT, $CFG;
+        global $COURSE, $OUTPUT, $CFG, $PAGE;
+        
+        
+  
+        
         $cmid = $linkarray['cmid'];
         $userid = $linkarray['userid'];
         if (!empty($linkarray['content'])) {
@@ -146,6 +150,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 // Score is contained in report, so they can see the score too.
                 $output .= ' <a class="un_tooltip" href="' . UNPLAG_DOMAIN.$results['optoutlink'] . '" title="'.get_string('plagiarism', 'plagiarism_unplag').'">';
                 $output .= '<img  width="32" height="32" src="'.$OUTPUT->pix_url('unplag', 'plagiarism_unplag').'"> ';
+                $output .= get_string('similarity', 'plagiarism_unplag') . ': ';
                 $output .= '<span class="'.$rank.'">'.$results['score'].'%</span>';
                 $output .= '</a>';
             } else if ($results['score'] !== '') {
@@ -156,8 +161,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             if (!empty($results['optoutlink'])) {
                 // Display opt-out link.
                 $output .= '&nbsp;<span class"plagiarismoptout">' .
-                        '<a title="'.get_string('report', 'plagiarism_unplag').'" href="' . UNPLAG_DOMAIN.$results['optoutlink'] . '" >' .
-                        '<img class="un_tooltip" src="'.$OUTPUT->pix_url('dwnld', 'plagiarism_unplag').'">'.
+                        '<a title="'.get_string('report', 'plagiarism_unplag').'" href="' . UNPLAG_DOMAIN.$results['optoutlink'] . '" target="_blank">' .
+                        '<img class="un_tooltip" src="'.$OUTPUT->pix_url('link', 'plagiarism_unplag').'">'.
                         '</a></span>';
             }
             if (!empty($results['renamed'])) {
@@ -165,12 +170,21 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             }
             $output .= '</span>';
         } elseif ($results['statuscode'] == UNPLAG_STATUSCODE_ACCEPTED) {
+            // Now add JS to validate receiver indicator using Ajax.
+    
+            $jsmodule = array(
+                'name' => 'plagiarism_unplag',
+                'fullpath' => '/plagiarism/unplag/ajax.js',
+                'requires' => array('json'),
+            );
+            $PAGE->requires->js_init_call('M.plagiarism_unplag.init', array($linkarray['cmid']), true, $jsmodule);
+            
             $output .= '<span class="un_report">'.
-                       '<img class="un_progress un_tooltip" src="'.$OUTPUT->pix_url('scan', 'plagiarism_unplag') .
+                       '<img check_id="'.$results['check_id'].'" class="un_progress un_tooltip" src="'.$OUTPUT->pix_url('scan', 'plagiarism_unplag') .
                         '" alt="'.get_string('processing', 'plagiarism_unplag').'" '.
                         '" title="'.get_string('processing', 'plagiarism_unplag').'" /> '.
-                        get_string('progress', 'plagiarism_unplag').' : '.$results['progress'].'%</span>';
-        } else if ($results['statuscode'] == UNPLAG_STATUSCODE_INVALID_RESPONSE && $errors && array_key_exists('format', $errors)) {
+                        get_string('progress', 'plagiarism_unplag').' : <span class="un_progress_val" >'.$results['progress'].'</span></span>';
+        } else if ($results['statuscode'] == UNPLAG_STATUSCODE_INVALID_RESPONSE && is_array($errors) && array_key_exists('format', $errors)) {
             $output .= '<span class="un_report">'.
                        '<img class="un_tooltip" src="'.$OUTPUT->pix_url('error', 'plagiarism_unplag') .
                         '" alt="'.get_string('unsupportedfiletype', 'plagiarism_unplag').'" '.
@@ -199,6 +213,12 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                         '" title="'.$title.'" />'.$reset.'</span>';
         }
         return $output;
+    }
+    
+    public function track_progress($check_id){
+        global $DB;
+        $record = $DB->get_record('plagiarism_unplag_files', array('check_id' => $check_id));
+        return array('progress' => $record->progress, 'refresh' => get_string('refresh', 'plagiarism_unplag'));    
     }
 
     public function get_file_results($cmid, $userid, $file) {
@@ -286,6 +306,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
             $results['statuscode'] = UNPLAG_STATUSCODE_ACCEPTED;
             $results['progress'] = $plagiarismfile->progress;
+            $results['check_id'] = $plagiarismfile->check_id;
             return $results;
         }
 
@@ -408,10 +429,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         }
         
 
-        // Now add JS to validate receiver indicator using Ajax.
-        if (has_capability('plagiarism/unplag:enable', $context)) {
-         
-        }
+        
     }
 
     /**
@@ -965,7 +983,7 @@ function unplag_get_score($plagiarismsettings, $plagiarismfile, $force = false) 
                     $plagiarismfile->progress = 100;
                     $plagiarismfile->reporturl = '#';
                     $plagiarismfile->similarityscore = (int)$results['checks_results'][0][0]['similarity'];
-                    $plagiarismfile->optout = (string) 'library/viewer/pdf_report/'.$plagiarismfile->check_id.'?share_token='.$results['checks_results'][0][0]['share_token'];
+                    $plagiarismfile->optout = (string) 'library/viewer/report/'.$plagiarismfile->check_id.'?share_token='.$results['checks_results'][0][0]['share_token'];
                     // Now send e-mail to user.
                     $emailstudents = $DB->get_field('plagiarism_unplag_config', 'value',
                                                     array('cm' => $plagiarismfile->cm, 'name' => 'unplag_studentemail'));
