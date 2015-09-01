@@ -17,8 +17,8 @@
 /**
  * unplag_defaults.php - Displays default values to use inside assignments for UNPLAG
  *
- * @package plagiarism_unplag
- * @author Dan Marsden <dan@danmarsden.com>
+ * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright  UKU Group, LTD, https://www.unplag.com
  * @copyright 1999 onwards Martin Dougiamas {@link http://moodle.com}
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

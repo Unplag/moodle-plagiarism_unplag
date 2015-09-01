@@ -8,50 +8,12 @@ span.un_report span.rank4,
 span.un_report span.rank3,
 span.un_report span.rank2,
 span.un_report span.rank1 {
-       color: #FFFFFF;
+       color: inherit;
        font-weight: bold;
        padding: 2px;
 }
 
-span.un_report span.rank1 {
-       background-color: #000000;
-}
 
-span.un_report span.rank2 {
-       background-color: #000000;
-}
-
-span.un_report span.rank3 {
-       background-color: #ae2721;
-}
-
-span.un_report span.rank4 {
-       background-color: #d82c2a;
-}
-
-span.un_report span.rank5 {
-       background-color: #ee5d5a;
-}
-
-span.un_report span.rank6 {
-       background-color: #f07110;
-}
-
-span.un_report span.rank7 {
-       background-color: #ffca08;
-}
-
-span.un_report span.rank8 {
-       background-color: #ffea59;
-}
-
-span.un_report span.rank9 {
-       background-color: #ffff9d;
-}
-
-span.un_report span.rank10 {
-       background-color: #669934;
-}
 
 span.un_report img {
    vertical-align: middle;

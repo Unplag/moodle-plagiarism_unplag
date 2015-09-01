@@ -40,7 +40,7 @@ class backup_plagiarism_unplag_plugin extends backup_plagiarism_plugin {
         // Now information about files to module.
         $unplagfiles = new backup_nested_element('unplag_files');
         $unplagfile = new backup_nested_element('unplag_file', array('id'),
-                            array('userid', 'identifier', 'filename', 'reporturl', 'optout', 'statuscode',
+                            array('userid', 'identifier', 'filename', 'progress', 'reporturl', 'optout', 'statuscode',
                                   'similarityscore', 'errorresponse', 'timesubmitted'));
 
         $pluginwrapper->add_child($unplagfiles);

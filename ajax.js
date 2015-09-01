@@ -26,7 +26,7 @@ M.plagiarism_unplag = {};
 M.plagiarism_unplag.init = function(Y, contextid) {
 
     var track_progress = function(Y, row, contextid) { 
-        var rval = row.getAttribute('check_id');
+        var rval = row.getAttribute('file_id');
       
         var parentdiv = row.ancestor('div');
         var url = M.cfg.wwwroot + '/plagiarism/unplag/track.php';

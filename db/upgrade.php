@@ -22,18 +22,5 @@
 function xmldb_plagiarism_unplag_upgrade($oldversion) {
     global $CFG, $DB;
 
-    $dbman = $DB->get_manager();
-
-    if ($oldversion < 2011081803) {
-       /* $table = new xmldb_table('plagiarism_unplag_files');
-        if ($dbman->table_exists($table)) {
-            $xmldb_field = new xmldb_field('progress', 'int', false, false,false,null,'check_id');
-            $dbman->add_field($table, $xmldb_field);
-        }
-
-        upgrade_plugin_savepoint(true, 2011081803, 'plagiarism', 'unplag');*/
-    }
-
-
     return true;
 }

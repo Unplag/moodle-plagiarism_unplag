@@ -17,8 +17,8 @@
 /**
  *
  * @package   plagiarism_unplag
- * @author     Michail Grinenko & Vladimir Hrytsiv
- * @copyright  2015 Michail Grinenko & Vladimir Hrytsiv https://unplag.com
+ * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright  UKU Group, LTD, https://www.unplag.com
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -44,7 +44,7 @@ $string['unplag_show_student_report_help'] = 'Звіт по плагіату д�
 $string['unplag_draft_submit'] = 'Коли потрібно відправити(відправляти) файл до системи UNPLAG';
 $string['showwhenclosed'] = 'Коли завдання закрито';
 $string['submitondraft'] = 'Відправити файл при першому завантаженні';
-$string['submitonfinal'] = 'Відправляти файл на перевірку відразу, коли студент завантажує його для оцінювання';
+$string['submitonfinal'] = 'Відправляти файл на перевірку, коли студент відправляє роботу для оцінювання';
 $string['defaultupdated'] = 'Оновлені значення за замовчуванням';
 $string['defaultsdesc'] = 'Дані налаштування будуть показані за замовчуванням при підключенні до системи UNPLAG, під час створення завдання.';
 $string['unplagdefaults'] = 'Налаштування системи UNPLAG за замовчуванням';

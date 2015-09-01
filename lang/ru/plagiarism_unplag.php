@@ -17,8 +17,8 @@
 /**
  *
  * @package   plagiarism_unplag
- * @author     Dan Marsden <dan@danmarsden.com>
- * @copyright  2011 Dan Marsden http://danmarsden.com
+ * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright  UKU Group, LTD, https://www.unplag.com
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -45,7 +45,7 @@ $string['unplag_show_student_report_help'] = 'Отчет по плагиатуп
 $string['unplag_draft_submit'] = 'Когда следует отправлять файл в UNPLAG';
 $string['showwhenclosed'] = 'Когда задание закрыто';
 $string['submitondraft'] = 'Отправить файл при первой загрузке';
-$string['submitonfinal'] = 'Отправлять файл на проверку сразу, когда студент загружает его для оценивания';
+$string['submitonfinal'] = 'Отправлять файл на проверку, когда студент отправляет работу для оценивания';
 $string['defaultupdated'] = 'Обновленные значения по умолчанию';
 $string['defaultsdesc'] = 'Данные настройки будут показаны по умолчанию при подключении UNPLAG во время создания задачи.';
 $string['unplagdefaults'] = 'Настройка UNPLAG по умолчанию';

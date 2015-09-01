@@ -20,8 +20,8 @@
  * @since 2.0
  * @package    plagiarism_unplag
  * @subpackage plagiarism
- * @author     Dan Marsden <dan@danmarsden.com>
- * @copyright  2011 Dan Marsden http://danmarsden.com
+ * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright  UKU Group, LTD, https://www.unplag.com
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -36,7 +36,6 @@ require_once($CFG->dirroot . '/lib/filelib.php');
 
 // There is a new UNPLAG API - The Integration Service - we only currently use this to verify the receiver address.
 // If we convert the existing calls to send file/get score we should move this to a config setting.
-define('UNPLAG_INTEGRATION_SERVICE', 'https://secure.unplag.com/api');
 
 define('UNPLAG_MAX_SUBMISSION_ATTEMPTS', 6); // Maximum number of times to try and send a submission to UNPLAG.
 define('UNPLAG_MAX_SUBMISSION_DELAY', 60); // Maximum time to wait between submissions (defined in minutes).
@@ -50,7 +49,7 @@ define('UNPLAG_STATUSCODE_UNSUPPORTED', '415');
 define('UNPLAG_STATUSCODE_INVALID_RESPONSE', '613'); // Invalid response received from UNPLAG.
 
 // Url to external xml that states UNPLAGS allowed file type list.
-define('UNPLAG_DOMAIN', 'http://plag.karmastat.in/');
+define('UNPLAG_DOMAIN', 'https://unplag.com/');
 
 
 define('PLAGIARISM_UNPLAG_SHOW_NEVER', 0);
@@ -145,19 +144,21 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             // Normal situation - UNPLAG has successfully analyzed the file.
             $rank = unplag_get_css_rank($results['score']);
             $output .= '<span class="un_report">';
-            if (!empty($results['optoutlink'])) {
+            if (!empty($results['optoutlink']) || !empty($results['score'])) {
                 // User is allowed to view the report.
                 // Score is contained in report, so they can see the score too.
-                $output .= ' <a class="un_tooltip" href="' . UNPLAG_DOMAIN.$results['optoutlink'] . '" title="'.get_string('plagiarism', 'plagiarism_unplag').'">';
+                //$output .= ' <a target="_blank" class="un_tooltip" href="' . UNPLAG_DOMAIN.$results['optoutlink'] . '" title="'.get_string('plagiarism', 'plagiarism_unplag').'">';
                 $output .= '<img  width="32" height="32" src="'.$OUTPUT->pix_url('unplag', 'plagiarism_unplag').'"> ';
+                
+                //$output .= '</a>';
+            } 
+            if ($results['score'] !== '') {
+                // User is allowed to view only the score.
                 $output .= get_string('similarity', 'plagiarism_unplag') . ': ';
                 $output .= '<span class="'.$rank.'">'.$results['score'].'%</span>';
-                $output .= '</a>';
-            } else if ($results['score'] !== '') {
-                // User is allowed to view only the score.
-                $output .= get_string('similarity', 'plagiarism_unplag') . ':';
-                $output .= '<span class="' . $rank . '">' . $results['score'] . '%</span>';
+               
             }
+            
             if (!empty($results['optoutlink'])) {
                 // Display opt-out link.
                 $output .= '&nbsp;<span class"plagiarismoptout">' .
@@ -165,11 +166,11 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                         '<img class="un_tooltip" src="'.$OUTPUT->pix_url('link', 'plagiarism_unplag').'">'.
                         '</a></span>';
             }
-            if (!empty($results['renamed'])) {
+            /*if (!empty($results['renamed'])) {
                 $output .= $results['renamed'];
-            }
+            }*/
             $output .= '</span>';
-        } elseif ($results['statuscode'] == UNPLAG_STATUSCODE_ACCEPTED) {
+        } elseif ($results['statuscode'] == UNPLAG_STATUSCODE_ACCEPTED || $results['statuscode'] == 'pending') {
             // Now add JS to validate receiver indicator using Ajax.
     
             $jsmodule = array(
@@ -180,10 +181,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $PAGE->requires->js_init_call('M.plagiarism_unplag.init', array($linkarray['cmid']), true, $jsmodule);
             
             $output .= '<span class="un_report">'.
-                       '<img check_id="'.$results['check_id'].'" class="un_progress un_tooltip" src="'.$OUTPUT->pix_url('scan', 'plagiarism_unplag') .
+                       '<img file_id="'.$results['id'].'" class="un_progress un_tooltip" src="'.$OUTPUT->pix_url('scan', 'plagiarism_unplag') .
                         '" alt="'.get_string('processing', 'plagiarism_unplag').'" '.
                         '" title="'.get_string('processing', 'plagiarism_unplag').'" /> '.
-                        get_string('progress', 'plagiarism_unplag').' : <span class="un_progress_val" >'.$results['progress'].'</span></span>';
+                        get_string('progress', 'plagiarism_unplag').' : <span class="un_progress_val" >'.intval($results['progress']).'%</span></span>';
         } else if ($results['statuscode'] == UNPLAG_STATUSCODE_INVALID_RESPONSE && is_array($errors) && array_key_exists('format', $errors)) {
             $output .= '<span class="un_report">'.
                        '<img class="un_tooltip" src="'.$OUTPUT->pix_url('error', 'plagiarism_unplag') .
@@ -191,6 +192,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                         '" title="'.get_string('unsupportedfiletype', 'plagiarism_unplag').'" />'.
                         '</span>';
         }  else {
+            
             $title = get_string('unknownwarning', 'plagiarism_unplag');
             $reset = '';
             if (has_capability('plagiarism/unplag:resetfile', $modulecontext) &&
@@ -215,10 +217,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         return $output;
     }
     
-    public function track_progress($check_id){
+    public function track_progress($file_id){
         global $DB;
-        $record = $DB->get_record('plagiarism_unplag_files', array('check_id' => $check_id));
-        return array('progress' => $record->progress, 'refresh' => get_string('refresh', 'plagiarism_unplag'));    
+        $record = $DB->get_record('plagiarism_unplag_files', array('id' => $file_id));
+        return array('progress' => (int)$record->progress, 'refresh' => get_string('refresh', 'plagiarism_unplag'));    
     }
 
     public function get_file_results($cmid, $userid, $file) {
@@ -263,14 +265,20 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         } else if (!empty($module->timeavailable)) {
             $assignclosed = ($module->timeavailable <= $time);
         }
-
+        else if (!empty($module->duedate)) {
+            $assignclosed = ($module->duedate <= $time);
+        }
+        else if (!empty($module->cutoffdate)) {
+            $assignclosed = ($module->cutoffdate <= $time);
+        }
+      
         // Under certain circumstances, users are allowed to see plagiarism info
         // even if they don't have view report capability.
         if ($USER->id == $userid) {
             $selfreport = true;
             if (isset($plagiarismvalues['unplag_show_student_report']) &&
                     ($plagiarismvalues['unplag_show_student_report'] == PLAGIARISM_UNPLAG_SHOW_ALWAYS ||
-                     $plagiarismvalues['unplag_show_student_report'] == PLAGIARISM_UNPLAG_SHOW_CLOSED && $assignclosed)) {
+                     ($plagiarismvalues['unplag_show_student_report'] == PLAGIARISM_UNPLAG_SHOW_CLOSED && $assignclosed))) {
                 $viewreport = true;
             }
             if (isset($plagiarismvalues['unplag_show_student_score']) &&
@@ -281,6 +289,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         } else {
             $selfreport = false;
         }
+       
         // End of rights checking.
 
         if (!$viewscore && !$viewreport && !$selfreport) {
@@ -303,10 +312,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 'score' => '', 'pid' => '', 'optoutlink' => '', 'renamed' => '',
                 'analyzed' => 0,
                 );
-        if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
+        if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED || $plagiarismfile->statuscode == 'pending') {
             $results['statuscode'] = UNPLAG_STATUSCODE_ACCEPTED;
             $results['progress'] = $plagiarismfile->progress;
-            $results['check_id'] = $plagiarismfile->check_id;
+            $results['id'] = $plagiarismfile->id;
             return $results;
         }
 
@@ -329,12 +338,12 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             }
             if ($viewreport) {
                 $results['reporturl'] = $plagiarismfile->reporturl;
-            }
-            if (!empty($plagiarismfile->optout) && $selfreport) {
                 $results['optoutlink'] = $plagiarismfile->optout;
             }
+            
             $results['renamed'] = $previouslysubmitted;
         }
+       
         return $results;
     }
     /* Hook to save plagiarism specific settings on a module settings page.
@@ -473,7 +482,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public function cron() {
         global $CFG;
-        log_message(3, 'Cron run');
+        //log_message(3, 'Cron run');
         // Do any scheduled task stuff.
         //unplag_update_allowed_filetypes();
         // Weird hack to include filelib correctly before allowing use in event_handler.
@@ -812,6 +821,7 @@ function unplag_get_plagiarism_file($cmid, $userid, $file) {
         $plagiarismfile->filename = (!empty($file->filename)) ? $file->filename : $file->get_filename();
         $plagiarismfile->statuscode = 'pending';
         $plagiarismfile->attempt = 0;
+        $plagiarismfile->progress = 0;
         $plagiarismfile->timesubmitted = time();
         if (!$pid = $DB->insert_record('plagiarism_unplag_files', $plagiarismfile)) {
             debugging("insert into unplag_files failed");
@@ -902,17 +912,17 @@ function unplag_send_file_to_unplag($plagiarismfile, $plagiarismsettings, $file)
     $pathinfo = pathinfo($filename);
     $ext = $pathinfo['extension'];
     $filecontents = (!empty($file->filepath)) ? file_get_contents($file->filepath) : $file->get_content();
-    log_message(3, 'Send Upload Request...');
+    //log_message(3, 'Send Upload Request...');
     
     
     //log_message(3, 'file_contents:', $filecontents, 'Base64:', base64_encode($filecontents));
     $response = $api->UploadFile($ext, $filecontents);
-    log_message(3, 'Upload Response:', $response);
+    //log_message(3, 'Upload Response:', $response);
     if(isset($response['result']) && $response['result'] == true){
         //if file was uploaded successfully, lets check it!
-        log_message(3, 'Send Check Request...');
+        //log_message(3, 'Send Check Request...');
         $check_resp = $api->Check('web', $response['file_id']);
-        log_message(3, 'Check Response:', $check_resp);
+        //log_message(3, 'Check Response:', $check_resp);
     }
     else{
         //upload failed
@@ -957,11 +967,11 @@ function unplag_send_file_to_unplag($plagiarismfile, $plagiarismsettings, $file)
 function unplag_get_scores($plagiarismsettings) {
     global $DB;
 
-    mtrace("getting UNPLAG similarity scores");
-    log_message(3, 'Trying to get results');
+   
+    //log_message(3, 'Trying to get results');
     // Get all files set that have been submitted.
     $files = $DB->get_recordset('plagiarism_unplag_files', array('statuscode' => UNPLAG_STATUSCODE_ACCEPTED));
-    log_message(3, 'Files to get results:', $files);
+    //log_message(3, 'Files to get results:', $files);
     foreach ($files as $plagiarismfile) {
         unplag_get_score($plagiarismsettings, $plagiarismfile);
     }
@@ -974,7 +984,7 @@ function unplag_get_score($plagiarismsettings, $plagiarismfile, $force = false) 
     require_once($CFG->dirroot.'/plagiarism/unplag/unplagapi.class.php');
     $api = new UnApi($plagiarismsettings['unplag_client_id'], $plagiarismsettings['unplag_api_secret']);
     $results = $api->GetResults($plagiarismfile->check_id);
-    log_message(3, 'Get Check results:', $results);
+    //log_message(3, 'Get Check results:', $results);
        
             if ($results['checks_results'][0][0]['progress']==100) {//check finished
              
@@ -1164,7 +1174,7 @@ function unplag_reset_file($id) {
 }
 
 
-function log_message() {
+/*function log_message() {
         global $CFG;
         $args = func_get_args();
         $level = array_shift($args);
@@ -1206,4 +1216,4 @@ function log_message() {
 
         
         return $res;
-    }
+    }*/

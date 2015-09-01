@@ -20,8 +20,8 @@
  * @since 2.0
  * @package    plagiarism_urkund
  * @subpackage plagiarism
- * @author     Dan Marsden <dan@danmarsden.com>
- * @copyright  2014 Dan Marsden http://danmarsden.com
+ * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright  UKU Group, LTD, https://www.unplag.com
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
