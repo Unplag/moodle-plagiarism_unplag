@@ -24,7 +24,7 @@
  */
 
 $plugin->version = 2015081802;
-$plugin->requires = 2014041100.00;
+$plugin->requires = 2015051101.00;
 $plugin->cron     = 60; // Only run every 1 minute.
 $plugin->component = 'plagiarism_unplag';
 $plugin->maturity  = MATURITY_STABLE;
