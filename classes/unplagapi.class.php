@@ -23,11 +23,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace plagiarism_unplag\classes;
+
 Class UnApi
 {
     private $apiSecret;
     private $apiKey;
-    private $apiUrl = UNPLAG_DOMAIN.'api';
+    private $apiUrl = 'https://unplag.com/api';
 
     function __construct($apiKey = false, $apiSecret = false){
         if (!$apiKey || !$apiSecret)
@@ -36,26 +38,61 @@ Class UnApi
         $this->apiSecret = $apiSecret;
     }
 
+    private function _get_contents($method, $real_post){
+         $postdata = http_build_query($real_post);
+
+            $opts = array('http' =>
+                array(
+                    'method'  => 'POST',
+                    'header'  => 'Content-type: application/x-www-form-urlencoded',
+                    'content' => $postdata
+                )
+            );
+
+            $context  = stream_context_create($opts);
+
+           
+            return file_get_contents($method, false, $context);
+    }
+    
+    private function _curl_get_contents($method, $real_post){
+        $curl = curl_init();
+
+        curl_setopt($curl, CURLOPT_URL, $method);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($real_post));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_VERBOSE, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+
+        $response = curl_exec($curl);
+        $info = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error = curl_errno($curl);
+        curl_close($curl);
+        
+        return $response;
+    }
+    
     public function _call($method, $params = false){
-        if ($params && !is_array($params))
-            throw new Exception('$params must be an array');
-        $params['ClientID'] = $this->apiKey;
-        $real_post = array();
-        $real_post['json'] = json_encode($params);
-        $real_post['sign'] = md5($real_post['json'] . $this->apiSecret);
-        $postdata = http_build_query($real_post);
-        //log_message(3, $postdata);
-        $opts = array('http' =>
-            array(
-                'method' => 'POST',
-                'header' => 'Content-type: application/x-www-form-urlencoded',
-                'content' => $postdata
-            )
-        );
-        $context = stream_context_create($opts);
-        $result = file_get_contents($method, false, $context);
-        $res = json_decode(trim($result), true);
-        return ($res)?$res:$result;
+            
+            if($params && !is_array($params))
+                throw new Exception('$params must be an array');
+        
+            $params['ClientID'] = $this->apiKey;
+            $real_post = array();
+            $real_post['json'] = json_encode($params);
+            $real_post['sign'] = md5($real_post['json'].$this->apiSecret);
+           
+            if(function_exists('curl_init')){
+                $result = $this->_curl_get_contents($method, $real_post);
+            }
+            else{
+                $result = $this->_get_contents($method, $real_post);
+            }
+            $res = json_decode(trim($result), true);  
+            
+            return $res;  
     }
 
     public function UploadFile($ext, $f_content, $owner_email = false){

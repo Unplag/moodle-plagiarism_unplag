@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+        
 $handlers = array (
 
 /*
@@ -21,43 +22,50 @@ $handlers = array (
  */
     'assessable_file_uploaded' => array (
         'handlerfile'      => '/plagiarism/unplag/lib.php',
-        'handlerfunction'  => 'unplag_event_file_uploaded',
-        'schedule'         => 'cron'
+        'handlerfunction'  => array('plagiarism_plugin_unplag', 'unplag_event_file_uploaded'),
+        'schedule'         => 'instant',
+        'status' => 200
     ),
     'assessable_files_done' => array (
         'handlerfile'      => '/plagiarism/unplag/lib.php',
-        'handlerfunction'  => 'unplag_event_files_done',
-        'schedule'         => 'cron'
+        'handlerfunction'  => array('plagiarism_plugin_unplag', 'unplag_event_files_done'),
+        'schedule'         => 'cron',
+        'status' => 200
     ),
     'assessable_content_uploaded' => array (
         'handlerfile'      => '/plagiarism/unplag/lib.php',
-        'handlerfunction'  => 'unplag_event_content_uploaded',
-        'schedule'         => 'cron'
+        'handlerfunction'  => array('plagiarism_plugin_unplag', 'unplag_event_content_uploaded'),
+        'schedule'         => 'cron',
+        'status' => 200
     ),
     'assessable_content_done' => array (
         'handlerfile'      => '/plagiarism/unplag/lib.php',
-        'handlerfunction'  => 'unplag_event_content_done',
-        'schedule'         => 'cron'
+        'handlerfunction'  => array('plagiarism_plugin_unplag', 'unplag_event_content_done'),
+        'schedule'         => 'instant'
     ),
     'mod_created' => array (
         'handlerfile'      => '/plagiarism/unplag/lib.php',
-        'handlerfunction'  => 'unplag_event_mod_created',
-        'schedule'         => 'cron'
+        'handlerfunction'  => array('plagiarism_plugin_unplag', 'unplag_event_mod_created'),
+        'schedule'         => 'cron',
+        'status' => 200
     ),
     'mod_updated' => array (
         'handlerfile'      => '/plagiarism/unplag/lib.php',
-        'handlerfunction'  => 'unplag_event_mod_updated',
-        'schedule'         => 'cron'
+        'handlerfunction'  => array('plagiarism_plugin_unplag', 'unplag_event_mod_updated'),
+        'schedule'         => 'cron',
+        'status' => 200
     ),
     'mod_deleted' => array (
         'handlerfile'      => '/plagiarism/unplag/lib.php',
-        'handlerfunction'  => 'unplag_event_mod_deleted',
-        'schedule'         => 'cron'
+        'handlerfunction'  => array('plagiarism_plugin_unplag', 'unplag_event_mod_deleted'),
+        'schedule'         => 'cron',
+        'status' => 200
     ),
     'assessable_submitted' => array (
         'handlerfile'      => '/plagiarism/unplag/lib.php',
-        'handlerfunction'  => 'unplag_event_assessable_submitted',
-        'schedule'         => 'cron'
+        'handlerfunction'  => array('plagiarism_plugin_unplag', 'unplag_event_assessable_submitted'),
+        'schedule'         => 'cron',
+        'status' => 200
     ),
 
 );

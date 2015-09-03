@@ -23,9 +23,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$plugin->version = 2015081802;
+
+$plugin->version = 2015090304;
 $plugin->requires = 2015051101.00;
 $plugin->cron     = 60; // Only run every 1 minute.
 $plugin->component = 'plagiarism_unplag';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.0';
+$plugin->release   = '1.1.2';

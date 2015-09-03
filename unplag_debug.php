@@ -79,7 +79,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
         }
     } else if ($resetuser == 2 && $id && confirm_sesskey()) {
         $plagiarismfile = $DB->get_record('plagiarism_unplag_files', array('id' => $id), '*', MUST_EXIST);
-        $file = unplag_get_score(plagiarism_plugin_unplag::get_settings(), $plagiarismfile, true);
+        $file = plagiarism_plugin_unplag::unplag_get_score(plagiarism_plugin_unplag::get_settings(), $plagiarismfile, true);
         // Reset attempts as this was a manual check.
         $file->attempt = $file->attempt - 1;
         $DB->update_record('plagiarism_unplag_files', $file);

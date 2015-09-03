@@ -67,7 +67,7 @@ class unplag_defaults_form extends moodleform {
     // Define the form.
     function definition () {
         $mform =& $this->_form;
-        unplag_get_form_elements($mform);
+        plagiarism_plugin_unplag::unplag_get_form_elements($mform);
         $this->add_action_buttons(true);
     }
 }

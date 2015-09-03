@@ -22,7 +22,6 @@
  * @copyright  UKU Group, LTD, https://www.unplag.com
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/plagiarismlib.php');
@@ -61,34 +60,28 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
     if (!isset($data->unplag_enable_mod_workshop)) {
         $data->unplag_enable_mod_workshop = 0;
     }
+    $errors = false;
     foreach ($data as $field => $value) {
         if (strpos($field, 'unplag') === 0) {
-            if ($field == 'unplag_api') { // Strip trailing slash from api.
-                $value = rtrim($value, '/');
-            }
-            if ($configfield = $DB->get_record('config_plugins', array('name' => $field, 'plugin' => 'plagiarism'))) {
-                $configfield->value = $value;
-                if (! $DB->update_record('config_plugins', $configfield)) {
-                    error("errorupdating");
-                }
-            } else {
-                $configfield = new stdClass();
-                $configfield->value = $value;
-                $configfield->plugin = 'plagiarism';
-                $configfield->name = $field;
-                if (! $DB->insert_record('config_plugins', $configfield)) {
-                    error("errorinserting");
-                }
+            
+           
+            if(!set_config($field, $value, 'plagiarism')){
+                $errors = true;
+                
             }
         }
     }
     cache_helper::invalidate_by_definition('core', 'config', array(), 'plagiarism');
 
-        echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
+        if($errors){
+            echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
+        }
+        else echo $OUTPUT->notification(get_string('failsavesettings', 'plagiarism_unplag'));
     
 }
 
-$invalidhandlers = unplag_check_event_handlers();
+$invalidhandlers = plagiarism_plugin_unplag::unplag_check_event_handlers();
+
 if (!empty($invalidhandlers)) {
     echo $OUTPUT->notification("There are invalid event handlers - these MUST be fixed. Please use the correct procedure to uninstall any components listed in the table below.<br>
 The existence of these events may cause this plugin to function incorrectly.");
@@ -101,7 +94,7 @@ The existence of these events may cause this plugin to function incorrectly.");
 
 }
 
-$plagiarismsettings = (array)get_config('plagiarism');
+$plagiarismsettings = array_merge((array)get_config('plagiarism'), (array)get_config('plagiarism_moorsp'));
 $mform->set_data($plagiarismsettings);
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
