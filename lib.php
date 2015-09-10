@@ -187,10 +187,11 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $PAGE->requires->js_init_call('M.plagiarism_unplag.init', array($linkarray['cmid']), true, $jsmodule);
             
             $output .= '<span class="un_report">'.
-                       '<img file_id="'.$results['id'].'" class="un_progress un_tooltip" src="'.$OUTPUT->pix_url('scan', 'plagiarism_unplag') .
+                       '<img  class="'.$results['pid'].' un_progress un_tooltip" src="'.$OUTPUT->pix_url('scan', 'plagiarism_unplag') .
                         '" alt="'.get_string('processing', 'plagiarism_unplag').'" '.
-                        '" title="'.get_string('processing', 'plagiarism_unplag').'" /> '.
-                        get_string('progress', 'plagiarism_unplag').' : <span class="un_progress_val" >'.intval($results['progress']).'%</span></span>';
+                        '" title="'.get_string('processing', 'plagiarism_unplag').'" file_id="'.$results['pid'].'" /> '.
+                        get_string('progress', 'plagiarism_unplag').' : <span file_id="'.$results['pid'].'" class="un_progress_val" >'.intval($results['progress']).'%</span></span>';
+            
         } else if ($results['statuscode'] == UNPLAG_STATUSCODE_INVALID_RESPONSE && is_array($errors) && array_key_exists('format', $errors)) {
             $output .= '<span class="un_report">'.
                        '<img class="un_tooltip" src="'.$OUTPUT->pix_url('error', 'plagiarism_unplag') .
@@ -321,7 +322,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED || $plagiarismfile->statuscode == 'pending') {
             $results['statuscode'] = UNPLAG_STATUSCODE_ACCEPTED;
             $results['progress'] = $plagiarismfile->progress;
-            $results['id'] = $plagiarismfile->id;
+            $results['pid'] = $plagiarismfile->id;
             return $results;
         }
 
@@ -488,7 +489,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public function cron() {
         global $CFG;
-        //log_message(3, 'Cron run');
+       
         // Do any scheduled task stuff.
         //unplag_update_allowed_filetypes();
         // Weird hack to include filelib correctly before allowing use in event_handler.
@@ -504,17 +505,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     static function event_handler($eventdata) {
         global $DB, $CFG;
-
-        $supportedevents = self::unplag_supported_events();
-        if (!in_array($eventdata->eventtype, $supportedevents)) {
-            return true; // Don't need to handle this event.
-        }
-
+      
+       
         $plagiarismsettings = self::get_settings();
         if (!$plagiarismsettings) {
             return true;
         }
-        $cmid = (!empty($eventdata->cm->id)) ? $eventdata->cm->id : $eventdata->cmid;
+        $cmid = $eventdata['contextinstanceid'];
         $plagiarismvalues = $DB->get_records_menu('plagiarism_unplag_config', array('cm' => $cmid), '', 'name, value');
         if (empty($plagiarismvalues['use_unplag'])) {
             // Unplag not in use for this cm - return.
@@ -522,13 +519,11 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         }
 
         // Check if the module associated with this event still exists.
-        if (!$DB->record_exists('course_modules', array('id' => $eventdata->cmid))) {
+        if (!$DB->record_exists('course_modules', array('id' => $cmid))) {
             return true;
         }
 
-        if ($eventdata->eventtype == 'files_done' ||
-            $eventdata->eventtype == 'content_done' ||
-            ($eventdata->eventtype == 'assessable_submitted' && $eventdata->params['submission_editable'] == false)) {
+        if (($eventdata['component'] == 'assessable_submitted' && $eventdata['other']['submission_editable'] == false)) {
             // Assignment-specific functionality:
             // This is a 'finalize' event. No files from this event itself,
             // but need to check if files from previous events need to be submitted for processing.
@@ -538,41 +533,42 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 $plagiarismvalues['unplag_draft_submit'] == PLAGIARISM_UNPLAG_DRAFTSUBMIT_FINAL) {
                 // Any files attached to previous events were not submitted.
                 // These files are now finalized, and should be submitted for processing.
-                if ($eventdata->modulename == 'assignment') {
+                if ($eventdata['component'] == 'assignsubmission_file'
+                || $eventdata['component'] == 'assignsubmission_onlinetext') {
                     // Hack to include filelib so that file_storage class is available.
                     require_once("$CFG->dirroot/mod/assignment/lib.php");
                     // We need to get a list of files attached to this assignment and put them in an array, so that
                     // we can submit each of them for processing.
                     $assignmentbase = new assignment_base($cmid);
-                    $submission = $assignmentbase->get_submission($eventdata->userid);
-                    $modulecontext = context_module::instance($eventdata->cmid);
+                    $submission = $assignmentbase->get_submission($eventdata['userid']);
+                    $modulecontext = context_module::instance($cmid);
                     $fs = get_file_storage();
                     if ($files = $fs->get_area_files($modulecontext->id, 'mod_assignment', 'submission', $submission->id,
                                                      "timemodified", false)) {
                         foreach ($files as $file) {
-                            $sendresult =self::unplag_send_file($cmid, $eventdata->userid, $file, $plagiarismsettings);
+                            $sendresult =self::unplag_send_file($cmid, $eventdata['userid'], $file, $plagiarismsettings);
                             $result = $result && $sendresult;
                         }
                     }
-                } else if ($eventdata->modulename == 'assign') {
+                } else if ($eventdata['component'] == 'mod_assign') {
                     require_once("$CFG->dirroot/mod/assign/locallib.php");
                     require_once("$CFG->dirroot/mod/assign/submission/file/locallib.php");
 
-                    $modulecontext = context_module::instance($eventdata->cmid);
+                    $modulecontext = context_module::instance($cmid);
                     $fs = get_file_storage();
                     if ($files = $fs->get_area_files($modulecontext->id, 'assignsubmission_file',
-                                                     ASSIGNSUBMISSION_FILE_FILEAREA, $eventdata->itemid, "id", false)) {
+                                                     ASSIGNSUBMISSION_FILE_FILEAREA, $eventdata['objectid'], "id", false)) {
                         foreach ($files as $file) {
-                            $sendresult =self::unplag_send_file($cmid, $eventdata->userid, $file, $plagiarismsettings);
+                            $sendresult =self::unplag_send_file($cmid, $eventdata['userid'], $file, $plagiarismsettings);
                             $result = $result && $sendresult;
                         }
                     }
-                    $submission = $DB->get_record('assignsubmission_onlinetext', array('submission' => $eventdata->itemid));
+                    $submission = $DB->get_record('assignsubmission_onlinetext', array('submission' => $eventdata['objectid']));
                     if (!empty($submission)) {
-                        $eventdata->content = trim(format_text($submission->onlinetext, $submission->onlineformat,
+                        $eventdata['other']['content'] = trim(format_text($submission->onlinetext, $submission->onlineformat,
                                                                array('context' => $modulecontext)));
                         $file =self::unplag_create_temp_file($cmid, $eventdata);
-                        $sendresult =self::unplag_send_file($cmid, $eventdata->userid, $file, $plagiarismsettings);
+                        $sendresult =self::unplag_send_file($cmid, $eventdata['userid'], $file, $plagiarismsettings);
                         $result = $result && $sendresult;
                         unlink($file->filepath); // Delete temp file.
                     }
@@ -590,16 +586,16 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         // Text is attached.
         $result = true;
-        if (!empty($eventdata->content)) {
+        if (!empty($eventdata['other']['content'])) {
             $file =self::unplag_create_temp_file($cmid, $eventdata);
-            $sendresult =self::unplag_send_file($cmid, $eventdata->userid, $file, $plagiarismsettings);
+            $sendresult =self::unplag_send_file($cmid, $eventdata['userid'], $file, $plagiarismsettings);
             $result = $result && $sendresult;
             unlink($file->filepath); // Delete temp file.
         }
 
         // Normal situation: 1 or more assessable files attached to event, ready to be checked.
-        if (!empty($eventdata->pathnamehashes)) {
-            foreach ($eventdata->pathnamehashes as $hash) {
+        if (!empty($eventdata['other']['pathnamehashes'])) {
+            foreach ($eventdata['other']['pathnamehashes'] as $hash) {
                 $fs = get_file_storage();
                 $efile = $fs->get_file_by_hash($hash);
 
@@ -611,12 +607,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     continue;
                 }
                 // Check if assign group submission is being used.
-                if ($eventdata->modulename == 'assign') {
+                if ($eventdata['component'] == 'assignsubmission_file'
+                || $eventdata['component'] == 'assignsubmission_onlinetext') {
                     require_once("$CFG->dirroot/mod/assign/locallib.php");
-                    $modulecontext = context_module::instance($eventdata->cmid);
+                    $modulecontext = context_module::instance($cmid);
                     $assign = new assign($modulecontext, false, false);
                     if (!empty($assign->get_instance()->teamsubmission)) {
-                        $mygroups = groups_get_user_groups($assign->get_course()->id, $eventdata->userid);
+                        $mygroups = groups_get_user_groups($assign->get_course()->id, $eventdata['userid']);
                         if (count($mygroups) == 1) {
                             $groupid = reset($mygroups)[0];
                             // Only users with single groups are supported - otherwise just use the normal userid on this record.
@@ -628,18 +625,18 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                             }
                             // Find the earliest plagiarism record for this cm with any of these users.
                             $sql ='cm = ? AND userid IN ('.implode(',', $userids).')';
-                            $previousfiles = $DB->get_records_select('plagiarism_unplag_files', $sql, array($eventdata->cmid), 'id');
+                            $previousfiles = $DB->get_records_select('plagiarism_unplag_files', $sql, array($cmid), 'id');
                             $sanitycheckusers = 10; // Search through this number of users to find a valid previous submission.
                             $i = 0;
                             foreach ($previousfiles as $pf) {
-                                if ($pf->userid == $eventdata->userid) {
+                                if ($pf->userid == $eventdata['userid']) {
                                     break; // The submission comes from this user so break.
                                 }
                                 // Sanity Check to make sure the user isn't in multiple groups.
                                 $pfgroups = groups_get_user_groups($assign->get_course()->id, $pf->userid);
                                 if (count($pfgroups) == 1) {
                                     // This user made the first valid submission so use their id when sending the file.
-                                    $eventdata->userid = $pf->userid;
+                                    $eventdata['userid'] = $pf->userid;
                                     break;
                                 }
                                 if ($i >= $sanitycheckusers) {
@@ -652,7 +649,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     }
                 }
 
-                $sendresult =self::unplag_send_file($cmid, $eventdata->userid, $efile, $plagiarismsettings);
+                $sendresult =self::unplag_send_file($cmid, $eventdata['userid'], $efile, $plagiarismsettings);
                 $result = $result && $sendresult;
             }
         }
@@ -678,69 +675,35 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
     
     static function unplag_event_file_uploaded($eventdata) {
-            $eventdata->eventtype = 'file_uploaded';
+
       
-            return self::event_handler($eventdata);
-        }
-        static function unplag_event_files_done($eventdata) {
-            $eventdata->eventtype = 'files_done';
-         
-            return self::event_handler($eventdata);
+            return self::event_handler($eventdata->get_data());
         }
 
         static function unplag_event_content_uploaded($eventdata) {
-            $eventdata->eventtype = 'content_uploaded';
+
            
-            return self::event_handler($eventdata);
+            return self::event_handler($eventdata->get_data());
         }
 
-        static function unplag_event_content_done($eventdata) {
-            $eventdata->eventtype = 'content_done';
-           
-            return self::event_handler($eventdata);
-        }
+
 
         static function unplag_event_assessable_submitted($eventdata) {
-            $eventdata->eventtype = 'assessable_submitted';
+ 
            
-            return self::event_handler($eventdata);
+            return self::event_handler($eventdata->get_data());
         }
 
-        static function unplag_event_mod_created($eventdata) {
-            $result = true;
-                // A new module has been created - this is a generic event that is called for all module types
-                // make sure you check the type of module before handling if needed.
 
-            return $result;
-        }
 
-        static function unplag_event_mod_updated($eventdata) {
-            $result = true;
-                // A module has been updated - this is a generic event that is called for all module types
-                // make sure you check the type of module before handling if needed.
 
-            return $result;
-        }
-
-        static function unplag_event_mod_deleted($eventdata) {
-            $result = true;
-                // A module has been deleted - this is a generic event that is called for all module types
-                // make sure you check the type of module before handling if needed.
-
-            return $result;
-        }
-
-        static function unplag_supported_events() {
-            $supportedevents = array('file_uploaded', 'files_done', 'content_uploaded', 'content_done', 'assessable_submitted');
-            return $supportedevents;
-        }
 
         static function unplag_create_temp_file($cmid, $eventdata) {
             global $CFG;
             if (!check_dir_exists($CFG->tempdir."/unplag", true, true)) {
                 mkdir($CFG->tempdir."/unplag", 0700);
             }
-            $filename = "content-" . $eventdata->courseid . "-" . $cmid . "-" . $eventdata->userid . ".htm";
+            $filename = "content-" . $eventdata['contextid'] . "-" . $cmid . "-" . $eventdata['userid'] . ".htm";
             $filepath = $CFG->tempdir."/unplag/" . $filename;
             $fd = fopen($filepath, 'wb');   // Create if not exist, write binary.
 
@@ -750,7 +713,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                        '<meta charset="UTF-8">' .
                        '</head>' .
                        '<body>' .
-                       $eventdata->content .
+                       $eventdata['other']['content'] .
                        '</body></html>';
 
             fwrite($fd, $content);
@@ -759,7 +722,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $file->type = "tempunplag";
             $file->filename = $filename;
             $file->timestamp = time();
-            $file->identifier = sha1($eventdata->content);
+            $file->identifier = sha1($eventdata['other']['content']);
             $file->filepath = $filepath;
             return $file;
         }
@@ -915,17 +878,17 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $pathinfo = pathinfo($filename);
             $ext = $pathinfo['extension'];
             $filecontents = (!empty($file->filepath)) ? file_get_contents($file->filepath) : $file->get_content();
-            //log_message(3, 'Send Upload Request...');
+            
 
 
-            //log_message(3, 'file_contents:', $filecontents, 'Base64:', base64_encode($filecontents));
+           
             $response = $api->UploadFile($ext, $filecontents);
-            //log_message(3, 'Upload Response:', $response);
+           
             if(isset($response['result']) && $response['result'] == true){
                 //if file was uploaded successfully, lets check it!
-                //log_message(3, 'Send Check Request...');
+              
                 $check_resp = $api->Check('web', $response['file_id']);
-                //log_message(3, 'Check Response:', $check_resp);
+               
             }
             else{
                 //upload failed
@@ -971,10 +934,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             global $DB;
             
 
-            //log_message(3, 'Trying to get results');
+            
             // Get all files set that have been submitted.
             $files = $DB->get_recordset('plagiarism_unplag_files', array('statuscode' => UNPLAG_STATUSCODE_ACCEPTED));
-            //log_message(3, 'Files to get results:', $files);
+          
             foreach ($files as $plagiarismfile) {
                 self::unplag_get_score($plagiarismsettings, $plagiarismfile);
             }
@@ -987,7 +950,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $api = new UnApi($plagiarismsettings['unplag_client_id'], $plagiarismsettings['unplag_api_secret']);
             
             $results = $api->GetResults($plagiarismfile->check_id); 
-            //log_message(3, 'Get Check results:', $results);
+           
 
                     if ($results['result'] && $results['checks_results'][0][0]['progress']==100) {//check finished
 
@@ -1067,26 +1030,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             return "rank$rank";
         }
 
-        // Function to check for invalid event_handlers.
-        static function unplag_check_event_handlers() {
-            global $DB, $CFG;
-            $invalidhandlers = array();
-            $eventhandlers = $DB->get_records('events_handlers');
-            foreach ($eventhandlers as $handler) {
-                $function = unserialize($handler->handlerfunction);
-
-                if (is_callable($function)) { // This static function is fine.
-                    continue;
-                } else if (file_exists($CFG->dirroot.$handler->handlerfile)) {
-                    include_once($CFG->dirroot.$handler->handlerfile);
-                    if (is_callable($function)) { // This static function is fine.
-                        continue;
-                    }
-                }
-                $invalidhandlers[] = $handler; // This static function can't be found.
-            }
-            return $invalidhandlers;
-        }
+       
 
 
         static function unplag_reset_file($id) {

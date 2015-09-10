@@ -40,7 +40,7 @@ require_login($cm->course, true, $cm);
 $modulecontext = context_module::instance($cmid);
 require_capability('plagiarism/unplag:resetfile', $modulecontext);
 
-unplag_reset_file($pf);
+plagiarism_plugin_unplag::unplag_reset_file($pf);
 
 if ($cm->modname == 'assignment') {
     $redirect = new moodle_url('/mod/assignment/submissions.php', array('id' => $cmid));

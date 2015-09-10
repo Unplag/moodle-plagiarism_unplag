@@ -1,6 +1,6 @@
 # moodle-plagiarism_unplag
 
-UNPLAG Plagiarism plugin for Moodle 2.0
+UNPLAG Plagiarism plugin for Moodle 2.9
 
 Author: Mikhail Grinenko <m.grinenko@p1k.co.uk>
 Copyright: UKU Group, LTD, http://www.unplag.com

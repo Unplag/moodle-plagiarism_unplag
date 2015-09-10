@@ -60,38 +60,16 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
     if (!isset($data->unplag_enable_mod_workshop)) {
         $data->unplag_enable_mod_workshop = 0;
     }
-    $errors = false;
+   
     foreach ($data as $field => $value) {
         if (strpos($field, 'unplag') === 0) {
             
            
-            if(!set_config($field, $value, 'plagiarism')){
-                $errors = true;
-                
-            }
+            set_config($field, $value, 'plagiarism');
+             
         }
     }
-    cache_helper::invalidate_by_definition('core', 'config', array(), 'plagiarism');
-
-        if($errors){
             echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
-        }
-        else echo $OUTPUT->notification(get_string('failsavesettings', 'plagiarism_unplag'));
-    
-}
-
-$invalidhandlers = plagiarism_plugin_unplag::unplag_check_event_handlers();
-
-if (!empty($invalidhandlers)) {
-    echo $OUTPUT->notification("There are invalid event handlers - these MUST be fixed. Please use the correct procedure to uninstall any components listed in the table below.<br>
-The existence of these events may cause this plugin to function incorrectly.");
-    $table = new html_table();
-    $table->head = array('eventname', 'plugin', 'handlerfile');
-    foreach ($invalidhandlers as $handler) {
-        $table->data[] = array($handler->eventname, $handler->component, $handler->handlerfile);
-    }
-    echo html_writer::table($table);
-
 }
 
 $plagiarismsettings = array_merge((array)get_config('plagiarism'), (array)get_config('plagiarism_moorsp'));

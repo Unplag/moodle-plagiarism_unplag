@@ -71,10 +71,10 @@ if (!$table->is_downloading($download, $exportfilename)) {
         $warning = ' warning';
     }
 
-    echo $OUTPUT->box(get_string('waitingevents', 'plagiarism_unplag', $a), 'generalbox admin'.$warning)."<br/>";
+
 
     if ($resetuser == 1 && $id && confirm_sesskey()) {
-        if (unplag_reset_file($id)) {
+        if (plagiarism_plugin_unplag::unplag_reset_file($id)) {
             echo $OUTPUT->notification(get_string('fileresubmitted', 'plagiarism_unplag'));
         }
     } else if ($resetuser == 2 && $id && confirm_sesskey()) {
@@ -101,33 +101,14 @@ if (!$table->is_downloading($download, $exportfilename)) {
     }
 }
 $heldevents = array();
-if (!empty($a->countheld)) {
-    if (!$table->is_downloading()) {
-        echo $OUTPUT->heading(get_string('heldevents', 'plagiarism_unplag'));
-        echo $OUTPUT->box(get_string('heldeventsdescription', 'plagiarism_unplag'));
-    }
-    $sql = "SELECT qh.id, qh.status, qh.timemodified, eq.eventdata, eq.stackdump, eq.userid, eh.eventname,
-                       eh.component, eh.handlerfile, eh.handlerfunction
-                  FROM {events_queue_handlers} qh
-                  JOIN {events_queue} eq ON eq.id = qh.queuedeventid
-                  JOIN {events_handlers} eh ON eh.id = qh.handlerid
-                 WHERE qh.status > 0";
-    $heldevents = $DB->get_records_sql($sql);
-    if (!$table->is_downloading()) {
-        foreach ($heldevents as $e) {
-            $e->eventdata = unserialize(base64_decode($e->eventdata));
-            // Using print_object here as the data won't display nicely in a table and it's more useful in copy/paste, screenshot.
-            print_object($e);
-        }
-    }
-}
+
 // Now show files in an error state.
 $userfields = get_all_user_name_fields(true, 'u');
 $sqlallfiles = "SELECT t.*, ".$userfields.", m.name as moduletype, ".
         "cm.course as courseid, cm.instance as cminstance FROM ".
         "{plagiarism_unplag_files} t, {user} u, {modules} m, {course_modules} cm ".
         "WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id ".
-        "AND t.statuscode <> 'Analyzed' ";
+        "AND t.errorresponse is not null ";
 
 $sqlcount = "SELECT COUNT(id) FROM {plagiarism_unplag_files} WHERE statuscode <> 'Analyzed'";
 
@@ -139,7 +120,7 @@ if (!empty($sort)) {
     } else if ($sort == "module") {
         $orderby = " ORDER BY cm.id";
     } else if ($sort == "status") {
-        $orderby = " ORDER BY t.statuscode";
+        $orderby = " ORDER BY t.errorresponse";
     } else if ($sort == "id") {
         $orderby = " ORDER BY t.id";
     }
@@ -177,9 +158,7 @@ foreach ($unplagfiles as $tf) {
     $coursemodule = get_coursemodule_from_id($tf->moduletype, $tf->cm);
 
     $user = "<a href='".$CFG->wwwroot."/user/profile.php?id=".$tf->userid."'>".fullname($tf)."</a>";
-    if ($tf->statuscode == 'Analyzed') { // Sanity check - don't show a resubmit link.
-        $reset = '';
-    } else if ($tf->statuscode == UNPLAG_STATUSCODE_ACCEPTED) { // Sanity Check.
+    if ($tf->statuscode == UNPLAG_STATUSCODE_ACCEPTED) { // Sanity Check.
         $reset = '<a href="unplag_debug.php?reset=2&id='.$tf->id.'&sesskey='.sesskey().'">'.
                  get_string('getscore', 'plagiarism_unplag').'</a> | ';
     } else {
@@ -192,7 +171,7 @@ foreach ($unplagfiles as $tf) {
     if ($table->is_downloading()) {
         $row = array($tf->id, $tf->userid, $tf->cm .' '. $tf->moduletype, $tf->identifier, $tf->statuscode, $tf->attempt, $tf->errorresponse);
     } else {
-        $row = array($tf->id, $user, $cmlink, $tf->identifier, $tf->statuscode, $tf->attempt, $reset);
+        $row = array($tf->id, $user, $cmlink, $tf->identifier, $tf->errorresponse, $tf->attempt, $reset);
     }
 
     $table->add_data($row);
@@ -217,15 +196,7 @@ if ($table->is_downloading()) {
     foreach ($configrecords as $cf) {
         $table->add_data(array($cf->id, $cf->cm, $cf->name, $cf->value));
     }
-    if (!empty($heldevents)) {
-        $table->add_data(array());
-        $table->add_data(array());
-        foreach ($heldevents as $e) {
-            $e->eventdata = unserialize(base64_decode($e->eventdata));
-            // Using print_object here as the data won't display nicely in a table and it's more useful in copy/paste, screenshots.
-            $table->add_data(array('heldevent', $e->status, $e->component, $e->eventname, var_export($e, true)));
-        }
-    }
+
 }
 
 if (!$table->is_downloading()) {
