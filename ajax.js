@@ -17,6 +17,7 @@
  * Javascript helper function for URKUND plugin
  *
  * @package   plagiarism-unplag
+ * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
  * @copyright Mikhail Grinenko <m.grinenko@p1k.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

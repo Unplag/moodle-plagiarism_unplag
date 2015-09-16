@@ -18,8 +18,9 @@
  * version.php
  *
  * @package   plagiarism_unplag
- * @authors     Dan Marsden <Dan@danmarsden.com>, Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright 2014 Dan Marsden <Dan@danmarsden.com>, 
+ * @author     Dan Marsden <Dan@danmarsden.com>
+ * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright 2014 Dan Marsden <Dan@danmarsden.com>
  * @copyright   UKU Group, LTD, https://www.unplag.com 
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
