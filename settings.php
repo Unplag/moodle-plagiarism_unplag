@@ -18,8 +18,9 @@
  * plagiarism.php - allows the admin to configure plagiarism stuff
  *
  * @package   plagiarism_unplag
- * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright  UKU Group, LTD, https://www.unplag.com
+ * @authors     Dan Marsden <Dan@danmarsden.com>, Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright 2014 Dan Marsden <Dan@danmarsden.com>, 
+ * @copyright   UKU Group, LTD, https://www.unplag.com 
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
@@ -72,7 +73,7 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
             echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
 }
 
-$plagiarismsettings = array_merge((array)get_config('plagiarism'), (array)get_config('plagiarism_moorsp'));
+$plagiarismsettings = array_merge((array)get_config('plagiarism'), (array)get_config('plagiarism_unplag'));
 $mform->set_data($plagiarismsettings);
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
