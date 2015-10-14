@@ -18,7 +18,7 @@
  * checkreceiver.php - Checks to make sure passed receiver address is valid.
  *
  * @since 2.0
- * @package    plagiarism_urkund
+ * @package    plagiarism_unplag
  * @subpackage plagiarism
  * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
  * @copyright  UKU Group, LTD, https://www.unplag.com
