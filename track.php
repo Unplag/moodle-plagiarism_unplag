@@ -33,11 +33,8 @@ require_once($CFG->dirroot.'/plagiarism/unplag/lib.php');
 require_once($CFG->libdir.'/filelib.php');
 
 $cid = required_param('cid', PARAM_INT);
-//$contextinstance = required_param('c', PARAM_INT);
-//$coursecontext = context_course::instance($contextinstance);
 
 require_login();
-//require_capability('plagiarism/unplag:enable', $coursecontext);
 
 require_sesskey();
 

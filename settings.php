@@ -67,14 +67,14 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
         if (strpos($field, 'unplag') === 0) {
             
            
-            set_config($field, $value, 'plagiarism');
+            set_config($field, $value, 'plagiarism_unplag');
              
         }
     }
             echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
 }
 
-$plagiarismsettings = array_merge((array)get_config('plagiarism'), (array)get_config('plagiarism_unplag'));
+$plagiarismsettings = array_merge((array)get_config('plagiarism_unplag'), (array)get_config('plagiarism_unplag'));
 $mform->set_data($plagiarismsettings);
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');

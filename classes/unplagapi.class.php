@@ -63,8 +63,6 @@ Class UnApi
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($real_post));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_VERBOSE, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
 
         $response = curl_exec($curl);
         $info = curl_getinfo($curl, CURLINFO_HTTP_CODE);
