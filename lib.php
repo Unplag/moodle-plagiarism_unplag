@@ -78,7 +78,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (!empty($plagiarismsettings) || $plagiarismsettings === false) {
             return $plagiarismsettings;
         }
-        $plagiarismsettings = (array)get_config('plagiarism');
+        $plagiarismsettings = (array)get_config('plagiarism_unplag');
         // Check if enabled.
         if (isset($plagiarismsettings['unplag_use']) && $plagiarismsettings['unplag_use']) {
             // Now check to make sure required settings are set!
