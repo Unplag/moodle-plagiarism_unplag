@@ -65,7 +65,7 @@ Class UnApi
 
     private function _curl_get_contents($method, $real_post)
     {
-        $c = new curl(array('proxy' => true));
+        $c = new \curl(array('proxy' => true));
         $c->setopt(array('CURLOPT_RETURNTRANSFER' => 1));
         $response = $c->post($method, http_build_query($real_post));
 
