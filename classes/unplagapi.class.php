@@ -25,95 +25,112 @@
 
 namespace plagiarism_unplag\classes;
 
+global $CFG;
+require_once($CFG->dirroot . '/lib/filelib.php');
+
 Class UnApi
 {
     private $apiSecret;
     private $apiKey;
     private $apiUrl = 'https://unplag.com/api';
 
-    function __construct($apiKey = false, $apiSecret = false){
+    function __construct($apiKey = false, $apiSecret = false)
+    {
         if (!$apiKey || !$apiSecret)
+        {
             throw new Exception('apiKey and apiSecret must be provided');
+        }
         $this->apiKey = $apiKey;
         $this->apiSecret = $apiSecret;
     }
 
-    private function _get_contents($method, $real_post){
-         $postdata = http_build_query($real_post);
+    private function _get_contents($method, $real_post)
+    {
+        $postdata = http_build_query($real_post);
 
-            $opts = array('http' =>
-                array(
-                    'method'  => 'POST',
-                    'header'  => 'Content-type: application/x-www-form-urlencoded',
+        $opts = [
+            'http' =>
+                [
+                    'method' => 'POST',
+                    'header' => 'Content-type: application/x-www-form-urlencoded',
                     'content' => $postdata
-                )
-            );
+                ]
+        ];
 
-            $context  = stream_context_create($opts);
+        $context = stream_context_create($opts);
 
-           
-            return file_get_contents($method, false, $context);
+
+        return file_get_contents($method, false, $context);
     }
-    
-    private function _curl_get_contents($method, $real_post){
-        $curl = curl_init();
 
-        curl_setopt($curl, CURLOPT_URL, $method);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($real_post));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_VERBOSE, true);
+    private function _curl_get_contents($method, $real_post)
+    {
+        $c = new curl(array('proxy' => true));
+        $c->setopt(array('CURLOPT_RETURNTRANSFER' => 1));
+        $response = $c->post($method, http_build_query($real_post));
 
-        $response = curl_exec($curl);
-        $info = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $error = curl_errno($curl);
-        curl_close($curl);
-        
+        unset($curl,$real_post);
+
         return $response;
     }
-    
-    public function _call($method, $params = false){
-            
-            if($params && !is_array($params))
-                throw new Exception('$params must be an array');
-        
-            $params['ClientID'] = $this->apiKey;
-            $real_post = array();
-            $real_post['json'] = json_encode($params);
-            $real_post['sign'] = md5($real_post['json'].$this->apiSecret);
-           
-            if(function_exists('curl_init')){
-                $result = $this->_curl_get_contents($method, $real_post);
-            }
-            else{
-                $result = $this->_get_contents($method, $real_post);
-            }
-            $res = json_decode(trim($result), true);  
-            
-            return $res;  
+
+    public function _call($method, $params = false)
+    {
+
+        if ($params && !is_array($params))
+        {
+            throw new Exception('$params must be an array');
+        }
+
+        $params['ClientID'] = $this->apiKey;
+        $real_post = [];
+        $real_post['json'] = json_encode($params);
+        $real_post['sign'] = md5($real_post['json'] . $this->apiSecret);
+
+        if (function_exists('curl_init'))
+        {
+            $result = $this->_curl_get_contents($method, $real_post);
+        }
+        else
+        {
+            $result = $this->_get_contents($method, $real_post);
+        }
+        $res = json_decode(trim($result), true);
+
+        return $res;
     }
 
-    public function UploadFile($ext, $f_content, $owner_email = false){
+    public function UploadFile($ext, $f_content, $owner_email = false)
+    {
         $url = $this->apiUrl . '/UploadFile';
-        $postdata = array('ext' => $ext, 'f_content' => base64_encode($f_content), 'owner_email' => $owner_email);
+        $postdata = ['ext' => $ext, 'f_content' => base64_encode($f_content), 'owner_email' => $owner_email];
+
         return $this->_call($url, $postdata);
     }
 
-    public function Check($type, $file_id = array(), $callback_url = false, $owner_email = false){
+    public function Check($type, $file_id = [], $callback_url = false, $owner_email = false)
+    {
         $url = $this->apiUrl . '/Check';
-        $postdata = array('type' => $type, 'file_id' => $file_id, 'callback' => $callback_url, 'owner_email' => $owner_email);
+        $postdata = [
+            'type' => $type, 'file_id' => $file_id, 'callback' => $callback_url, 'owner_email' => $owner_email
+        ];
+
         return $this->_call($url, $postdata);
     }
 
-    public function GetResults($check_id){
+    public function GetResults($check_id)
+    {
         $url = $this->apiUrl . '/GetResults';
-        $postdata = array('check_id' => $check_id);
+        $postdata = ['check_id' => $check_id];
+
         return $this->_call($url, $postdata);
     }
 
-    public function CalculateCost($type, $file_id = array(), $words_count){
+    public function CalculateCost($type, $file_id = [], $words_count)
+    {
         $url = $this->apiUrl . '/CalculateCost';
-        $postdata = array('type' => $type, 'file_id' => $file_id, 'words_count' => $words_count);
+        $postdata = ['type' => $type, 'file_id' => $file_id, 'words_count' => $words_count];
+
         return $this->_call($url, $postdata);
     }
 }
