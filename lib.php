@@ -27,12 +27,13 @@
  */
 
 use plagiarism_unplag\classes\UnApi;
-
+use plagiarism_unplag\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); // It must be included from a Moodle page.
 }
 
+//var_dump(new unplag_core());
 // Get global class.
 global $CFG;
 require_once($CFG->dirroot.'/plagiarism/lib.php');

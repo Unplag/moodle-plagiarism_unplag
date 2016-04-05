@@ -13,22 +13,24 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * version.php
  *
- * @package   plagiarism_unplag
- * @author     Dan Marsden <Dan@danmarsden.com>
- * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright 2014 Dan Marsden <Dan@danmarsden.com>
- * @copyright   UKU Group, LTD, https://www.unplag.com 
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     plagiarism_unplag
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
+if (!isset($plugin)) {
+    $plugin = new stdClass();
+}
 
 $plugin->version = 2016030302;
 $plugin->requires = 2015051101.00;
-$plugin->cron     = 60; // Only run every 1 minute.
+$plugin->cron = 60; // Only run every 1 minute.
+$plugin->maturity = MATURITY_STABLE;
+
 $plugin->component = 'plagiarism_unplag';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.3.1';
+$plugin->release = '1.3.5';

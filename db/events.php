@@ -14,43 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-        
-$observers = array (
+$observers = [
 
-/*
- * Event Handlers
- */
-    array (
-        'eventname'      => '\assignsubmission_file\event\assessable_uploaded',
-        'includefile'      => '/plagiarism/unplag/lib.php',
-        'callback'  => 'plagiarism_plugin_unplag::unplag_event_file_uploaded',
-    ),
-    array (
-        'eventname'      => '\mod_workshop\event\assessable_uploaded',
-        'includefile'      => '/plagiarism/unplag/lib.php',
-        'callback'  => 'plagiarism_plugin_unplag::unplag_event_file_uploaded',
-
-    ),
-    array (
-        'eventname'      => 'mod_forum\event\assessable_uploaded',
-        'includefile'      => '/plagiarism/unplag/lib.php',
-        'callback'  => 'plagiarism_plugin_unplag::unplag_event_file_uploaded',
-
-    ),
-
-    array (
-        'eventname'      => '\assignsubmission_onlinetext\event\assessable_uploaded',
-        'includefile'      => '/plagiarism/unplag/lib.php',
-        'callback'  => 'plagiarism_plugin_unplag::unplag_event_content_uploaded',
-
-    ),
-  
-
-    array (
-        'eventname'      => '\mod_assign\event\assessable_submitted',
-        'includefile'      => '/plagiarism/unplag/lib.php',
-        'callback'  => 'plagiarism_plugin_unplag::unplag_event_assessable_submitted',
-   
-    ),
-
-);
+    /*
+     * Event Handlers
+     */
+    [
+        'eventname'   => '*',
+        'includefile' => '/plagiarism/unplag/locallib.php',
+        'callback'    => 'plagiarism_unplag::event_handler',
+    ],
+];
