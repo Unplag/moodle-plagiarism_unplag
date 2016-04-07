@@ -38,7 +38,7 @@ if (!defined('MOODLE_INTERNAL')) {
 global $CFG;
 require_once($CFG->dirroot.'/plagiarism/lib.php');
 require_once($CFG->dirroot . '/lib/filelib.php');
-require_once($CFG->dirroot.'/plagiarism/unplag/classes/unplagapi.class.php');
+//require_once($CFG->dirroot.'/plagiarism/unplag/classes/unplagapi.class.php');
 
 // There is a new UNPLAG API - The Integration Service - we only currently use this to verify the receiver address.
 // If we convert the existing calls to send file/get score we should move this to a config setting.
@@ -49,6 +49,7 @@ define('UNPLAG_SUBMISSION_DELAY', 15); // Initial delay, doubled each time a che
 define('UNPLAG_MAX_STATUS_ATTEMPTS', 10); // Maximum number of times to try and obtain the status of a submission.
 define('UNPLAG_MAX_STATUS_DELAY', 1440); // Maximum time to wait between checks (defined in minutes).
 define('UNPLAG_STATUS_DELAY', 30); // Initial delay, doubled each time a check is made until the max_status_delay is met.
+
 define('UNPLAG_STATUSCODE_PROCESSED', '200');
 define('UNPLAG_STATUSCODE_ACCEPTED', '202');
 define('UNPLAG_STATUSCODE_UNSUPPORTED', '415');
@@ -180,14 +181,14 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $output .= '</span>';
         } elseif ($results['statuscode'] == UNPLAG_STATUSCODE_ACCEPTED || $results['statuscode'] == 'pending') {
             // Now add JS to validate receiver indicator using Ajax.
-    
             $jsmodule = array(
                 'name' => 'plagiarism_unplag',
                 'fullpath' => '/plagiarism/unplag/ajax.js',
                 'requires' => array('json'),
             );
+
             $PAGE->requires->js_init_call('M.plagiarism_unplag.init', array($linkarray['cmid']), true, $jsmodule);
-            
+
             $output .= '<span class="un_report">'.
                        '<img  class="'.$results['pid'].' un_progress un_tooltip" src="'.$OUTPUT->pix_url('scan', 'plagiarism_unplag') .
                         '" alt="'.get_string('processing', 'plagiarism_unplag').'" '.
@@ -224,12 +225,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                         '" title="'.$title.'" />'.$reset.'</span>';
         }
         return $output;
-    }
-    
-    public function track_progress($file_id){
-        global $DB;
-        $record = $DB->get_record('plagiarism_unplag_files', array('id' => $file_id));
-        return array('progress' => (int)$record->progress, 'refresh' => get_string('refresh', 'plagiarism_unplag'));    
     }
 
     public function get_file_results($cmid, $userid, $file) {

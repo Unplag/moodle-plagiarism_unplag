@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace plagiarism_unplag\classes;
 
@@ -6,11 +20,13 @@ require_once('unplag_api.class.php');
 
 /**
  * Class unplag_core
- * @package plagiarism_unplag
+ * @package plagiarism_unplag\classes
  */
 class unplag_core {
     const UNPLAG_FILES_TABLE = 'plagiarism_unplag_files';
     const STATUSCODE_PENDING = 'pending';
+    const UNPLAG_STATUSCODE_INVALID_RESPONSE = 613;
+    const UNPLAG_STATUSCODE_ACCEPTED = 202;
     /** @var  \stored_file */
     private $file;
 
@@ -23,60 +39,6 @@ class unplag_core {
     public function __construct($cmid, $userid) {
         $this->cmid = $cmid;
         $this->userid = $userid;
-    }
-
-    /**
-     * @param \core\event\base $event
-     */
-    public static function event_lisiner(\core\event\base $event) {
-        global $DB, $CFG;
-
-        //mail('v.titov@p1k.co.uk', 'moodle events', print_r($event, true));
-        // var_dump($event->target, $event->action, $event->eventname, $event->component, $event->get_data());
-//die;
-        try {
-            self::validate_event($event);
-        } catch (\Exception $ex) {
-            echo $ex->getMessage();
-        }
-
-        /*if ($event->target == 'course_module' && $event->action == 'created') {
-        }*/
-
-        if (in_array($event->component, ['assignsubmission_file', 'assignsubmission_onlinetext', 'mod_assign'])) {
-            switch ($event->component) {
-                case 'mod_assign':
-                    require_once("$CFG->dirroot/mod/assign/locallib.php");
-                    require_once("$CFG->dirroot/mod/assign/submission/file/locallib.php");
-                    break;
-
-                default:
-                    require_once("$CFG->dirroot/mod/assignment/lib.php");
-                    break;
-            }
-
-            /*$fs = get_file_storage();
-            $modulecontext = context_module::instance($event->contextinstanceid);
-            $files = $fs->get_area_files($modulecontext->id, 'assignsubmission_file', 'submission_files');
-            if ($files) {
-                foreach ($files as $file) {
-                }
-            }
-            var_dump($files);
-            die;
-            var_dump($modulecontext->id, $event->contextinstanceid);
-            die;*/
-            /*
-             $assignmentbase = new assign($modulecontext, null, null);
-             $submission = $assignmentbase->get_submission($event->userid);*/
-
-            // $fs = get_file_storage();
-            //$files = $fs->get_area_files($modulecontext->id, 'assignsubmission_file', null, $event->objectid, "id", false);
-            /* var_dump($files);
-             die;*/
-            //mail('v.titov@p1k.co.uk', 'moodle events', print_r($event, true));
-        }
-        //die;
     }
 
     /**
@@ -129,12 +91,67 @@ class unplag_core {
     }
 
     /**
+     * @param \core\event\base $event
+     *
+     * @return \stored_file
+     * @throws \file_exception
+     * @throws \stored_file_creation_exception
+     */
+    public function create_temp_file(\core\event\base $event) {
+        $filename = sprintf("content-%d-%d-%d.html", $event->contextid, $this->cmid, $this->userid);
+
+        $file_record = [
+            'component'  => 'user',
+            'filearea'   => 'draft',
+            'contextid'  => $event->contextid,
+            'itemid'     => mt_rand(),
+            'filename'   => $filename,
+            'filepath'   => '/',
+            'identifier' => sha1($event->other['content']),
+        ];
+
+        $fs = get_file_storage();
+        $file = $fs->create_file_from_string($file_record, $event->other['content']);
+
+        return $file;
+    }
+
+    /*public function create_temp_file1(\core\event\base $eventdata) {
+        global $CFG;
+        $tmp_path = $CFG->tempdir . "/unplag";
+        if (!check_dir_exists($tmp_path, true, true)) {
+            mkdir($tmp_path, 0700);
+        }UNPLAG_STATUSCODE_PROCESSED
+
+        $filename = sprintf("content-%d-%d-%d.html", $eventdata->contextid, $this->cmid, $this->userid);
+        $filepath = $tmp_path . $filename;
+        //Write html and body tags as it seems that Unplag doesn't works well without them.
+        $content = '<html><head><meta charset="UTF-8"></head><body>' . $eventdata->other['content'] . '</body></html>';
+
+        file_put_contents($filepath, $content);
+
+        $file = new \stdClass();
+        $file->type = "tempunplag";
+        $file->filename = $filename;
+        $file->timestamp = time();
+        $file->identifier = sha1($eventdata->other['content']);
+        $file->filepath = $filepath;
+
+        return $file;
+    }*/
+
+    /**
      * @param \stored_file $file
      *
-     * @return bool|null
+     * @return mixed|null
+     * @throws UnplagException
      */
     public function handle_uploaded_file(\stored_file $file) {
         global $DB;
+
+        if (!$file) {
+            throw new UnplagException('Invalid argument file');
+        }
 
         $this->file = $file;
 
@@ -154,19 +171,20 @@ class unplag_core {
         $plagiarismfile->attempt = $plagiarismfile->attempt++;
 
         $response = unplag_api::instance()->upload_file($file);
-var_dump($response);die;
+
         if ($response->result) {
+            /** @var \stdClass $check_resp */
             $check_resp = unplag_api::instance()->run_check($response->file);
+            if ($check_resp->result === true) {
+                $this->update_check_record($plagiarismfile, $check_resp->check);
+            }
         } else {
-            $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
+            $plagiarismfile->statuscode = self::UNPLAG_STATUSCODE_INVALID_RESPONSE;
             $plagiarismfile->errorresponse = json_encode($response->errors);
+            $DB->update_record(self::UNPLAG_FILES_TABLE, $plagiarismfile);
         }
 
-        $DB->update_record(self::UNPLAG_FILES_TABLE, $plagiarismfile);
-        die;
-        die;
-
-        return $this->send_file_to_unplag($plagiarismfile);
+        return $response;
     }
 
     /**
@@ -182,9 +200,6 @@ var_dump($response);die;
             'userid'     => $this->userid,
             'identifier' => $filehash,
         ]);
-        /*$plagiarismfile = $DB->get_record_sql("SELECT * FROM {plagiarism_unplag_files} WHERE cm = ? AND userid = ? AND identifier = ?",
-            [$this->cmid, $this->userid, $filehash]
-        );*/
 
         if (!empty($plagiarismfile)) {
             return $plagiarismfile;
@@ -200,7 +215,7 @@ var_dump($response);die;
             $plagiarismfile->timesubmitted = time();
 
             if (!$pid = $DB->insert_record(self::UNPLAG_FILES_TABLE, $plagiarismfile)) {
-                debugging("insert into unplag_files failed");
+                debugging("insert into {self::UNPLAG_FILES_TABLE}");
             }
 
             $plagiarismfile->id = $pid;
@@ -209,57 +224,26 @@ var_dump($response);die;
         }
     }
 
-    private function send_file_to_unplag($plagiarismfile) {
-        global $CFG, $DB;
+    /**
+     * @param $plagiarismfile
+     * @param $check
+     *
+     * @return bool
+     */
+    private function update_check_record($plagiarismfile, $check) {
+        global $DB;
 
+        $plagiarismfile->attempt = 0; // Reset attempts for status checks.
+        $plagiarismfile->check_id = $check->id;
+        $plagiarismfile->statuscode = self::UNPLAG_STATUSCODE_ACCEPTED;
 
-        $api = new UnApi($plagiarismsettings['unplag_client_id'], $plagiarismsettings['unplag_api_secret']);
-        $filename = (!empty($file->filename)) ? $file->filename : $file->get_filename();
-
-        mtrace("sendfile" . $plagiarismfile->id);
-        $useremail = $DB->get_field('user', 'email', ['id' => $plagiarismfile->userid]);
-
-        $pathinfo = pathinfo($filename);
-        $ext = $pathinfo['extension'];
-        $filecontents = (!empty($file->filepath)) ? file_get_contents($file->filepath) : $file->get_content();
-
-        $response = $api->UploadFile($ext, $filecontents);
-
-        if (isset($response['result']) && $response['result'] == true) {
-            //if file was uploaded successfully, lets check it!
-
-            $check_resp = $api->Check('web', $response['file_id']);
-        } else {
-            //upload failed
-            $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-            $plagiarismfile->errorresponse = json_encode($response['errors']);
-
-            $DB->update_record('plagiarism_unplag_files', $plagiarismfile);
-
-            return true;
-        }
-
-        if (isset($check_resp[0]['check_id'])) {
-
-            if ($check_resp['result']) {
-                $plagiarismfile->attempt = 0; // Reset attempts for status checks.
-                $plagiarismfile->check_id = $check_resp[0]['check_id'];
-                $plagiarismfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
-            } else {
-                $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-                $plagiarismfile->errorresponse = implode(',', array_keys($check_resp['errors']));
-            }
-
-            //$plagiarismfile->statuscode = 500;
-            $DB->update_record('plagiarism_unplag_files', $plagiarismfile);
-
-            return true;
-        }
-        // Invalid response returned - increment attempt value and return false to allow this to be called again.
-        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-        $plagiarismfile->errorresponse = '{"unknown":"Unknown error."}';
-        $DB->update_record('plagiarism_unplag_files', $plagiarismfile);
-
-        return true;
+        return $DB->update_record(self::UNPLAG_FILES_TABLE, $plagiarismfile);
     }
+}
+
+/**
+ * Class UnplagException
+ * @package plagiarism_unplag\classes
+ */
+class UnplagException extends \Exception {
 }

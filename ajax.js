@@ -23,57 +23,83 @@
  */
 
 M.plagiarism_unplag = {
-    intervals:{},
+    interval: null,
+    items: []
 };
 
-M.plagiarism_unplag.init = function(Y, contextid) {
+M.plagiarism_unplag.init = function (Y, contextid) {
+    var track_progress = function (Y, items, contextid) {
 
-    var track_progress = function(Y, row, contextid) { 
-        var rval = row.getAttribute('file_id');
-      
-      
-        var url = M.cfg.wwwroot + '/plagiarism/unplag/track.php';
-       
-        var config = {
+        if (!items[0]){
+            clearInterval(M.plagiarism_unplag.interval);
+            return false;
+        }
+
+        var url = M.cfg.wwwroot + '/plagiarism/unplag/ajax.php';
+
+        var callback = {
             method: 'get',
             context: this,
             sync: false,
-            data : {
-                'sesskey' : M.cfg.sesskey,
-                'cid' : rval,
-                'c': contextid
+            data: {
+                'action': 'track_progress',
+                'sesskey': M.cfg.sesskey,
+                'data': Y.JSON.stringify({
+                    ids: items,
+                    cid: contextid
+                })
             },
             on: {
-                success: function(tid, response) {
+                success: function (tid, response) {
                     var jsondata = Y.JSON.parse(response.responseText);
-                     existing = Y.one('.un_progress_val[file_id='+rval+']');
-                     if(!existing) return;
-                    if(jsondata.progress == 100){
-                        clearInterval(M.plagiarism_unplag.intervals[rval]);
-                        existing.setHTML(jsondata.progress+'% <a href="">'+jsondata.refresh+'</a>');
+                    if (!jsondata){
+                        return false;
                     }
-                    else{
-                        existing.setHTML(jsondata.progress+'%');
-                        
-                    }
-                    
 
-
+                    jsondata.forEach(function (item, index) {
+                        handle_record(item, index);
+                    });
                 },
-                failure: function(tid, response) {
-                   
+                failure: function (tid, response) {
                 }
             }
         };
-        Y.io(url, config)
-    }
-  
-    Y.all('.un_progress'). each(function(row) { 
-         M.plagiarism_unplag.intervals[row.getAttribute('file_id')] = setInterval(function(){
 
-           track_progress(Y, row, contextid);
-        }, 60000);
-    });
-   
-   
-}
+        Y.io(url, callback)
+    };
+
+    var handle_record = function (record, index) {
+        var existing = Y.one('.un_progress_val[file_id="' + record.file_id + '"]');
+        if (!existing) {
+            return;
+        }
+
+        existing.setContent(record.progress + '%');
+
+        if (record.progress == 100) {
+            existing.addClass('complete');
+            delete M.plagiarism_unplag.items[index];
+        }
+    };
+
+    var collect_items = function () {
+        Y.all('.un_progress').each(function (row) {
+            if (!row.hasClass('complete')){
+                M.plagiarism_unplag.items.push(row.getAttribute('file_id'));
+            }
+        });
+    };
+
+    var run_plagin = function () {
+
+        collect_items();
+
+        if (M.plagiarism_unplag.items.length) {
+            M.plagiarism_unplag.interval = setInterval(function () {
+                track_progress(Y, M.plagiarism_unplag.items, contextid)
+            }, 3000);
+        }
+    };
+
+    run_plagin();
+};

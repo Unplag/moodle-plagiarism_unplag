@@ -2,6 +2,7 @@
 
 namespace plagiarism_unplag\library\OAuth\Signature;
 
+use plagiarism_unplag\library\OAuth\OAuthRequest;
 use plagiarism_unplag\library\OAuth\OAuthUtil;
 
 /**
@@ -9,11 +10,21 @@ use plagiarism_unplag\library\OAuth\OAuthUtil;
  * @package plagiarism_unplag\library\OAuth\Signature
  */
 class OAuthSignatureMethod_HMAC_SHA1 extends OAuthSignatureMethod {
+    /**
+     * @return string
+     */
     function get_name() {
         return "HMAC-SHA1";
     }
 
-    public function build_signature($request, $consumer, $token) {
+    /**
+     * @param $request
+     * @param $consumer
+     * @param $token
+     *
+     * @return string
+     */
+    public function build_signature(OAuthRequest $request, $consumer, $token) {
         global $oauth_last_computed_signature;
         $oauth_last_computed_signature = false;
 

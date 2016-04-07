@@ -17,7 +17,7 @@
 /**
  * checkreceiver.php - Checks to make sure passed receiver address is valid.
  *
- * @since 2.0
+ * @since      2.0
  * @package    plagiarism_unplag
  * @subpackage plagiarism
  * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
@@ -27,17 +27,17 @@
 
 define('AJAX_SCRIPT', true);
 
-require_once(dirname(dirname(__FILE__)) . '/../config.php');
-require_once($CFG->libdir.'/plagiarismlib.php');
-require_once($CFG->dirroot.'/plagiarism/unplag/lib.php');
-require_once($CFG->libdir.'/filelib.php');
+require_once('locallib.php');
 
-$cid = required_param('cid', PARAM_INT);
+$action = required_param('action', PARAM_ALPHAEXT);
+$data = required_param('data', PARAM_RAW);
 
 require_login();
-
 require_sesskey();
 
-
-$unplag = new plagiarism_plugin_unplag();
-echo json_encode($unplag->track_progress($cid));
+$unplag = new plagiarism_unplag();
+if (!is_callable([$unplag, $action])) {
+    echo json_encode('Called method does not exists');
+    return null;
+}
+echo $unplag->{$action}($data);

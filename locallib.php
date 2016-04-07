@@ -20,6 +20,7 @@
  * @author
  */
 
+use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 
 define('UNPLAG_MOD_NAME', 'plagiarism_unplag');
@@ -37,8 +38,9 @@ class plagiarism_unplag {
      * @param \core\event\base $event
      */
     public static function event_handler(\core\event\base $event) {
-        global $DB, $CFG;
-
+        global $DB;
+        $resp = unplag_api::instance()->get_check_progress([7243, 7244]);
+        var_dump($resp);die;
         //mail('v.titov@p1k.co.uk', 'moodle events', print_r($event, true));
         // var_dump($event->target, $event->action, $event->eventname, $event->component, $event->get_data());
 //die;
@@ -51,44 +53,84 @@ class plagiarism_unplag {
         /*if ($event->target == 'course_module' && $event->action == 'created') {
         }*/
 
-        if (in_array($event->component, ['assignsubmission_file', 'assignsubmission_onlinetext', 'mod_assign'])) {
-            /*switch ($event->component) {
-                case 'mod_assign':
-                    require_once("$CFG->dirroot/mod/assign/locallib.php");
-                    require_once("$CFG->dirroot/mod/assign/submission/file/locallib.php");
-                    break;
+        if (in_array($event->component, ['assignsubmission_file', 'assignsubmission_onlinetext'])) {
+            $unplag_core = new unplag_core($event->get_context()->instanceid, $event->userid);
 
-                default:
-                    require_once("$CFG->dirroot/mod/assignment/lib.php");
-                    break;
-            }*/
+            if (isset($event->other['content'])) {
+                $submission = $DB->get_record('assignsubmission_onlinetext', ['submission' => $event->objectid]);
+
+                if (self::is_content_changed($submission->onlinetext, $event->other['content'])) {
+                    $file = $unplag_core->create_temp_file($event);
+                }
+                mtrace('upload text');
+                $sendresult = $unplag_core->handle_uploaded_file($file);
+                $file->delete();
+            }
+
             $fs = get_file_storage();
-            $modulecontext = context_module::instance($event->contextinstanceid);
-            $files = $fs->get_area_files($modulecontext->id, 'assignsubmission_file', 'submission_files');
-            //var_dump($files);
-            //die;
+            $files = $fs->get_area_files($event->get_context()->id, 'assignsubmission_file', 'submission_files');
             if ($files) {
-                $unplag_core = new unplag_core($event->contextinstanceid, $event->userid);
                 foreach ($files as $file) {
                     if ($file->is_directory()) {
                         continue;
                     }
+                    mtrace('upload file');
                     $sendresult = $unplag_core->handle_uploaded_file($file);
                 }
             }
-            die;
-            var_dump($modulecontext->id, $event->contextinstanceid);
-            die;
-            /*
-             $assignmentbase = new assign($modulecontext, null, null);
-             $submission = $assignmentbase->get_submission($event->userid);*/
-
-            // $fs = get_file_storage();
-            //$files = $fs->get_area_files($modulecontext->id, 'assignsubmission_file', null, $event->objectid, "id", false);
-            /* var_dump($files);
-             die;*/
-            //mail('v.titov@p1k.co.uk', 'moodle events', print_r($event, true));
         }
-        //die;
+    }
+
+    /**
+     * @param $onlinetext
+     * @param $content
+     *
+     * @return bool
+     */
+    private static function is_content_changed($onlinetext, $content) {
+        return base64_encode($onlinetext) !== base64_encode($content);
+    }
+
+    /**
+     * @param $data
+     *
+     * @return string
+     */
+    public function track_progress($data) {
+        global $DB;
+
+        self::parse_json($data);
+
+        $resp = unplag_api::instance()->get_check_progress([7243, 7244]);
+        var_dump($resp);die;
+
+        $resp = null;
+        $records = $DB->get_records_list(unplag_core::UNPLAG_FILES_TABLE, 'id', $data->ids);
+        if ($records) {
+            foreach ($records as $record) {
+                $resp[] = [
+                    'file_id'  => $record->id,
+                    'progress' => (int)$record->progress + 100,
+                ];
+            }
+        }
+
+        return self::json_response($resp);
+    }
+
+    /**
+     * @param $data
+     */
+    private static function parse_json(&$data) {
+        $data = json_decode($data);
+    }
+
+    /**
+     * @param $data
+     *
+     * @return string
+     */
+    private static function json_response($data) {
+        return json_encode($data);
     }
 }

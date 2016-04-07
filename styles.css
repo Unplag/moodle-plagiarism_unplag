@@ -8,26 +8,26 @@ span.un_report span.rank4,
 span.un_report span.rank3,
 span.un_report span.rank2,
 span.un_report span.rank1 {
-       color: inherit;
-       font-weight: bold;
-       padding: 2px;
+    color: inherit;
+    font-weight: bold;
+    padding: 2px;
 }
-
-
 
 span.un_report img {
-   vertical-align: middle;
-   position: relative;
+    vertical-align: middle;
+    position: relative;
 }
+
 span.un_report a {
-       text-decoration: none;
+    text-decoration: none;
 }
-span.un_report .un_progress{
+
+span.un_report .un_progress {
     width: 30px;
 }
 
-span.un_report img.un_progress{
+span.un_report img.un_progress {
     vertical-align: middle;
-    margin-left:5px;
+    margin-left: 5px;
 }
     
