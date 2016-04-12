@@ -30,14 +30,23 @@ define('AJAX_SCRIPT', true);
 require_once('locallib.php');
 
 $action = required_param('action', PARAM_ALPHAEXT);
-$data = required_param('data', PARAM_RAW);
+$data = optional_param('data', [], PARAM_RAW);
+$token = optional_param('token', '', PARAM_RAW);
 
-require_login();
-require_sesskey();
-
+if (!$token) {
+    require_login();
+    require_sesskey();
+}
 $unplag = new plagiarism_unplag();
 if (!is_callable([$unplag, $action])) {
     echo json_encode('Called method does not exists');
+
     return null;
 }
+
+if ($token) {
+    $data = $token;
+}
+
 echo $unplag->{$action}($data);
+die;

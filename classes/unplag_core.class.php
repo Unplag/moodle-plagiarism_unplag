@@ -27,6 +27,7 @@ class unplag_core {
     const STATUSCODE_PENDING = 'pending';
     const UNPLAG_STATUSCODE_INVALID_RESPONSE = 613;
     const UNPLAG_STATUSCODE_ACCEPTED = 202;
+    const UNPLAG_STATUSCODE_PROCESSED = 200;
     /** @var  \stored_file */
     private $file;
 
@@ -91,6 +92,74 @@ class unplag_core {
     }
 
     /**
+     * @param $checkstatusforthisids
+     * @param $resp
+     */
+    public static function check_real_file_progress($checkstatusforthisids, &$resp) {
+        $progresses = unplag_api::instance()->get_check_progress($checkstatusforthisids);
+        if ($progresses->result) {
+            foreach ($progresses->progress as $id => $val) {
+                $progres = $val * 100;
+                $resp[$id]['progress'] = $progres;
+
+                self::update_file_progress($id, $progres);
+            }
+        }
+    }
+
+    /**
+     * @param $id
+     * @param $progres
+     */
+    private static function update_file_progress($id, $progres) {
+        global $DB;
+
+        $record = $DB->get_record(unplag_core::UNPLAG_FILES_TABLE, ['check_id' => $id]);
+        if ($record->progress < $progres) {
+            $record->progress = $progres;
+
+            if ($record->progress === 100) {
+                $resp = unplag_api::instance()->get_check_data($id);
+                self::check_complete($record, $resp->check);
+            } else {
+                $DB->update_record(unplag_core::UNPLAG_FILES_TABLE, $record);
+            }
+        }
+    }
+
+    /**
+     * @param \stdClass $record
+     * @param \stdClass $check
+     */
+    public static function check_complete(\stdClass $record, \stdClass $check) {
+        global $DB;
+//var_dump($check);
+        $record->statuscode = self::UNPLAG_STATUSCODE_PROCESSED;
+        $record->similarityscore = $check->report->similarity * 100;
+        $record->reporturl = $check->report->view_url;
+
+        $DB->update_record(unplag_core::UNPLAG_FILES_TABLE, $record);
+    }
+
+    /**
+     * @param $data
+     *
+     * @return mixed
+     */
+    public static function parse_json($data) {
+        return json_decode($data);
+    }
+
+    /**
+     * @param $data
+     *
+     * @return string
+     */
+    public static function json_response($data) {
+        return json_encode($data);
+    }
+
+    /**
      * @param \core\event\base $event
      *
      * @return \stored_file
@@ -100,7 +169,7 @@ class unplag_core {
     public function create_temp_file(\core\event\base $event) {
         $filename = sprintf("content-%d-%d-%d.html", $event->contextid, $this->cmid, $this->userid);
 
-        $file_record = [
+        $filerecord = [
             'component'  => 'user',
             'filearea'   => 'draft',
             'contextid'  => $event->contextid,
@@ -111,9 +180,52 @@ class unplag_core {
         ];
 
         $fs = get_file_storage();
-        $file = $fs->create_file_from_string($file_record, $event->other['content']);
+        $file = $fs->create_file_from_string($filerecord, $event->other['content']);
 
         return $file;
+    }
+
+    /**
+     * @param \stored_file $file
+     *
+     * @return mixed|null
+     * @throws UnplagException
+     */
+    public function handle_uploaded_file(\stored_file $file) {
+        if (!$file) {
+            throw new UnplagException('Invalid argument file');
+        }
+
+        $this->file = $file;
+
+        $plagiarismfile = $this->get_internal_file();
+        // Check if $plagiarismfile actually needs to be submitted.
+        if ($plagiarismfile->statuscode !== self::STATUSCODE_PENDING) {
+            return null;
+        }
+
+        $filename = $file->get_filename();
+        if ($plagiarismfile->filename !== $filename) {
+            // This is a file that was previously submitted and not sent to unplag but the filename has changed so fix it.
+            $plagiarismfile->filename = $filename;
+        }
+
+        // Increment attempt number.
+        $plagiarismfile->attempt = $plagiarismfile->attempt++;
+
+        $response = unplag_api::instance()->upload_file($file);
+
+        if ($response->result) {
+            /** @var \stdClass $checkresp */
+            $checkresp = unplag_api::instance()->run_check($response->file);
+            if ($checkresp->result === true) {
+                $this->update_check_record($plagiarismfile, $checkresp->check);
+            }
+        } else {
+            self::store_check_errors($plagiarismfile, $response);
+        }
+
+        return $response;
     }
 
     /*public function create_temp_file1(\core\event\base $eventdata) {
@@ -139,53 +251,6 @@ class unplag_core {
 
         return $file;
     }*/
-
-    /**
-     * @param \stored_file $file
-     *
-     * @return mixed|null
-     * @throws UnplagException
-     */
-    public function handle_uploaded_file(\stored_file $file) {
-        global $DB;
-
-        if (!$file) {
-            throw new UnplagException('Invalid argument file');
-        }
-
-        $this->file = $file;
-
-        $plagiarismfile = $this->get_internal_file();
-        // Check if $plagiarismfile actually needs to be submitted.
-        if ($plagiarismfile->statuscode !== self::STATUSCODE_PENDING) {
-            return null;
-        }
-
-        $filename = $file->get_filename();
-        if ($plagiarismfile->filename !== $filename) {
-            // This is a file that was previously submitted and not sent to unplag but the filename has changed so fix it.
-            $plagiarismfile->filename = $filename;
-        }
-
-        // Increment attempt number.
-        $plagiarismfile->attempt = $plagiarismfile->attempt++;
-
-        $response = unplag_api::instance()->upload_file($file);
-
-        if ($response->result) {
-            /** @var \stdClass $check_resp */
-            $check_resp = unplag_api::instance()->run_check($response->file);
-            if ($check_resp->result === true) {
-                $this->update_check_record($plagiarismfile, $check_resp->check);
-            }
-        } else {
-            $plagiarismfile->statuscode = self::UNPLAG_STATUSCODE_INVALID_RESPONSE;
-            $plagiarismfile->errorresponse = json_encode($response->errors);
-            $DB->update_record(self::UNPLAG_FILES_TABLE, $plagiarismfile);
-        }
-
-        return $response;
-    }
 
     /**
      * @return mixed|\stdClass
@@ -238,6 +303,18 @@ class unplag_core {
         $plagiarismfile->statuscode = self::UNPLAG_STATUSCODE_ACCEPTED;
 
         return $DB->update_record(self::UNPLAG_FILES_TABLE, $plagiarismfile);
+    }
+
+    /**
+     * @param           $plagiarismfile
+     * @param \stdClass $response
+     */
+    public static function store_check_errors($plagiarismfile, \stdClass $response) {
+        global $DB;
+
+        $plagiarismfile->statuscode = self::UNPLAG_STATUSCODE_INVALID_RESPONSE;
+        $plagiarismfile->errorresponse = json_encode($response->errors);
+        $DB->update_record(self::UNPLAG_FILES_TABLE, $plagiarismfile);
     }
 }
 

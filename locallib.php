@@ -20,15 +20,15 @@
  * @author
  */
 
-use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 
 define('UNPLAG_MOD_NAME', 'plagiarism_unplag');
 define('UNPLAG_PROJECT_PATH', dirname(__FILE__) . '/');
+define('UNPLAG_CALLBACK_URL', '/plagiarism/unplag/ajax.php?action=unplag_callback');
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(UNPLAG_PROJECT_PATH . 'classes/unplag_core.class.php');
-//require_once($CFG->dirroot.'/mod/lti/OAuth.php');
+require_once($CFG->dirroot . '/lib/filelib.php');
 
 /**
  * Class plagiarism_unplag
@@ -39,8 +39,7 @@ class plagiarism_unplag {
      */
     public static function event_handler(\core\event\base $event) {
         global $DB;
-        $resp = unplag_api::instance()->get_check_progress([7243, 7244]);
-        var_dump($resp);die;
+
         //mail('v.titov@p1k.co.uk', 'moodle events', print_r($event, true));
         // var_dump($event->target, $event->action, $event->eventname, $event->component, $event->get_data());
 //die;
@@ -61,10 +60,10 @@ class plagiarism_unplag {
 
                 if (self::is_content_changed($submission->onlinetext, $event->other['content'])) {
                     $file = $unplag_core->create_temp_file($event);
+                    mtrace('upload text');
+                    $sendresult = $unplag_core->handle_uploaded_file($file);
+                    $file->delete();
                 }
-                mtrace('upload text');
-                $sendresult = $unplag_core->handle_uploaded_file($file);
-                $file->delete();
             }
 
             $fs = get_file_storage();
@@ -99,38 +98,48 @@ class plagiarism_unplag {
     public function track_progress($data) {
         global $DB;
 
-        self::parse_json($data);
-
-        $resp = unplag_api::instance()->get_check_progress([7243, 7244]);
-        var_dump($resp);die;
+        $data = unplag_core::parse_json($data);
 
         $resp = null;
         $records = $DB->get_records_list(unplag_core::UNPLAG_FILES_TABLE, 'id', $data->ids);
         if ($records) {
+            $checkstatusforthisids = [];
             foreach ($records as $record) {
-                $resp[] = [
+                if ($record->progress != 100) {
+                    array_push($checkstatusforthisids, $record->check_id);
+                }
+
+                $resp[$record->check_id] = [
                     'file_id'  => $record->id,
-                    'progress' => (int)$record->progress + 100,
+                    'progress' => (int)$record->progress,
                 ];
+            }
+
+            if (!empty($checkstatusforthisids)) {
+                unplag_core::check_real_file_progress($checkstatusforthisids, $resp);
             }
         }
 
-        return self::json_response($resp);
+        return unplag_core::json_response($resp);
     }
 
     /**
-     * @param $data
-     */
-    private static function parse_json(&$data) {
-        $data = json_decode($data);
-    }
-
-    /**
-     * @param $data
+     * @param $token
      *
-     * @return string
+     * @throws moodle_exception
      */
-    private static function json_response($data) {
-        return json_encode($data);
+    public function unplag_callback($token) {
+        global $DB;
+
+        if ($token && strlen($token) === 40) {
+            $record = $DB->get_record(unplag_core::UNPLAG_FILES_TABLE, ['identifier' => $token]);
+            if ($record) {
+                $rawjson = file_get_contents('php://input');
+                $check = unplag_core::parse_json($rawjson);
+                unplag_core::check_complete($record, $check);
+            }
+        } else {
+            print_error('error');
+        }
     }
 }

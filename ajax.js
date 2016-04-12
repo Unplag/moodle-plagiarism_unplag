@@ -56,7 +56,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                         return false;
                     }
 
-                    jsondata.forEach(function (item, index) {
+                    Y.each(jsondata, function (item, index) {
                         handle_record(item, index);
                     });
                 },
@@ -68,7 +68,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
         Y.io(url, callback)
     };
 
-    var handle_record = function (record, index) {
+    var handle_record = function (record) {
         var existing = Y.one('.un_progress_val[file_id="' + record.file_id + '"]');
         if (!existing) {
             return;
@@ -78,7 +78,8 @@ M.plagiarism_unplag.init = function (Y, contextid) {
 
         if (record.progress == 100) {
             existing.addClass('complete');
-            delete M.plagiarism_unplag.items[index];
+            var items = M.plagiarism_unplag.items;
+            delete items[items.indexOf(record.file_id)];
         }
     };
 
@@ -97,7 +98,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
         if (M.plagiarism_unplag.items.length) {
             M.plagiarism_unplag.interval = setInterval(function () {
                 track_progress(Y, M.plagiarism_unplag.items, contextid)
-            }, 3000);
+            }, 5000);
         }
     };
 
