@@ -60,34 +60,24 @@ class unplag_api {
             'name'      => $file->get_filename(),
         ];
 
-        $resp = unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
-        if ($resp->result === false) {
-            unplag_core::store_check_errors($file, $resp);
-        }
-
-        return $resp;
-    }
+        return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
+     }
 
     /**
      * @param \stdClass $file
      *
-     * @return bool
+     * @return mixed
      */
     public function run_check(\stdClass $file) {
         global $CFG;
 
         $postdata = [
             'type'         => self::$checktype,
-            'file_id'      => $file->id,
+            'file_id'      => $file->external_file_id,
             'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
         ];
 
-        $resp = unplag_api_request::instance()->http_post()->request('check/create', $postdata);
-        if ($resp->result === false) {
-            unplag_core::store_check_errors($file, $resp);
-        }
-
-        return $resp;
+        return unplag_api_request::instance()->http_post()->request('check/create', $postdata);
     }
 
     /**
