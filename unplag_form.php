@@ -16,16 +16,16 @@
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); // It must be included from a Moodle page.
 }
-require_once($CFG->dirroot.'/lib/formslib.php');
 
+require_once($CFG->dirroot . '/lib/formslib.php');
+
+/**
+ * Class unplag_setup_form
+ */
 class unplag_setup_form extends moodleform {
-
     // Define the form.
-    function definition () {
-        global $CFG;
-
+    function definition() {
         $mform =& $this->_form;
-        //$mform->addElement('html', get_string('unplagexplain', 'plagiarism_unplag'));
         $mform->addElement('checkbox', 'unplag_use', get_string('useunplag', 'plagiarism_unplag'));
 
         $mform->addElement('text', 'unplag_client_id', get_string('unplag_client_id', 'plagiarism_unplag'));
@@ -45,7 +45,7 @@ class unplag_setup_form extends moodleform {
         $mform->setType('unplag_lang', PARAM_TEXT);
 
         $mform->addElement('textarea', 'unplag_student_disclosure', get_string('studentdisclosure', 'plagiarism_unplag'),
-                           'wrap="virtual" rows="6" cols="50"');
+            'wrap="virtual" rows="6" cols="50"');
         $mform->addHelpButton('unplag_student_disclosure', 'studentdisclosure', 'plagiarism_unplag');
         $mform->setDefault('unplag_student_disclosure', get_string('studentdisclosuredefault', 'plagiarism_unplag'));
         $mform->setType('unplag_student_disclosure', PARAM_TEXT);
@@ -62,12 +62,61 @@ class unplag_setup_form extends moodleform {
     }
 }
 
+/**
+ * Class unplag_defaults_form
+ */
 class unplag_defaults_form extends moodleform {
+    private $internalusage = false;
+
+    /**
+     * unplag_defaults_form constructor.
+     *
+     * @param object|null $mform - Moodle form
+     */
+    public function __construct($mform = null) {
+        if (!is_null($mform)) {
+            $this->_form = $mform;
+            $this->internalusage = true;
+        }
+    }
 
     // Define the form.
-    function definition () {
-        $mform =& $this->_form;
-        plagiarism_plugin_unplag::unplag_get_form_elements($mform);
-        $this->add_action_buttons(true);
+    function definition() {
+        $mform = &$this->_form;
+
+        $ynoptions = [0 => get_string('no'), 1 => get_string('yes')];
+        $tiioptions = [
+            0 => get_string("never"),
+            1 => get_string("always"),
+            2 => get_string("showwhenclosed", "plagiarism_unplag"),
+        ];
+
+        $unplagdraftoptions = [
+            PLAGIARISM_UNPLAG_DRAFTSUBMIT_IMMEDIATE => get_string("submitondraft", "plagiarism_unplag"),
+            PLAGIARISM_UNPLAG_DRAFTSUBMIT_FINAL     => get_string("submitonfinal", "plagiarism_unplag"),
+        ];
+
+        $mform->addElement('header', 'plagiarismdesc', get_string('unplag', 'plagiarism_unplag'));
+        $mform->addElement('select', 'use_unplag', get_string("useunplag", "plagiarism_unplag"), $ynoptions);
+
+        $mform->addElement('select', 'unplag_show_student_score',
+            get_string("unplag_show_student_score", "plagiarism_unplag"), $tiioptions
+        );
+        $mform->addHelpButton('unplag_show_student_score', 'unplag_show_student_score', 'plagiarism_unplag');
+        $mform->addElement('select', 'unplag_show_student_report',
+            get_string("unplag_show_student_report", "plagiarism_unplag"), $tiioptions
+        );
+        $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
+        if ($mform->elementExists('var4') || $mform->elementExists('submissiondrafts')) {
+            $mform->addElement('select', 'unplag_draft_ubmit',
+                get_string("unplag_draft_submit", "plagiarism_unplag"), $unplagdraftoptions
+            );
+        }
+        $mform->addElement('select', 'unplag_studentemail', get_string("unplag_studentemail", "plagiarism_unplag"), $ynoptions);
+        $mform->addHelpButton('unplag_studentemail', 'unplag_studentemail', 'plagiarism_unplag');
+
+        if (!$this->internalusage) {
+            $this->add_action_buttons(true);
+        }
     }
 }

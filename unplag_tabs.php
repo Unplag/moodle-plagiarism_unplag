@@ -33,7 +33,7 @@ $strplagiarismdebug = get_string('unplagdebug', 'plagiarism_unplag');
 
 $tabs = [
     new tabobject('unplagsettings', 'settings.php', $strplagiarism, $strplagiarism, false),
-    new tabobject('unplagdefaults', 'unplag_defaults.php', $strplagiarismdefaults, $strplagiarismdefaults, false),
-    new tabobject('unplagdebug', 'unplag_debug.php', $strplagiarismdebug, $strplagiarismdebug, false),
+    new tabobject('unplagdefaults', 'default_settings.php', $strplagiarismdefaults, $strplagiarismdefaults, false),
+    new tabobject('unplagdebug', 'debugging.php', $strplagiarismdebug, $strplagiarismdebug, false),
 ];
 print_tabs([$tabs], $currenttab);

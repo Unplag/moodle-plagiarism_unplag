@@ -17,18 +17,18 @@
 /**
  * plagiarism.php - allows the admin to configure plagiarism stuff
  *
- * @package   plagiarism_unplag
- * @author     Dan Marsden <Dan@danmarsden.com>
- * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright 2014 Dan Marsden <Dan@danmarsden.com>
- * @copyright   UKU Group, LTD, https://www.unplag.com 
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     plagiarism_unplag
+ * @author      Dan Marsden <Dan@danmarsden.com>
+ * @author      Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright   2014 Dan Marsden <Dan@danmarsden.com>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->libdir.'/plagiarismlib.php');
-require_once($CFG->dirroot.'/plagiarism/unplag/lib.php');
-require_once($CFG->dirroot.'/plagiarism/unplag/unplag_form.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/plagiarismlib.php');
+require_once($CFG->dirroot . '/plagiarism/unplag/lib.php');
+require_once($CFG->dirroot . '/plagiarism/unplag/unplag_form.php');
 
 require_login();
 admin_externalpage_setup('plagiarismunplag');
@@ -46,35 +46,23 @@ if ($mform->is_cancelled()) {
 echo $OUTPUT->header();
 $currenttab = 'unplagsettings';
 require_once('unplag_tabs.php');
+
 if (($data = $mform->get_data()) && confirm_sesskey()) {
-    if (!isset($data->unplag_use)) {
-        $data->unplag_use = 0;
-    }
-    if (!isset($data->unplag_enable_mod_assign)) {
-        $data->unplag_enable_mod_assign = 0;
-    }
-    if (!isset($data->unplag_enable_mod_assignment)) {
-        $data->unplag_enable_mod_assignment = 0;
-    }
-    if (!isset($data->unplag_enable_mod_forum)) {
-        $data->unplag_enable_mod_forum = 0;
-    }
-    if (!isset($data->unplag_enable_mod_workshop)) {
-        $data->unplag_enable_mod_workshop = 0;
-    }
-   
-    foreach ($data as $field => $value) {
-        if (strpos($field, 'unplag') === 0) {
-            
-           
-            set_config($field, $value, 'plagiarism_unplag');
-             
+    foreach (plagiarism_plugin_unplag::default_plagin_options() as $option) {
+        if (!isset($data->$option)) {
+            $data->$option = 0;
         }
     }
-            echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
+
+    foreach ($data as $field => $value) {
+        if (strpos($field, 'unplag') === 0) {
+            set_config($field, $value, 'plagiarism_unplag');
+        }
+    }
+    echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
 }
 
-$plagiarismsettings = array_merge((array)get_config('plagiarism_unplag'), (array)get_config('plagiarism_unplag'));
+$plagiarismsettings = (array)get_config('plagiarism_unplag');
 $mform->set_data($plagiarismsettings);
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');

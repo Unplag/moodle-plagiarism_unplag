@@ -17,21 +17,21 @@
 /**
  * reset.php - resets an unplag submission
  *
- * @since 2.0
- * @package    plagiarism_unplag
- * @subpackage plagiarism
- * @author     Dan Marsden <Dan@danmarsden.com>
- * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright 2014 Dan Marsden <Dan@danmarsden.com>
- * @copyright   UKU Group, LTD, https://www.unplag.com 
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @since       2.0
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Dan Marsden <Dan@danmarsden.com>
+ * @author      Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @copyright   2014 Dan Marsden <Dan@danmarsden.com>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
-require_once($CFG->dirroot.'/plagiarism/unplag/lib.php');
+require_once($CFG->dirroot . '/plagiarism/unplag/lib.php');
 
 $cmid = required_param('cmid', PARAM_INT);  // Course Module ID
-$pf  = required_param('pf', PARAM_INT);   // plagiarism file id.
+$pf = required_param('pf', PARAM_INT);   // plagiarism file id.
 require_sesskey();
 $url = new moodle_url('/plagiarism/unplag/reset.php');
 $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
@@ -45,9 +45,9 @@ require_capability('plagiarism/unplag:resetfile', $modulecontext);
 plagiarism_plugin_unplag::unplag_reset_file($pf);
 
 if ($cm->modname == 'assignment') {
-    $redirect = new moodle_url('/mod/assignment/submissions.php', array('id' => $cmid));
+    $redirect = new moodle_url('/mod/assignment/submissions.php', ['id' => $cmid]);
 } else if ($cm->modname == 'assign') {
-    $redirect = new moodle_url('/mod/assign/view.php', array('id' => $cmid, 'action' => 'grading'));
+    $redirect = new moodle_url('/mod/assign/view.php', ['id' => $cmid, 'action' => 'grading']);
 } else {
     // TODO: add correct locations for workshop and forum.
     $redirect = $CFG->wwwroot;
