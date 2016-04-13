@@ -61,7 +61,7 @@ class unplag_api {
         ];
 
         return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
-     }
+    }
 
     /**
      * @param \stdClass $file
@@ -70,6 +70,10 @@ class unplag_api {
      */
     public function run_check(\stdClass $file) {
         global $CFG;
+
+        if (empty($file)) {
+            throw new \InvalidArgumentException('Invalid argument $file');
+        }
 
         $postdata = [
             'type'         => self::$checktype,
@@ -86,6 +90,9 @@ class unplag_api {
      * @return mixed
      */
     public function get_check_progress(array $checkids) {
+        if (empty($checkids)) {
+            throw new \InvalidArgumentException('Invalid argument $checkids');
+        }
         $postdata = [
             'id' => implode(',', $checkids),
         ];
@@ -99,10 +106,31 @@ class unplag_api {
      * @return mixed
      */
     public function get_check_data($id) {
+        if (empty($id)) {
+            throw new \InvalidArgumentException('Invalid argument id');
+        }
+
         $postdata = [
             'id' => $id,
         ];
 
         return unplag_api_request::instance()->http_get()->request('check/get', $postdata);
+    }
+
+    /**
+     * @param \stdClass $file
+     *
+     * @return mixed
+     */
+    public function delete_check(\stdClass $file) {
+        if (empty($file->check_id)) {
+            throw new \InvalidArgumentException('Invalid argument check_id');
+        }
+
+        $postdata = [
+            'id' => $file->check_id,
+        ];
+
+        return unplag_api_request::instance()->http_post()->request('check/delete', $postdata);
     }
 }
