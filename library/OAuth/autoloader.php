@@ -1,8 +1,6 @@
 <?php
+use plagiarism_unplag\library\unplag_autoloader;
 
-require_once('OAuthConsumer.php');
-require_once('OAuthException.php');
-require_once('OAuthRequest.php');
-require_once('OAuthUtil.php');
-require_once('Signature/OAuthSignatureMethod.php');
-require_once('Signature/OAuthSignatureMethod_HMAC_SHA1.php');
+require_once(dirname(__FILE__) . '/../autoloader.php');
+
+unplag_autoloader::init(dirname(__FILE__));
