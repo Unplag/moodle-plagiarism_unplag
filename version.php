@@ -27,10 +27,9 @@ if (!isset($plugin)) {
     $plugin = new stdClass();
 }
 
-$plugin->version = 2016030302;
-$plugin->requires = 2015051101.00;
-$plugin->cron = 60; // Only run every 1 minute.
+$plugin->version = 2016041600;
+$plugin->requires = 2013111800.00;
 $plugin->maturity = MATURITY_STABLE;
 
 $plugin->component = 'plagiarism_unplag';
-$plugin->release = '1.3.5';
+$plugin->release = '2.0.0';
