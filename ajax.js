@@ -14,10 +14,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Javascript helper function for URKUND plugin
+ * Javascript helper function for plugin
  *
- * @package   plagiarism-unplag
- * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @package   plagiarism_unplag
+ * @author    Vadim Titov <v.titov@p1k.co.uk>
  * @copyright Mikhail Grinenko <m.grinenko@p1k.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,7 +30,7 @@ M.plagiarism_unplag = {
 M.plagiarism_unplag.init = function (Y, contextid) {
     var track_progress = function (Y, items, contextid) {
 
-        if (!items[0]){
+        if (!items[0]) {
             clearInterval(M.plagiarism_unplag.interval);
             return false;
         }
@@ -52,7 +52,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
             on: {
                 success: function (tid, response) {
                     var jsondata = Y.JSON.parse(response.responseText);
-                    if (!jsondata){
+                    if (!jsondata) {
                         return false;
                     }
 
@@ -61,6 +61,9 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                     });
                 },
                 failure: function (tid, response) {
+                    var jsondata = Y.JSON.parse(response.responseText);
+                    M.plagiarism_unplag.items = [];
+                    console.log(jsondata.error);
                 }
             }
         };
@@ -85,7 +88,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
 
     var collect_items = function () {
         Y.all('.un_progress').each(function (row) {
-            if (!row.hasClass('complete')){
+            if (!row.hasClass('complete')) {
                 M.plagiarism_unplag.items.push(row.getAttribute('file_id'));
             }
         });
@@ -98,7 +101,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
         if (M.plagiarism_unplag.items.length) {
             M.plagiarism_unplag.interval = setInterval(function () {
                 track_progress(Y, M.plagiarism_unplag.items, contextid)
-            }, 5000);
+            }, 3000);
         }
     };
 

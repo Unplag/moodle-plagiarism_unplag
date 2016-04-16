@@ -15,8 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * checkreceiver.php - Checks to make sure passed receiver address is valid.
- *
  * @since      2.0
  * @package    plagiarism_unplag
  * @subpackage plagiarism
@@ -27,7 +25,7 @@
 
 define('AJAX_SCRIPT', true);
 
-require_once('locallib.php');
+require_once(dirname(__FILE__) . '/locallib.php');
 
 $action = required_param('action', PARAM_ALPHAEXT);
 $data = optional_param('data', [], PARAM_RAW);
