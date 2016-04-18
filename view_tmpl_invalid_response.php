@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-use plagiarism_unplag\library\unplag_autoloader;
+global $OUTPUT;
 
-require_once(dirname(__FILE__) . '/../autoloader.php');
+$htmlparts = ['<span class="un_report">'];
+$htmlparts[] = sprintf('<img class="un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
+    $OUTPUT->pix_url('error', 'plagiarism_unplag'), get_string('unsupportedfiletype', 'plagiarism_unplag')
+);
+$htmlparts[] = '</span>';
 
-unplag_autoloader::init(dirname(__FILE__));
+return implode('', $htmlparts);

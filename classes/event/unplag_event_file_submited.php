@@ -26,14 +26,7 @@ require_once(dirname(__FILE__) . '/unplag_abstract_event.php');
  */
 class unplag_event_file_submited extends unplag_abstract_event {
     /** @var */
-    private static $instance;
-
-    /**
-     * @return static
-     */
-    public static function instance() {
-        return isset(static::$instance) ? static::$instance : static::$instance = new static;
-    }
+    protected static $instance;
 
     /**
      * @param unplag_core $unplagcore
@@ -43,7 +36,7 @@ class unplag_event_file_submited extends unplag_abstract_event {
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
 
-        if (empty($event->other['pathnamehashes'])) {
+        if (!empty($event->other['pathnamehashes'])) {
             return null;
         }
 
@@ -53,6 +46,6 @@ class unplag_event_file_submited extends unplag_abstract_event {
 
         mtrace('upload file');
 
-        self::after_hanle_event($internalfile, $plagiarismentity);
+        self::after_hanle_event($event, $internalfile, $plagiarismentity);
     }
 }

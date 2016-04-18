@@ -27,13 +27,19 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\unplag_core;
+
+global $PAGE, $CFG;
+
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
-require_once($CFG->dirroot . '/plagiarism/unplag/lib.php');
+require_once(dirname(__FILE__) . '/lib.php');
 
 $cmid = required_param('cmid', PARAM_INT);  // Course Module ID
 $pf = required_param('pf', PARAM_INT);   // plagiarism file id.
+
 require_sesskey();
-$url = new moodle_url('/plagiarism/unplag/reset.php');
+
+$url = new moodle_url(dirname(__FILE__) . '/reset.php');
 $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
 
 $PAGE->set_url($url);
@@ -42,7 +48,7 @@ require_login($cm->course, true, $cm);
 $modulecontext = context_module::instance($cmid);
 require_capability('plagiarism/unplag:resetfile', $modulecontext);
 
-plagiarism_plugin_unplag::unplag_reset_file($pf);
+unplag_core::resubmit_file($pf);
 
 if ($cm->modname == 'assignment') {
     $redirect = new moodle_url('/mod/assignment/submissions.php', ['id' => $cmid]);

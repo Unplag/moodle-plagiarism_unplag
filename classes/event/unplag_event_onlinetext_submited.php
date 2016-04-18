@@ -26,14 +26,7 @@ require_once(dirname(__FILE__) . '/unplag_abstract_event.php');
  */
 class unplag_event_onlinetext_submited extends unplag_abstract_event {
     /** @var */
-    private static $instance;
-
-    /**
-     * @return static
-     */
-    public static function instance() {
-        return isset(static::$instance) ? static::$instance : static::$instance = new static;
-    }
+    protected static $instance;
 
     /**
      * @param unplag_core $unplagcore
@@ -52,7 +45,9 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
         $internalfile = null;
 
         $submission = $DB->get_record('assignsubmission_onlinetext', ['submission' => $event->objectid]);
-        if (!empty($event->other['content']) && self::is_content_changed($submission->onlinetext, $event->other['content'])) {
+        if (!empty($event->other['content']) && isset($submission->onlinetext)
+            && self::is_content_changed($submission->onlinetext, $event->other['content'])
+        ) {
             $file = $unplagcore->create_file_from_content($event);
             $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
             $internalfile = $plagiarismentity->upload_file_on_unplag_server();
@@ -60,7 +55,7 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
             mtrace('upload text');
         }
 
-        self::after_hanle_event($internalfile, $plagiarismentity);
+        self::after_hanle_event($event, $internalfile, $plagiarismentity);
     }
 
     /**

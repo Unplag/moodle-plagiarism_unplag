@@ -20,74 +20,121 @@
  * @author
  */
 
+use core\event\base;
+use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
+use plagiarism_unplag\classes\event\unplag_event_file_submited;
+use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
 use plagiarism_unplag\classes\unplag_core;
 
-define('UNPLAG_MOD_NAME', 'plagiarism_unplag');
-define('UNPLAG_PROJECT_PATH', dirname(__FILE__) . '/');
-define('UNPLAG_CALLBACK_URL', '/plagiarism/unplag/ajax.php?action=unplag_callback');
+global $CFG;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-require_once(UNPLAG_PROJECT_PATH . 'classes/unplag_core.class.php');
-require_once($CFG->dirroot . '/lib/filelib.php');
+require_once(dirname(__FILE__) . '/constants.php');
+require_once(dirname(__FILE__) . '/classes/autoloader.php');
+require_once($CFG->libdir . '/filelib.php');
 
 /**
  * Class plagiarism_unplag
  */
 class plagiarism_unplag {
     /**
-     * @param \core\event\base $event
+     * @param base $event
+     *
+     * @throws \plagiarism_unplag\classes\UnplagException
      */
-    public static function event_handler(\core\event\base $event) {
-        global $DB;
+    public static function event_handler(base $event) {
+        if (self::is_allowed_events($event)) {
+            $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
 
-        //mail('v.titov@p1k.co.uk', 'moodle events', print_r($event, true));
-        // var_dump($event->target, $event->action, $event->eventname, $event->component, $event->get_data());
-//die;
-        /*try {
-            unplag_core::validate_event($event);
-        } catch (\Exception $ex) {
-            echo $ex->getMessage();
-        }*/
+            switch ($event->component) {
+                case 'assignsubmission_onlinetext':
+                    unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
+                    break;
 
-        /*if ($event->target == 'course_module' && $event->action == 'created') {
-        }*/
-
-        if (in_array($event->component, ['assignsubmission_file', 'assignsubmission_onlinetext'])) {
-            $unplag_core = new unplag_core($event->get_context()->instanceid, $event->userid);
-
-            if (isset($event->other['content'])) {
-                $submission = $DB->get_record('assignsubmission_onlinetext', ['submission' => $event->objectid]);
-
-                if (self::is_content_changed($submission->onlinetext, $event->other['content'])) {
-                    $file = $unplag_core->create_temp_file($event);
-                    mtrace('upload text');
-                    $sendresult = $unplag_core->handle_uploaded_file($file);
-                    $file->delete();
-                }
+                case 'assignsubmission_file':
+                    unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
+                    break;
             }
-
-            $fs = get_file_storage();
-            $files = $fs->get_area_files($event->get_context()->id, 'assignsubmission_file', 'submission_files');
-            if ($files) {
-                foreach ($files as $file) {
-                    if ($file->is_directory()) {
-                        continue;
-                    }
-                    mtrace('upload file');
-                    $sendresult = $unplag_core->handle_uploaded_file($file);
-                }
-            }
+        } else if (self::is_assign_submitted($event)) {
+            $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+            unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
         }
     }
 
     /**
-     * @param $onlinetext
-     * @param $content
+     * @param base $event
      *
      * @return bool
      */
-    private static function is_content_changed($onlinetext, $content) {
-        return base64_encode($onlinetext) !== base64_encode($content);
+    private static function is_allowed_events(base $event) {
+        return in_array($event->get_data()['eventname'], [
+            '\assignsubmission_file\event\submission_updated',
+            '\assignsubmission_file\event\assessable_uploaded',
+            '\assignsubmission_onlinetext\event\assessable_uploaded',
+        ]);
+    }
+
+    /**
+     * @param base $event
+     *
+     * @return bool
+     */
+    private static function is_assign_submitted(base $event) {
+        return $event->target == 'assessable' && $event->action == 'submitted';
+    }
+
+    /**
+     * @param $cmid
+     *
+     * @return bool
+     */
+    public static function is_submition_draft($cmid) {
+        global $CFG, $USER;
+
+        if (!$cmid) {
+            throw new InvalidArgumentException('Invalid param $cmid');
+        }
+
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
+        try {
+            $modulecontext = context_module::instance($cmid);
+            $assign = new assign($modulecontext, false, false);
+        } catch (\Exception $ex) {
+            return null;
+        }
+
+        return ($assign->get_user_submission($USER->id, false)->status == 'draft');
+    }
+
+    /**
+     * @param $obj
+     *
+     * @return array
+     */
+    public static function object_to_array($obj) {
+        if (is_object($obj)) {
+            $obj = (array)$obj;
+        }
+        if (is_array($obj)) {
+            $new = [];
+            foreach ($obj as $key => $val) {
+                $new[$key] = self::object_to_array($val);
+            }
+        } else {
+            $new = $obj;
+        }
+
+        return $new;
+    }
+
+    /**
+     * @param $contextid
+     *
+     * @return stored_file[]
+     */
+    public static function get_area_files($contextid) {
+        return get_file_storage()->get_area_files($contextid, UNPLAG_PLAGIN_NAME, UNPLAG_FILES_AREA, false, null, false);
     }
 
     /**
@@ -101,10 +148,13 @@ class plagiarism_unplag {
         $data = unplag_core::parse_json($data);
 
         $resp = null;
-        $records = $DB->get_records_list(unplag_core::UNPLAG_FILES_TABLE, 'id', $data->ids);
+        $records = $DB->get_records_list(UNPLAG_FILES_TABLE, 'id', $data->ids);
         if ($records) {
             $checkstatusforthisids = [];
             foreach ($records as $record) {
+                if (empty($record->check_id)) {
+                    continue;
+                }
                 if ($record->progress != 100) {
                     array_push($checkstatusforthisids, $record->check_id);
                 }
@@ -115,8 +165,13 @@ class plagiarism_unplag {
                 ];
             }
 
-            if (!empty($checkstatusforthisids)) {
-                unplag_core::check_real_file_progress($checkstatusforthisids, $resp);
+            try {
+                if (!empty($checkstatusforthisids)) {
+                    unplag_core::check_real_file_progress($checkstatusforthisids, $resp);
+                }
+            } catch (\Exception $ex) {
+                header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
+                $resp['error'] = $ex->getMessage();
             }
         }
 
@@ -130,9 +185,8 @@ class plagiarism_unplag {
      */
     public function unplag_callback($token) {
         global $DB;
-
         if ($token && strlen($token) === 40) {
-            $record = $DB->get_record(unplag_core::UNPLAG_FILES_TABLE, ['identifier' => $token]);
+            $record = $DB->get_record(UNPLAG_FILES_TABLE, ['identifier' => $token]);
             if ($record) {
                 $rawjson = file_get_contents('php://input');
                 $check = unplag_core::parse_json($rawjson);

@@ -16,15 +16,15 @@
 
 /**
  *
- * @package   plagiarism_unplag
+ * @package     plagiarism_unplag
  * @authors     Dan Marsden <Dan@danmarsden.com>, Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright 2014 Dan Marsden <Dan@danmarsden.com>, 
- * @copyright   UKU Group, LTD, https://www.unplag.com 
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright   2014 Dan Marsden <Dan@danmarsden.com>,
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 $string['pluginname'] = 'UNPLAG plagiarism plugin';
-$string['studentdisclosuredefault']  = 'All  uploaded files will be submitted to the plagiarism detection system UNPLAG.';
+$string['studentdisclosuredefault'] = 'All  uploaded files will be submitted to the plagiarism detection system UNPLAG.';
 $string['studentdisclosure'] = 'Familiarize students with the UNPLAG Privacy Policy';
 $string['studentdisclosure_help'] = 'This text will be displayed to all students on the file upload page.';
 $string['unplag'] = 'UNPLAG plagiarism plugin';
@@ -37,9 +37,7 @@ $string['unplag_api_secret_help'] = 'API Secret provided by UNPLAG to access the
 $string['useunplag'] = 'Enable UNPLAG';
 $string['unplag_enableplugin'] = 'Enable UNPLAG for {$a}';
 $string['savedconfigsuccess'] = 'Plagiarism Detection Settings Saved';
-$string['savedconfigfailed'] = 'An incorrect Client ID/API Secret combination has been entered. UNPLAG has been disabled, please try again.';
 $string['unplag_show_student_score'] = 'Show similarity score to student';
-$string['unplag_show_student_score_help'] = 'The similarity score is the percentage of the submission that has been matched with other content.';
 $string['unplag_show_student_report'] = 'Show similarity report to student';
 $string['unplag_show_student_report_help'] = 'The similarity report gives a breakdown on what parts of the submission were plagiarised and the location that UNPLAG found this content. ';
 $string['unplag_draft_submit'] = 'When should the file be submitted to UNPLAG';
@@ -61,11 +59,9 @@ $string['plagiarism'] = 'Potential plagiarism ';
 $string['report'] = 'View full report';
 $string['progress'] = 'Scan';
 $string['unplag_studentemail'] = 'Send email to Student';
-$string['unplag_studentemail_help'] = 'This will send an email to the student when a file has been processed to let them know that a report is available.';
 $string['studentemailsubject'] = 'File processed by UNPLAG';
 $string['studentemailcontent'] = 'The file you submitted to {$a->modulename} in {$a->coursename} has already been processed by the plagiarism detection system UNPLAG
 {$a->modulelink}';
-
 $string['filereset'] = 'A file has been reset for re-submission to UNPLAG';
 $string['noreceiver'] = 'No receiver address was specified';
 $string['unplag:enable'] = 'Allow the teacher to enable/disable UNPLAG inside an activity';
@@ -82,8 +78,6 @@ $string['resubmit'] = 'Resubmit';
 $string['identifier'] = 'Identifier';
 $string['fileresubmitted'] = 'File Queued for resubmission';
 $string['filedeleted'] = 'File deleted from queue';
-$string['cronwarning'] = 'The <a href="../../admin/cron.php">cron.php</a> maintenance script has not been run for at least 30 min - Cron must be configured to allow UNPLAG to function correctly.';
-$string['waitingevents'] = 'There are {$a->countallevents} events waiting for cron and {$a->countheld} events are being held for resubmission';
 $string['deletedwarning'] = 'This file could not be found - it may have been deleted by the user';
 $string['heldevents'] = 'Held events';
 $string['heldeventsdescription'] = 'These are events that did not complete on the first attempt and were queued for resubmission - this prevents subsequent events from completing and may need further investigation. Some of these events may not be relevant to UNPLAG.';
@@ -94,3 +88,4 @@ $string['scoreavailable'] = 'This file has been processed by UNPLAG and a report
 $string['receivernotvalid'] = 'This is not a valid receiver address.';
 $string['attempts'] = 'Attempts made';
 $string['refresh'] = 'Refresh page to see results';
+$string['delete'] = 'Delete';

@@ -16,6 +16,7 @@
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
+use plagiarism_unplag;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
@@ -25,11 +26,29 @@ use plagiarism_unplag\classes\unplag_plagiarism_entity;
  * @package plagiarism_unplag\classes\event
  */
 abstract class unplag_abstract_event {
+    /** @var */
+    protected static $instance;
+
     /**
+     * @return static
+     */
+    public static function instance() {
+        return isset(static::$instance) ? static::$instance : static::$instance = new static;
+    }
+
+    /**
+     * @param base                     $event
      * @param                          $internalfile
      * @param unplag_plagiarism_entity $plagiarismentity
+     *
+     * @return null
      */
-    protected static function after_hanle_event($internalfile, unplag_plagiarism_entity $plagiarismentity) {
+    protected static function after_hanle_event(base $event, $internalfile, unplag_plagiarism_entity $plagiarismentity) {
+        if (plagiarism_unplag::is_submition_draft($event->contextinstanceid)) {
+            // Skip this file check cause assign is draft.
+            return null;
+        }
+
         if (isset($internalfile->external_file_id)) {
             $checkresp = unplag_api::instance()->run_check($internalfile);
             if ($checkresp->result === true) {
@@ -41,8 +60,6 @@ abstract class unplag_abstract_event {
     /**
      * @param unplag_core $unplagcore
      * @param base        $event
-     *
-     * @return mixed
      */
     abstract public function handle_event(unplag_core $unplagcore, base $event);
 }

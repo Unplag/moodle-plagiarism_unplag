@@ -14,31 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-$capabilities = array(
-    'plagiarism/unplag:enable' => array(
-        'captype' => 'write',
+$capabilities = [
+    'plagiarism/unplag:enable'     => [
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-         'archetypes' => array(
-         'editingteacher' => CAP_ALLOW,
-         'manager' => CAP_ALLOW
-        )
-    ),
-    'plagiarism/unplag:viewreport' => array(
-        'captype' => 'write',
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+        ],
+    ],
+    'plagiarism/unplag:viewreport' => [
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-         'archetypes' => array(
-         'editingteacher' => CAP_ALLOW,
-         'teacher' => CAP_ALLOW,
-         'manager' => CAP_ALLOW
-        )
-    ),
-    'plagiarism/unplag:resetfile' => array(
-        'captype' => 'write',
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+        ],
+    ],
+    'plagiarism/unplag:resetfile'  => [
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-         'archetypes' => array(
-         'editingteacher' => CAP_ALLOW,
-         'teacher' => CAP_ALLOW,
-         'manager' => CAP_ALLOW
-        )
-    ),
-);
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+        ],
+    ],
+];

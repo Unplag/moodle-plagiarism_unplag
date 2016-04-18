@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * unplag_tabs.php - tabs used in admin interface.
+ * view_tabs.php - tabs used in admin interface.
  *
  * @package     plagiarism_unplag
  * @author      Mikhail Grinenko <m.grinenko@p1k.co.uk>

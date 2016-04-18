@@ -17,14 +17,16 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); // It must be included from a Moodle page.
 }
 
-require_once($CFG->dirroot . '/lib/formslib.php');
+global $CFG;
+
+require_once($CFG->libdir . '/formslib.php');
 
 /**
  * Class unplag_setup_form
  */
 class unplag_setup_form extends moodleform {
     // Define the form.
-    function definition() {
+    public function definition() {
         $mform =& $this->_form;
         $mform->addElement('checkbox', 'unplag_use', get_string('useunplag', 'plagiarism_unplag'));
 
@@ -45,14 +47,14 @@ class unplag_setup_form extends moodleform {
         $mform->setType('unplag_lang', PARAM_TEXT);
 
         $mform->addElement('textarea', 'unplag_student_disclosure', get_string('studentdisclosure', 'plagiarism_unplag'),
-            'wrap="virtual" rows="6" cols="50"');
+            'wrap="virtual" rows="6" cols="100"');
         $mform->addHelpButton('unplag_student_disclosure', 'studentdisclosure', 'plagiarism_unplag');
         $mform->setDefault('unplag_student_disclosure', get_string('studentdisclosuredefault', 'plagiarism_unplag'));
         $mform->setType('unplag_student_disclosure', PARAM_TEXT);
 
         $mods = core_component::get_plugin_list('mod');
         foreach ($mods as $mod => $modname) {
-            if (plugin_supports('mod', $mod, FEATURE_PLAGIARISM)) {
+            if (plugin_supports('mod', $mod, FEATURE_PLAGIARISM) && in_array($mod, ['assign'])) {
                 $modstring = 'unplag_enable_mod_' . $mod;
                 $mform->addElement('checkbox', $modstring, get_string('unplag_enableplugin', 'plagiarism_unplag', $mod));
             }
@@ -74,6 +76,8 @@ class unplag_defaults_form extends moodleform {
      * @param object|null $mform - Moodle form
      */
     public function __construct($mform = null) {
+        parent::__construct();
+
         if (!is_null($mform)) {
             $this->_form = $mform;
             $this->internalusage = true;
@@ -81,7 +85,7 @@ class unplag_defaults_form extends moodleform {
     }
 
     // Define the form.
-    function definition() {
+    public function definition() {
         $mform = &$this->_form;
 
         $ynoptions = [0 => get_string('no'), 1 => get_string('yes')];

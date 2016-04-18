@@ -29,6 +29,7 @@ use plagiarism_unplag\library\OAuth\OAuthRequest;
 use plagiarism_unplag\library\OAuth\Signature\OAuthSignatureMethod_HMAC_SHA1;
 
 require_once(dirname(__FILE__) . '/../library/OAuth/autoloader.php');
+require_once(dirname(__FILE__) . '/../constants.php');
 
 /**
  * Class unplag_api_request
@@ -36,8 +37,6 @@ require_once(dirname(__FILE__) . '/../library/OAuth/autoloader.php');
  */
 class unplag_api_request {
     private static $instance = null;
-    /** @var string */
-    private static $apiurl = 'http://un16.mytheverona.com/api/v2/';
     /** @var  string */
     private $requestdata;
     /** @var string */
@@ -105,7 +104,7 @@ class unplag_api_request {
 
     /* @param mixed $url */
     private function set_action($url) {
-        $this->url = self::$apiurl . $url;
+        $this->url = UNPLAG_API_URL . $url;
     }
 
     /**
