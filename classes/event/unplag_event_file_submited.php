@@ -13,6 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_event_file_submited.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
@@ -35,8 +45,7 @@ class unplag_event_file_submited extends unplag_abstract_event {
      * @return null
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
-
-        if (!empty($event->other['pathnamehashes'])) {
+        if (!isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])) {
             return null;
         }
 

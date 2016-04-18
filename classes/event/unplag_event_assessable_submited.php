@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_event_assessable_submited.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes\event;
 
@@ -62,7 +71,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
     private function handle_file_plagiarism($file) {
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
         $internalfile = $plagiarismentity->get_internal_file();
-        if ($internalfile->check_id) {
+        if (isset($internalfile->check_id)) {
             print_error('File with uuid' . $file->identifier . ' already sent to Unplag');
         } else {
             unplag_api::instance()->run_check($internalfile);

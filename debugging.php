@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * default_settings.php - Displays default values to use inside assignments for UNPLAG
+ * debugging.php - Displays default values to use inside assignments for UNPLAG
  *
- * @author      Dan Marsden <Dan@danmarsden.com>
- * @author      Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright   2014 Dan Marsden <Dan@danmarsden.com>
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

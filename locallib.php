@@ -13,11 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * Stores all the functions for manipulating a plagiarism_unplag
+ * locallib.php - Stores all the functions for manipulating a plagiarism_unplag
  *
- * @package  plagiarism_unplag
- * @author
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 use core\event\base;
@@ -55,7 +59,7 @@ class plagiarism_unplag {
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
             }
-        } else if (self::is_assign_submitted($event)) {
+        } else if (self::is_assign_submitted($event) && self::is_submition_draft($event->contextinstanceid)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
             unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
         }
@@ -185,12 +189,13 @@ class plagiarism_unplag {
      */
     public function unplag_callback($token) {
         global $DB;
+
         if ($token && strlen($token) === 40) {
             $record = $DB->get_record(UNPLAG_FILES_TABLE, ['identifier' => $token]);
-            if ($record) {
-                $rawjson = file_get_contents('php://input');
-                $check = unplag_core::parse_json($rawjson);
-                unplag_core::check_complete($record, $check);
+            $rawjson = file_get_contents('php://input');
+            $respcheck = unplag_core::parse_json($rawjson);
+            if ($record && isset($respcheck->check)) {
+                unplag_core::check_complete($record, $respcheck->check);
             }
         } else {
             print_error('error');

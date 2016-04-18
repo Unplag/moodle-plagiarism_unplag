@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_core.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes;
 
@@ -89,7 +98,7 @@ class unplag_core {
         global $DB;
 
         $record = $DB->get_record(UNPLAG_FILES_TABLE, ['check_id' => $id]);
-        if ($record->progress < $progres) {
+        if ($record->progress <= $progres) {
             $record->progress = $progres;
 
             if ($record->progress === 100) {
@@ -113,7 +122,7 @@ class unplag_core {
         global $DB;
 
         $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
-        $record->similarityscore = $check->report->similarity * 100;
+        $record->similarityscore = $check->report->similarity;
         $record->reporturl = $check->report->view_url;
         $record->reportediturl = $check->report->view_edit_url;
         $record->progress = 100;

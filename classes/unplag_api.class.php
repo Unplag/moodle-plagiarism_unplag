@@ -13,15 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * unplag_api.class.php - SDK for working with unplag api.
  *
- * @package    plagiarism_unplag
- * @author     Vadim Titov <v.titov@p1k.co.uk>
- * @copyright  UKU Group, LTD, https://www.unplag.com
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace plagiarism_unplag\classes;
 
 require_once('unplag_api_request.php');

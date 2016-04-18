@@ -15,12 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * unplag_api_request.php.
+ * unplag_api_request.php
  *
- * @package    plagiarism_unplag
- * @author     Vadim Titov <v.titov@p1k.co.uk>
- * @copyright  UKU Group, LTD, https://www.unplag.com
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace plagiarism_unplag\classes;
 

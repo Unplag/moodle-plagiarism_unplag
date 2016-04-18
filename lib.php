@@ -16,7 +16,6 @@
 /**
  * lib.php - Contains Plagiarism plugin specific functions called by Modules.
  *
- * @since       2.0
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>

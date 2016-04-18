@@ -83,6 +83,8 @@ M.plagiarism_unplag.init = function (Y, contextid) {
             existing.addClass('complete');
             var items = M.plagiarism_unplag.items;
             delete items[items.indexOf(record.file_id)];
+
+            Y.one('.un_progress[file_id="' + record.file_id + '"]').hide();
         }
     };
 

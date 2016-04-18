@@ -15,12 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @since      2.0
- * @package    plagiarism_unplag
- * @subpackage plagiarism
- * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright  UKU Group, LTD, https://www.unplag.com
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * ajax.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 define('AJAX_SCRIPT', true);

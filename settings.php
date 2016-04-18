@@ -15,15 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * plagiarism.php - allows the admin to configure plagiarism stuff
+ * settings.php - allows the admin to configure plagiarism stuff
  *
  * @package     plagiarism_unplag
- * @author      Dan Marsden <Dan@danmarsden.com>
- * @author      Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright   2014 Dan Marsden <Dan@danmarsden.com>
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 global  $CFG, $OUTPUT, $USER;
 
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
