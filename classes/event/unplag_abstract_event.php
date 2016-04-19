@@ -47,7 +47,7 @@ abstract class unplag_abstract_event {
 
     /**
      * @param base  $event
-     * @param array $plagiarismentitys
+     * @param unplag_plagiarism_entity[] $plagiarismentitys
      *
      * @return null
      */
@@ -59,7 +59,6 @@ abstract class unplag_abstract_event {
 
         if (!empty($plagiarismentitys)) {
             foreach ($plagiarismentitys as $plagiarismentity) {
-                /** @var unplag_plagiarism_entity $plagiarismentity */
                 $internalfile = $plagiarismentity->get_internal_file();
                 if (isset($internalfile->external_file_id) && !isset($internalfile->check_id)) {
                     $checkresp = unplag_api::instance()->run_check($internalfile);
