@@ -1,6 +1,6 @@
 # moodle-plagiarism_unplag  
 
-[![Build Status](https://travis-ci.org/JoneDoe/moodle-plagiarism_unplag.svg?branch=2.0)](https://travis-ci.org/JoneDoe/moodle-plagiarism_unplag)
+[![Build Status](https://travis-ci.org/Unplag/moodle-plagiarism_unplag.svg?branch=master)](https://travis-ci.org/Unplag/moodle-plagiarism_unplag)
 
 UNPLAG Plagiarism plugin for Moodle 2.9  
 
