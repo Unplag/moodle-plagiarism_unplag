@@ -79,7 +79,6 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                     });
                 },
                 failure: function (tid, response) {
-                    var jsondata = Y.JSON.parse(response.responseText);
                     M.plagiarism_unplag.items = [];
                 }
             }
