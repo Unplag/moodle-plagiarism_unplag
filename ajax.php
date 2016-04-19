@@ -15,29 +15,37 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * checkreceiver.php - Checks to make sure passed receiver address is valid.
+ * ajax.php
  *
- * @since 2.0
- * @package    plagiarism_unplag
- * @subpackage plagiarism
- * @author     Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright  UKU Group, LTD, https://www.unplag.com
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 define('AJAX_SCRIPT', true);
 
-require_once(dirname(dirname(__FILE__)) . '/../config.php');
-require_once($CFG->libdir.'/plagiarismlib.php');
-require_once($CFG->dirroot.'/plagiarism/unplag/lib.php');
-require_once($CFG->libdir.'/filelib.php');
+require_once(dirname(__FILE__) . '/locallib.php');
 
-$cid = required_param('cid', PARAM_INT);
+$action = required_param('action', PARAM_ALPHAEXT);
+$data = optional_param('data', [], PARAM_RAW);
+$token = optional_param('token', '', PARAM_RAW);
 
-require_login();
+if (!$token) {
+    require_login();
+    require_sesskey();
+}
+$unplag = new plagiarism_unplag();
+if (!is_callable([$unplag, $action])) {
+    echo json_encode('Called method does not exists');
 
-require_sesskey();
+    return null;
+}
 
+if ($token) {
+    $data = $token;
+}
 
-$unplag = new plagiarism_plugin_unplag();
-echo json_encode($unplag->track_progress($cid));
+echo $unplag->{$action}($data);
+die;

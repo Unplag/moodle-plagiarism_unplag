@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * version.php
+ * autoloader.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -22,15 +22,8 @@
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+use plagiarism_unplag\library\unplag_autoloader;
 
-if (!isset($plugin)) {
-    $plugin = new stdClass();
-}
+require_once(dirname(__FILE__) . '/../library/autoloader.php');
 
-$plugin->version = 2016041600;
-$plugin->requires = 2013111800.00;
-$plugin->maturity = MATURITY_STABLE;
-
-$plugin->component = 'plagiarism_unplag';
-$plugin->release = '2.0.0';
+unplag_autoloader::init(dirname(__FILE__));

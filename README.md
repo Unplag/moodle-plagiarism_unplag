@@ -1,8 +1,10 @@
 # moodle-plagiarism_unplag  
 
+[![Build Status](https://travis-ci.org/JoneDoe/moodle-plagiarism_unplag.svg?branch=2.0)](https://travis-ci.org/JoneDoe/moodle-plagiarism_unplag)
+
 UNPLAG Plagiarism plugin for Moodle 2.9  
 
-Author: Mikhail Grinenko <m.grinenko@p1k.co.uk>  
+Author: Vadim Titov <developer@unplag.com>  
 Copyright: UKU Group, LTD, http://www.unplag.com  
 
 UNPLAG is a commercial Plagiarism Prevention product owned by UKU Group, LTD - you must have a paid subscription to be able to use this plugin.  

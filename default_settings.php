@@ -15,21 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * unplag_defaults.php - Displays default values to use inside assignments for UNPLAG
+ * default_settings.php - Displays default values to use inside assignments for UNPLAG
  *
- * @package plagiarism_unplag
- * @author     Dan Marsden <Dan@danmarsden.com>
- * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright 2014 Dan Marsden <Dan@danmarsden.com>
- * @copyright   UKU Group, LTD, https://www.unplag.com 
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+global $CFG, $DB, $OUTPUT;
+
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->libdir.'/plagiarismlib.php');
-require_once($CFG->dirroot.'/plagiarism/unplag/lib.php');
-require_once('unplag_form.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/plagiarismlib.php');
+require_once(dirname(__FILE__) . '/lib.php');
+require_once(dirname(__FILE__) . '/unplag_form.php');
 
 require_login();
 admin_externalpage_setup('plagiarismunplag');
@@ -37,29 +38,28 @@ admin_externalpage_setup('plagiarismunplag');
 $context = context_system::instance();
 
 $mform = new unplag_defaults_form(null);
-$plagiarismdefaults = $DB->get_records_menu('plagiarism_unplag_config',
-    array('cm' => 0), '', 'name, value'); // The cmid(0) is the default list.
-if (!empty($plagiarismdefaults)) {
-    $mform->set_data($plagiarismdefaults);
+// The cmid(0) is the default list.
+$unplagdefaults = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => 0], '', 'name, value');
+if (!empty($unplagdefaults)) {
+    $mform->set_data($unplagdefaults);
 }
 echo $OUTPUT->header();
 $currenttab = 'unplagdefaults';
-require_once('unplag_tabs.php');
-if (($data = $mform->get_data()) && confirm_sesskey()) {
-    $plagiarismplugin = new plagiarism_plugin_unplag();
+require_once(dirname(__FILE__) . '/view_tabs.php');
 
-    $plagiarismelements = $plagiarismplugin->config_options();
+if (($data = $mform->get_data()) && confirm_sesskey()) {
+    $plagiarismelements = plagiarism_plugin_unplag::config_options();
     foreach ($plagiarismelements as $element) {
         if (isset($data->$element)) {
             $newelement = new Stdclass();
             $newelement->cm = 0;
             $newelement->name = $element;
             $newelement->value = $data->$element;
-            if (isset($plagiarismdefaults[$element])) {
-                $newelement->id = $DB->get_field('plagiarism_unplag_config', 'id', (array('cm' => 0, 'name' => $element)));
-                $DB->update_record('plagiarism_unplag_config', $newelement);
+            if (isset($unplagdefaults[$element])) {
+                $newelement->id = $DB->get_field(UNPLAG_CONFIG_TABLE, 'id', (['cm' => 0, 'name' => $element]));
+                $DB->update_record(UNPLAG_CONFIG_TABLE, $newelement);
             } else {
-                $DB->insert_record('plagiarism_unplag_config', $newelement);
+                $DB->insert_record(UNPLAG_CONFIG_TABLE, $newelement);
             }
         }
     }

@@ -14,66 +14,97 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Javascript helper function for URKUND plugin
+ * Javascript helper function for plugin
  *
- * @package   plagiarism-unplag
- * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
+ * @package   plagiarism_unplag
+ * @author    Vadim Titov <v.titov@p1k.co.uk>
  * @copyright Mikhail Grinenko <m.grinenko@p1k.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 M.plagiarism_unplag = {
-    intervals:{},
+    interval: null,
+    items: []
 };
 
-M.plagiarism_unplag.init = function(Y, contextid) {
+M.plagiarism_unplag.init = function (Y, contextid) {
+    var handle_record = function (record) {
+        var existing = Y.one('.un_progress_val[file_id="' + record.file_id + '"]');
+        if (!existing) {
+            return;
+        }
 
-    var track_progress = function(Y, row, contextid) { 
-        var rval = row.getAttribute('file_id');
-      
-      
-        var url = M.cfg.wwwroot + '/plagiarism/unplag/track.php';
-       
-        var config = {
+        existing.setContent(record.progress + '%');
+
+        if (record.progress == 100) {
+            existing.addClass('complete');
+            var items = M.plagiarism_unplag.items;
+            items.splice(items.indexOf(record.file_id),1);
+
+            var el = Y.one('.un_report[data-fid="' + record.file_id + '"]');
+            el.insert(record.content, 'after').remove();
+        }
+    };
+
+    var track_progress = function (Y, items, contextid) {
+
+        if (!items[0]) {
+            clearInterval(M.plagiarism_unplag.interval);
+            return false;
+        }
+
+        var url = M.cfg.wwwroot + '/plagiarism/unplag/ajax.php';
+
+        var callback = {
             method: 'get',
             context: this,
             sync: false,
-            data : {
-                'sesskey' : M.cfg.sesskey,
-                'cid' : rval,
-                'c': contextid
+            data: {
+                'action': 'track_progress',
+                'sesskey': M.cfg.sesskey,
+                'data': Y.JSON.stringify({
+                    ids: items,
+                    cid: contextid
+                })
             },
             on: {
-                success: function(tid, response) {
+                success: function (tid, response) {
                     var jsondata = Y.JSON.parse(response.responseText);
-                     existing = Y.one('.un_progress_val[file_id='+rval+']');
-                     if(!existing) return;
-                    if(jsondata.progress == 100){
-                        clearInterval(M.plagiarism_unplag.intervals[rval]);
-                        existing.setHTML(jsondata.progress+'% <a href="">'+jsondata.refresh+'</a>');
+                    if (!jsondata) {
+                        return false;
                     }
-                    else{
-                        existing.setHTML(jsondata.progress+'%');
-                        
-                    }
-                    
 
-
+                    Y.each(jsondata, function (item, index) {
+                        handle_record(item, index);
+                    });
                 },
-                failure: function(tid, response) {
-                   
+                failure: function () {
+                    M.plagiarism_unplag.items = [];
                 }
             }
         };
-        Y.io(url, config)
-    }
-  
-    Y.all('.un_progress'). each(function(row) { 
-         M.plagiarism_unplag.intervals[row.getAttribute('file_id')] = setInterval(function(){
 
-           track_progress(Y, row, contextid);
-        }, 60000);
-    });
-   
-   
-}
+        Y.io(url, callback);
+    };
+
+    var collect_items = function () {
+        Y.all('.un_progress').each(function (row) {
+            if (!row.hasClass('complete')) {
+                M.plagiarism_unplag.items.push(row.getAttribute('file_id'));
+            }
+        });
+    };
+
+    var run_plagin = function () {
+
+        collect_items();
+
+        if (M.plagiarism_unplag.items.length) {
+            M.plagiarism_unplag.interval = setInterval(function () {
+                track_progress(Y, M.plagiarism_unplag.items, contextid);
+            }, 3000);
+        }
+    };
+
+    run_plagin();
+};

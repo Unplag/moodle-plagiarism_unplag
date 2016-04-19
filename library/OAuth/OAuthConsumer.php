@@ -13,24 +13,34 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+namespace plagiarism_unplag\library\OAuth;
+
 /**
- * version.php
- *
- * @package     plagiarism_unplag
- * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Class OAuthConsumer
+ * @package plagiarism_unplag\library\OAuth
  */
-defined('MOODLE_INTERNAL') || die();
+class OAuthConsumer {
+    public $key;
+    public $secret;
 
-if (!isset($plugin)) {
-    $plugin = new stdClass();
+    /**
+     * OAuthConsumer constructor.
+     *
+     * @param      $key
+     * @param      $secret
+     * @param null $callback_url
+     */
+    public function __construct($key, $secret, $callback_url = null) {
+        $this->key = $key;
+        $this->secret = $secret;
+        $this->callback_url = $callback_url;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString() {
+        return "OAuthConsumer[key=$this->key,secret=$this->secret]";
+    }
 }
-
-$plugin->version = 2016041600;
-$plugin->requires = 2013111800.00;
-$plugin->maturity = MATURITY_STABLE;
-
-$plugin->component = 'plagiarism_unplag';
-$plugin->release = '2.0.0';

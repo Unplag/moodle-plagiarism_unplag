@@ -15,16 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * unplag_tabs.php - tabs used in admin interface.
+ * view_tabs.php - tabs used in admin interface.
  *
- * @package   plagiarism_unplag
- * @author     Dan Marsden <Dan@danmarsden.com>
- * @author Mikhail Grinenko <m.grinenko@p1k.co.uk>
- * @copyright 2014 Dan Marsden <Dan@danmarsden.com>
- * @copyright   UKU Group, LTD, https://www.unplag.com 
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    // It must be included from a Moodle page.
 }
@@ -33,8 +31,9 @@ $strplagiarism = get_string('unplag', 'plagiarism_unplag');
 $strplagiarismdefaults = get_string('unplagdefaults', 'plagiarism_unplag');
 $strplagiarismdebug = get_string('unplagdebug', 'plagiarism_unplag');
 
-$tabs = array();
-$tabs[] = new tabobject('unplagsettings', 'settings.php', $strplagiarism, $strplagiarism, false);
-$tabs[] = new tabobject('unplagdefaults', 'unplag_defaults.php', $strplagiarismdefaults, $strplagiarismdefaults, false);
-$tabs[] = new tabobject('unplagdebug', 'unplag_debug.php', $strplagiarismdebug, $strplagiarismdebug, false);
-print_tabs(array($tabs), $currenttab);
+$tabs = [
+    new tabobject('unplagsettings', 'settings.php', $strplagiarism, $strplagiarism, false),
+    new tabobject('unplagdefaults', 'default_settings.php', $strplagiarismdefaults, $strplagiarismdefaults, false),
+    new tabobject('unplagdebug', 'debugging.php', $strplagiarismdebug, $strplagiarismdebug, false),
+];
+print_tabs([$tabs], $currenttab);

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * version.php
+ * view_tmpl_invalid_response.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -22,15 +22,13 @@
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
-if (!isset($plugin)) {
-    $plugin = new stdClass();
-}
+global $OUTPUT;
 
-$plugin->version = 2016041600;
-$plugin->requires = 2013111800.00;
-$plugin->maturity = MATURITY_STABLE;
+$htmlparts = ['<span class="un_report">'];
+$htmlparts[] = sprintf('<img class="un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
+    $OUTPUT->pix_url('error', 'plagiarism_unplag'), get_string('unsupportedfiletype', 'plagiarism_unplag')
+);
+$htmlparts[] = '</span>';
 
-$plugin->component = 'plagiarism_unplag';
-$plugin->release = '2.0.0';
+return implode('', $htmlparts);

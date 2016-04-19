@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="plagiarism/unplag/db" VERSION="20090420" COMMENT="XMLDB file for Moodle plagiarism/unplag plugin"
+<XMLDB PATH="plagiarism/unplag/db" VERSION="20160420" COMMENT="XMLDB file for Moodle plagiarism/unplag plugin"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -11,15 +11,17 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="cm" NEXT="identifier"/>
         <FIELD NAME="identifier" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="userid" NEXT="check_id"/>
         <FIELD NAME="check_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="identifier" NEXT="progress"/>
-        <FIELD NAME="progress" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" PREVIOUS="check_id" NEXT="filename"/>
         <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="identifier" NEXT="reporturl"/>
         <FIELD NAME="reporturl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="filename" NEXT="optout"/>
         <FIELD NAME="optout" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="reporturl" NEXT="statuscode"/>
+        <FIELD NAME="progress" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" PREVIOUS="optout" />
         <FIELD NAME="statuscode" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="optout" NEXT="similarityscore"/>
-        <FIELD NAME="similarityscore" TYPE="int" LENGTH="5" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="statuscode" NEXT="attempt"/>
+        <FIELD NAME="similarityscore" TYPE="number" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="2" PREVIOUS="statuscode" NEXT="attempt"/>
         <FIELD NAME="attempt" TYPE="int" LENGTH="5" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="similarityscore" NEXT="errorresponse"/>
         <FIELD NAME="errorresponse" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="attempt" NEXT="timesubmitted"/>
         <FIELD NAME="timesubmitted" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="errorresponse"/>
+        <FIELD NAME="external_file_id" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"/>
+        <FIELD NAME="reportediturl" TYPE="char" LENGTH="255" NOTNULL="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="cm"/>
