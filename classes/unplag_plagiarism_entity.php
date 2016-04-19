@@ -32,9 +32,9 @@ require_once(dirname(__FILE__) . '/../constants.php');
  * @package plagiarism_unplag\classes
  */
 class unplag_plagiarism_entity {
-    /** @var unplag_core  */
+    /** @var unplag_core */
     private $core;
-    /** @var \stdClass  */
+    /** @var \stdClass */
     private $plagiarismfile;
 
     /**
@@ -139,21 +139,6 @@ class unplag_plagiarism_entity {
     }
 
     /**
-     * @param \stdClass $response
-     *
-     * @return bool
-     */
-    public function store_file_errors(\stdClass $response) {
-        global $DB;
-
-        $plagiarismfile = $this->get_internal_file();
-        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-        $plagiarismfile->errorresponse = json_encode($response->errors);
-
-        return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
-    }
-
-    /**
      * @return object
      */
     public function upload_file_on_unplag_server() {
@@ -182,5 +167,20 @@ class unplag_plagiarism_entity {
         }
 
         return $internalfile;
+    }
+
+    /**
+     * @param \stdClass $response
+     *
+     * @return bool
+     */
+    public function store_file_errors(\stdClass $response) {
+        global $DB;
+
+        $plagiarismfile = $this->get_internal_file();
+        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
+        $plagiarismfile->errorresponse = json_encode($response->errors);
+
+        return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
     }
 }

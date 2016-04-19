@@ -51,21 +51,19 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
             return null;
         }
 
-        $plagiarismentity = null;
-        $internalfile = null;
-
+        $plagiarismentitys = [];
         $submission = $DB->get_record('assignsubmission_onlinetext', ['submission' => $event->objectid]);
-        if (!empty($event->other['content']) && isset($submission->onlinetext)
-            && self::is_content_changed($submission->onlinetext, $event->other['content'])
+
+        if (!empty($event->other['content']) &&
+            self::is_content_changed(isset($submission->onlinetext) ? $submission->onlinetext : '', $event->other['content'])
         ) {
             $file = $unplagcore->create_file_from_content($event);
             $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
-            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-
-            mtrace('upload text');
+            $plagiarismentity->upload_file_on_unplag_server();
+            array_push($plagiarismentitys, $plagiarismentity);
         }
 
-        self::after_hanle_event($event, $internalfile, $plagiarismentity);
+        self::after_hanle_event($event, $plagiarismentitys);
     }
 
     /**

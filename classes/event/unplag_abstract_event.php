@@ -46,22 +46,27 @@ abstract class unplag_abstract_event {
     }
 
     /**
-     * @param base                     $event
-     * @param                          $internalfile
-     * @param unplag_plagiarism_entity $plagiarismentity
+     * @param base  $event
+     * @param array $plagiarismentitys
      *
      * @return null
      */
-    protected static function after_hanle_event(base $event, $internalfile, unplag_plagiarism_entity $plagiarismentity) {
+    protected static function after_hanle_event(base $event, array $plagiarismentitys) {
         if (plagiarism_unplag::is_submition_draft($event->contextinstanceid)) {
             // Skip this file check cause assign is draft.
             return null;
         }
 
-        if (isset($internalfile->external_file_id)) {
-            $checkresp = unplag_api::instance()->run_check($internalfile);
-            if ($checkresp->result === true) {
-                $plagiarismentity->update_file_accepted($checkresp->check);
+        if (!empty($plagiarismentitys)) {
+            foreach ($plagiarismentitys as $plagiarismentity) {
+                /** @var unplag_plagiarism_entity $plagiarismentity */
+                $internalfile = $plagiarismentity->get_internal_file();
+                if (isset($internalfile->external_file_id) && !isset($internalfile->check_id)) {
+                    $checkresp = unplag_api::instance()->run_check($internalfile);
+                    if ($checkresp->result === true) {
+                        $plagiarismentity->update_file_accepted($checkresp->check);
+                    }
+                }
             }
         }
     }

@@ -36,7 +36,7 @@ if (!$iterator) {
     $PAGE->requires->js_init_call('M.plagiarism_unplag.init', [$linkarray['cmid']], true, $jsmodule);
 }
 
-$htmlparts = ['<span class="un_report">'];
+$htmlparts = ['<span class="un_report" data-fid="' . $fileobj->id . '">'];
 $htmlparts[] = sprintf('<img  class="%1$s un_progress un_tooltip" src="%2$s" alt="%3$s" title="%3$s" file_id="%4$d" />',
     $fileobj->id,
     $OUTPUT->pix_url('loader', 'plagiarism_unplag'),

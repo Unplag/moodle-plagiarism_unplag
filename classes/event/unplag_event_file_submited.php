@@ -37,6 +37,8 @@ require_once(dirname(__FILE__) . '/unplag_abstract_event.php');
 class unplag_event_file_submited extends unplag_abstract_event {
     /** @var */
     protected static $instance;
+    /** @var  unplag_core */
+    private $unplagcore;
 
     /**
      * @param unplag_core $unplagcore
@@ -49,12 +51,26 @@ class unplag_event_file_submited extends unplag_abstract_event {
             return null;
         }
 
-        $file = get_file_storage()->get_file_by_hash($event->other['pathnamehashes'][0]);
-        $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
-        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+        $this->unplagcore = $unplagcore;
 
-        mtrace('upload file');
+        $plagiarismentitys = [];
+        foreach ($event->other['pathnamehashes'] as $pathnamehash) {
+            $plagiarismentitys[] = $this->handle_uploaded_file($pathnamehash);
+        }
 
-        self::after_hanle_event($event, $internalfile, $plagiarismentity);
+        self::after_hanle_event($event, $plagiarismentitys);
+    }
+
+    /**
+     * @param $pathnamehash
+     *
+     * @return null|\plagiarism_unplag\classes\unplag_plagiarism_entity
+     */
+    private function handle_uploaded_file($pathnamehash) {
+        $file = get_file_storage()->get_file_by_hash($pathnamehash);
+        $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
+        $plagiarismentity->upload_file_on_unplag_server();
+
+        return $plagiarismentity;
     }
 }

@@ -36,6 +36,9 @@ require_once($CFG->libdir . '/formslib.php');
  */
 class unplag_setup_form extends moodleform {
     // Define the form.
+    /**
+     * @throws coding_exception
+     */
     public function definition() {
         $mform =& $this->_form;
         $mform->addElement('checkbox', 'unplag_use', get_string('useunplag', 'plagiarism_unplag'));
@@ -78,6 +81,7 @@ class unplag_setup_form extends moodleform {
  * Class unplag_defaults_form
  */
 class unplag_defaults_form extends moodleform {
+    /** @var bool  */
     private $internalusage = false;
 
     /**
@@ -95,6 +99,9 @@ class unplag_defaults_form extends moodleform {
     }
 
     // Define the form.
+    /**
+     * @throws coding_exception
+     */
     public function definition() {
         $mform = &$this->_form;
 

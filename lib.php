@@ -49,7 +49,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public static function default_plagin_options() {
         return [
-            'unplag_use', 'unplag_enable_mod_assign', 'unplag_enable_mod_assignment',
+            'unplag_use', 'unplag_enable_mod_assign',
         ];
     }
 
@@ -64,6 +64,11 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public function get_links($linkarray) {
         $file = null;
+
+        if (!plagiarism_unplag::is_plagin_enabled() || !plagiarism_unplag::is_allowed_module($linkarray['cmid'])) {
+            // Not allowed access to this content.
+            return null;
+        }
 
         if (isset($linkarray['content'])) {
             $file = plagiarism_unplag::get_area_files($linkarray['cmid']);
@@ -92,7 +97,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
-        } else if ($fileobj->check_id && ($statuscode == UNPLAG_STATUSCODE_ACCEPTED || $statuscode == 'pending')) {
+        } else if (isset($fileobj->check_id) && ($statuscode == UNPLAG_STATUSCODE_ACCEPTED || $statuscode == 'pending')) {
             $output = require(dirname(__FILE__) . '/view_tmpl_accepted.php');
             $iterator++;
         } else if ($statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE && is_array($errors) && array_key_exists('format', $errors)) {

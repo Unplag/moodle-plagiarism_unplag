@@ -27,6 +27,7 @@ namespace plagiarism_unplag\classes;
 
 use coding_exception;
 use core\event\base;
+use plagiarism_unplag;
 
 require_once(dirname(__FILE__) . '/unplag_api.class.php');
 require_once(dirname(__FILE__) . '/../constants.php');
@@ -77,13 +78,14 @@ class unplag_core {
      * @param $checkstatusforthisids
      * @param $resp
      */
-    public static function check_real_file_progress($checkstatusforthisids, &$resp) {
+    public static function check_real_file_progress($cid, $checkstatusforthisids, &$resp) {
         $progresses = unplag_api::instance()->get_check_progress($checkstatusforthisids);
         if ($progresses->result) {
             foreach ($progresses->progress as $id => $val) {
-                $resp[$id]['progress'] = $val * 100;
-
-                self::update_file_progress($id, $resp[$id]['progress']);
+                $val *= 100;
+                $fileobj = self::update_file_progress($id, $val);
+                $resp[$id]['progress'] = $val;
+                $resp[$id]['content'] = plagiarism_unplag::gen_row_content_score($cid, $fileobj);
             }
         }
     }
@@ -92,6 +94,7 @@ class unplag_core {
      * @param $id
      * @param $progres
      *
+     * @return mixed
      * @throws UnplagException
      */
     private static function update_file_progress($id, $progres) {
@@ -112,6 +115,8 @@ class unplag_core {
                 $DB->update_record(UNPLAG_FILES_TABLE, $record);
             }
         }
+
+        return $record;
     }
 
     /**
@@ -141,7 +146,7 @@ class unplag_core {
      *
      * @return array
      */
-    public static function get_assign_settings($cmid, $name = null) {
+    public static function get_assign_settings($cmid, $name = null, $assoc = false) {
         global $DB;
 
         $condition = [
@@ -153,6 +158,11 @@ class unplag_core {
         }
 
         $data = $DB->get_records(UNPLAG_CONFIG_TABLE, $condition, '', 'name,value');
+        if ($assoc) {
+            $data = array_map(function ($item) {
+                return (int)$item->value;
+            }, $data);
+        }
 
         return $data;
     }
@@ -310,16 +320,32 @@ class unplag_core {
             'author'    => $USER->firstname . ' ' . $USER->lastname,
         ];
 
-        $file = get_file_storage()->get_file(
-            $event->contextid, $filerecord['component'], $filerecord['filearea'],
+        $storedfile = get_file_storage()->get_file(
+            $filerecord['contextid'], $filerecord['component'], $filerecord['filearea'],
             $filerecord['itemid'], $filerecord['filepath'], $filerecord['filename']
         );
 
-        if ($file) {
-            return $file;
+        if ($storedfile) {
+            $this->delete_old_file_from_content($storedfile, $filerecord);
         }
 
         return get_file_storage()->create_file_from_string($filerecord, $event->other['content']);
+    }
+
+    /**
+     * @param \stored_file $storedfile
+     * @param              $filerecord
+     */
+    private function delete_old_file_from_content(\stored_file $storedfile, $filerecord) {
+        global $DB;
+
+        $DB->delete_records(UNPLAG_FILES_TABLE, [
+            'cm'         => $filerecord['contextid'],
+            'userid'     => $filerecord['userid'],
+            'identifier' => $storedfile->get_pathnamehash(),
+        ]);
+
+        $storedfile->delete();
     }
 }
 

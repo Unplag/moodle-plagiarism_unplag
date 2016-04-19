@@ -142,6 +142,24 @@ class plagiarism_unplag {
     }
 
     /**
+     * @return array|bool
+     */
+    public static function is_plagin_enabled() {
+        return unplag_core::get_settings('unplag_use');
+    }
+
+    /**
+     * @param $cmid
+     *
+     * @return bool
+     */
+    public static function is_allowed_module($cmid) {
+        $modname = context_module::instance($cmid)->get_context_name();
+
+        return !preg_match('/[workshop|forum]:.*/ui', $modname);
+    }
+
+    /**
      * @param $data
      *
      * @return string
@@ -159,6 +177,7 @@ class plagiarism_unplag {
                 if (empty($record->check_id)) {
                     continue;
                 }
+
                 if ($record->progress != 100) {
                     array_push($checkstatusforthisids, $record->check_id);
                 }
@@ -166,12 +185,13 @@ class plagiarism_unplag {
                 $resp[$record->check_id] = [
                     'file_id'  => $record->id,
                     'progress' => (int)$record->progress,
+                    'content'  => self::gen_row_content_score($data->cid, $record),
                 ];
             }
 
             try {
                 if (!empty($checkstatusforthisids)) {
-                    unplag_core::check_real_file_progress($checkstatusforthisids, $resp);
+                    unplag_core::check_real_file_progress($data->cid, $checkstatusforthisids, $resp);
                 }
             } catch (\Exception $ex) {
                 header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
@@ -180,6 +200,20 @@ class plagiarism_unplag {
         }
 
         return unplag_core::json_response($resp);
+    }
+
+    /**
+     * @param $cid
+     * @param $fileobj
+     *
+     * @return mixed
+     */
+    public static function gen_row_content_score($cid, $fileobj) {
+        if ($fileobj->progress == 100) {
+            $linkarray['cmid'] = $cid;
+
+            return require(dirname(__FILE__) . '/view_tmpl_processed.php');
+        }
     }
 
     /**

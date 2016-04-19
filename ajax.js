@@ -68,7 +68,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
             }
         };
 
-        Y.io(url, callback)
+        Y.io(url, callback);
     };
 
     var handle_record = function (record) {
@@ -84,7 +84,8 @@ M.plagiarism_unplag.init = function (Y, contextid) {
             var items = M.plagiarism_unplag.items;
             delete items[items.indexOf(record.file_id)];
 
-            Y.one('.un_progress[file_id="' + record.file_id + '"]').hide();
+            var el = Y.one('.un_report[data-fid="' + record.file_id + '"]');
+            el.insert(record.content, 'after').remove();
         }
     };
 
@@ -102,7 +103,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
 
         if (M.plagiarism_unplag.items.length) {
             M.plagiarism_unplag.interval = setInterval(function () {
-                track_progress(Y, M.plagiarism_unplag.items, contextid)
+                track_progress(Y, M.plagiarism_unplag.items, contextid);
             }, 3000);
         }
     };
