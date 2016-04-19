@@ -78,7 +78,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                         handle_record(item, index);
                     });
                 },
-                failure: function (tid, response) {
+                failure: function () {
                     M.plagiarism_unplag.items = [];
                 }
             }
