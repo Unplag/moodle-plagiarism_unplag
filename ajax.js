@@ -28,6 +28,24 @@ M.plagiarism_unplag = {
 };
 
 M.plagiarism_unplag.init = function (Y, contextid) {
+    var handle_record = function (record) {
+        var existing = Y.one('.un_progress_val[file_id="' + record.file_id + '"]');
+        if (!existing) {
+            return;
+        }
+
+        existing.setContent(record.progress + '%');
+
+        if (record.progress == 100) {
+            existing.addClass('complete');
+            var items = M.plagiarism_unplag.items;
+            items.splice(items.indexOf(record.file_id),1);
+
+            var el = Y.one('.un_report[data-fid="' + record.file_id + '"]');
+            el.insert(record.content, 'after').remove();
+        }
+    };
+
     var track_progress = function (Y, items, contextid) {
 
         if (!items[0]) {
@@ -63,30 +81,11 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                 failure: function (tid, response) {
                     var jsondata = Y.JSON.parse(response.responseText);
                     M.plagiarism_unplag.items = [];
-                    console.log(jsondata.error);
                 }
             }
         };
 
         Y.io(url, callback);
-    };
-
-    var handle_record = function (record) {
-        var existing = Y.one('.un_progress_val[file_id="' + record.file_id + '"]');
-        if (!existing) {
-            return;
-        }
-
-        existing.setContent(record.progress + '%');
-
-        if (record.progress == 100) {
-            existing.addClass('complete');
-            var items = M.plagiarism_unplag.items;
-            items.splice(items.indexOf(record.file_id),1);
-
-            var el = Y.one('.un_report[data-fid="' + record.file_id + '"]');
-            el.insert(record.content, 'after').remove();
-        }
     };
 
     var collect_items = function () {
