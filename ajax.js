@@ -82,7 +82,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
         if (record.progress == 100) {
             existing.addClass('complete');
             var items = M.plagiarism_unplag.items;
-            delete items[items.indexOf(record.file_id)];
+            items.splice(items.indexOf(record.file_id),1);
 
             var el = Y.one('.un_report[data-fid="' + record.file_id + '"]');
             el.insert(record.content, 'after').remove();
