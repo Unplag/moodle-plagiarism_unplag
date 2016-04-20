@@ -259,7 +259,6 @@ class unplag_core {
             return null;
         }
 
-        require_once(dirname(__FILE__) . '/unplag_plagiarism_entity.class.php');
         $this->unplagplagiarismentity = new unplag_plagiarism_entity($this, $file);
 
         return $this->unplagplagiarismentity;
