@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * unplag_api_request.php
+ * unplag_api_request.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -29,7 +29,6 @@ use plagiarism_unplag\library\OAuth\OAuthConsumer;
 use plagiarism_unplag\library\OAuth\OAuthRequest;
 use plagiarism_unplag\library\OAuth\Signature\OAuthSignatureMethod_HMAC_SHA1;
 
-require_once(dirname(__FILE__) . '/../library/OAuth/autoloader.php');
 require_once(dirname(__FILE__) . '/../constants.php');
 
 /**
@@ -117,8 +116,8 @@ class unplag_api_request {
         } else {
             $oauthdata = $this->get_request_data();
         }
-        $settings = unplag_core::get_settings();
-        $oauthconsumer = new OAuthConsumer($settings['unplag_client_id'], $settings['unplag_api_secret']);
+
+        $oauthconsumer = new OAuthConsumer(unplag_core::get_settings('client_id'), unplag_core::get_settings('api_secret'));
         $oauthreq = OAuthRequest::from_consumer_and_token(
             $oauthconsumer, $this->get_token_secret(), $this->httpmethod, $this->get_url(), $oauthdata
         );

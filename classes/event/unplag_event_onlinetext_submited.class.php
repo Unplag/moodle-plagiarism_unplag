@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_event_file_submited.php
+ * unplag_event_onlinetext_submited.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -28,17 +28,13 @@ namespace plagiarism_unplag\classes\event;
 use core\event\base;
 use plagiarism_unplag\classes\unplag_core;
 
-require_once(dirname(__FILE__) . '/unplag_abstract_event.php');
-
 /**
- * Class unplag_event_file_submited
+ * Class unplag_event_onlinetext_submited
  * @package plagiarism_unplag\classes\event
  */
-class unplag_event_file_submited extends unplag_abstract_event {
+class unplag_event_onlinetext_submited extends unplag_abstract_event {
     /** @var */
     protected static $instance;
-    /** @var  unplag_core */
-    private $unplagcore;
 
     /**
      * @param unplag_core $unplagcore
@@ -47,30 +43,34 @@ class unplag_event_file_submited extends unplag_abstract_event {
      * @return null
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
-        if (!isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])) {
+        global $DB;
+
+        if (empty($event->other['content'])) {
             return null;
         }
 
-        $this->unplagcore = $unplagcore;
-
         $plagiarismentitys = [];
-        foreach ($event->other['pathnamehashes'] as $pathnamehash) {
-            $plagiarismentitys[] = $this->handle_uploaded_file($pathnamehash);
+        $submission = $DB->get_record('assignsubmission_onlinetext', ['submission' => $event->objectid]);
+
+        if (!empty($event->other['content']) &&
+            self::is_content_changed(isset($submission->onlinetext) ? $submission->onlinetext : '', $event->other['content'])
+        ) {
+            $file = $unplagcore->create_file_from_content($event);
+            $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
+            $plagiarismentity->upload_file_on_unplag_server();
+            array_push($plagiarismentitys, $plagiarismentity);
         }
 
         self::after_hanle_event($event, $plagiarismentitys);
     }
 
     /**
-     * @param $pathnamehash
+     * @param $onlinetext
+     * @param $content
      *
-     * @return null|\plagiarism_unplag\classes\unplag_plagiarism_entity
+     * @return bool
      */
-    private function handle_uploaded_file($pathnamehash) {
-        $file = get_file_storage()->get_file_by_hash($pathnamehash);
-        $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
-        $plagiarismentity->upload_file_on_unplag_server();
-
-        return $plagiarismentity;
+    private static function is_content_changed($onlinetext, $content) {
+        return base64_encode($onlinetext) !== base64_encode($content);
     }
 }

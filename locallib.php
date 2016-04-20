@@ -34,7 +34,7 @@ global $CFG;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/constants.php');
-require_once(dirname(__FILE__) . '/classes/autoloader.php');
+require_once(dirname(__FILE__) . '/autoloader.php');
 require_once($CFG->libdir . '/filelib.php');
 
 /**
@@ -145,7 +145,7 @@ class plagiarism_unplag {
      * @return array|bool
      */
     public static function is_plagin_enabled() {
-        return unplag_core::get_settings('unplag_use');
+        return unplag_core::get_settings('use');
     }
 
     /**

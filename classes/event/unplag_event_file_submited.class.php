@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_event_assessable_submited.php
+ * unplag_event_file_submited.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -26,56 +26,49 @@
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
-use plagiarism_unplag;
-use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
-
-require_once(dirname(__FILE__) . '/unplag_abstract_event.php');
-require_once(dirname(__FILE__) . '/../../locallib.php');
 
 /**
  * Class unplag_event_file_submited
  * @package plagiarism_unplag\classes\event
  */
-class unplag_event_assessable_submited extends unplag_abstract_event {
-    /** @var self */
+class unplag_event_file_submited extends unplag_abstract_event {
+    /** @var */
     protected static $instance;
-    /** @var unplag_core */
+    /** @var  unplag_core */
     private $unplagcore;
 
     /**
      * @param unplag_core $unplagcore
      * @param base        $event
+     *
+     * @return null
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
+        if (!isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])) {
+            return null;
+        }
 
         $this->unplagcore = $unplagcore;
 
-        $unplagfiles = plagiarism_unplag::get_area_files($event->contextinstanceid);
-        $assignfiles = get_file_storage()->get_area_files($event->contextid,
-            'assignsubmission_file', 'submission_files', false, null, false
-        );
-        $files = array_merge($unplagfiles, $assignfiles);
-        if ($files) {
-            foreach ($files as $file) {
-                $this->handle_file_plagiarism($file);
-            }
+        $plagiarismentitys = [];
+        foreach ($event->other['pathnamehashes'] as $pathnamehash) {
+            $plagiarismentitys[] = $this->handle_uploaded_file($pathnamehash);
         }
+
+        self::after_hanle_event($event, $plagiarismentitys);
     }
 
     /**
-     * @param $file
+     * @param $pathnamehash
      *
-     * @throws \moodle_exception
+     * @return null|\plagiarism_unplag\classes\unplag_plagiarism_entity
      */
-    private function handle_file_plagiarism($file) {
+    private function handle_uploaded_file($pathnamehash) {
+        $file = get_file_storage()->get_file_by_hash($pathnamehash);
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
-        $internalfile = $plagiarismentity->get_internal_file();
-        if (isset($internalfile->check_id)) {
-            print_error('File with uuid' . $file->identifier . ' already sent to Unplag');
-        } else {
-            unplag_api::instance()->run_check($internalfile);
-            mtrace('file ' . $file->identifier . 'send to Unplag');
-        }
+        $plagiarismentity->upload_file_on_unplag_server();
+
+        return $plagiarismentity;
     }
 }

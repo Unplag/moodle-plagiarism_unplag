@@ -58,14 +58,13 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
 
     foreach ($data as $field => $value) {
         if (strpos($field, 'unplag') === 0) {
-            set_config($field, $value, 'plagiarism_unplag');
+            set_config($field, $value, 'plagiarism');
         }
     }
     echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
 }
 
-$plagiarismsettings = (array)get_config('plagiarism_unplag');
-$mform->set_data($plagiarismsettings);
+$mform->set_data(get_config('plagiarism'));
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 $mform->display();

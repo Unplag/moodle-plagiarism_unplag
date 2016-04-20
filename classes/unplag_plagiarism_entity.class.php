@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_plagiarism_entity.php
+ * unplag_plagiarism_entity.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism

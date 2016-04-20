@@ -35,8 +35,8 @@ global $CFG;
 require_once($CFG->dirroot . '/plagiarism/lib.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once($CFG->libdir . '/accesslib.php');
+require_once(dirname(__FILE__) . '/autoloader.php');
 require_once(dirname(__FILE__) . '/locallib.php');
-require_once(dirname(__FILE__) . '/classes/autoloader.php');
 
 // There is a new UNPLAG API - The Integration Service - we only currently use this to verify the receiver address.
 // If we convert the existing calls to send file/get score we should move this to a config setting.
@@ -216,7 +216,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $outputhtml = '';
 
         $unplaguse = unplag_core::get_assign_settings($cmid);
-        $disclosure = unplag_core::get_settings('unplag_student_disclosure');
+        $disclosure = unplag_core::get_settings('student_disclosure');
         if (!empty($disclosure) && !empty($unplaguse)) {
             $outputhtml .= $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
             $formatoptions = new stdClass;

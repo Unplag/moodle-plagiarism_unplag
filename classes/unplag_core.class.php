@@ -29,7 +29,6 @@ use coding_exception;
 use core\event\base;
 use plagiarism_unplag;
 
-require_once(dirname(__FILE__) . '/unplag_api.class.php');
 require_once(dirname(__FILE__) . '/../constants.php');
 
 /**
@@ -259,7 +258,7 @@ class unplag_core {
         if (empty($file)) {
             return null;
         }
-        require_once(dirname(__FILE__) . '/unplag_plagiarism_entity.php');
+
         $this->unplagplagiarismentity = new unplag_plagiarism_entity($this, $file);
 
         return $this->unplagplagiarismentity;
@@ -277,11 +276,15 @@ class unplag_core {
     public static function get_settings($key = null) {
         static $settings;
 
+        if (!is_null($key)) {
+            $key = 'unplag_' . $key;
+        }
+
         if (!empty($settings)) {
             return isset($settings[$key]) ? $settings[$key] : $settings;
         }
 
-        $settings = (array)get_config('plagiarism_unplag');
+        $settings = (array)get_config('plagiarism');
 
         // Check if enabled.
         if (isset($settings['unplag_use']) && $settings['unplag_use']) {

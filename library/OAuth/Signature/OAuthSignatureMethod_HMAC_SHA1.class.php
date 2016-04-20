@@ -19,8 +19,6 @@ namespace plagiarism_unplag\library\OAuth\Signature;
 use plagiarism_unplag\library\OAuth\OAuthRequest;
 use plagiarism_unplag\library\OAuth\OAuthUtil;
 
-require_once('OAuthSignatureMethod.php');
-
 /**
  * Class OAuthSignatureMethod_HMAC_SHA1
  * @package plagiarism_unplag\library\OAuth\Signature
