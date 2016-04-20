@@ -28,7 +28,7 @@ if (!isset($plugin)) {
     $plugin = new stdClass();
 }
 
-$plugin->version = 2016041600;
+$plugin->version = 2016042000;
 $plugin->requires = 2013111800.00;
 $plugin->maturity = MATURITY_STABLE;
 
