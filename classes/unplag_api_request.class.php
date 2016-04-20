@@ -85,7 +85,10 @@ class unplag_api_request {
         $ch = new \curl();
         $ch->setHeader($this->gen_oauth_headers());
         $ch->setHeader('Content-Type: application/json');
-        $ch->setopt(['CURLOPT_RETURNTRANSFER' => true]);
+        $ch->setopt([
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_CONNECTTIMEOUT' => 10,
+        ]);
         $resp = $ch->{$this->httpmethod}($this->url, $this->get_request_data());
 
         return $this->handle_response($resp);
