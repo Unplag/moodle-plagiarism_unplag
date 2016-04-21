@@ -55,20 +55,34 @@ class unplag_plagiarism_entity {
     }
 
     /**
-     * @param $check
-     *
-     * @return bool
+     * @return object
      */
-    public function update_file_accepted($check) {
+    public function upload_file_on_unplag_server() {
         global $DB;
 
-        $plagiarismfile = $this->get_internal_file();
-        $plagiarismfile->attempt = 0; // Reset attempts for status checks.
-        $plagiarismfile->check_id = $check->id;
-        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
-        $plagiarismfile->errorresponse = null;
+        $internalfile = $this->get_internal_file();
 
-        return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+        if (isset($internalfile->external_file_id)) {
+            return $internalfile;
+        }
+
+        // Check if $internalfile actually needs to be submitted.
+        if ($internalfile->statuscode !== UNPLAG_STATUSCODE_PENDING) {
+            return $internalfile;
+        }
+
+        // Increment attempt number.
+        $internalfile->attempt++;
+
+        $uploadedfileresponse = unplag_api::instance()->upload_file($this->stored_file());
+        if ($uploadedfileresponse->result) {
+            $internalfile->external_file_id = $uploadedfileresponse->file->id;
+            $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
+        } else {
+            $this->store_file_errors($uploadedfileresponse);
+        }
+
+        return $internalfile;
     }
 
     /**
@@ -97,7 +111,7 @@ class unplag_plagiarism_entity {
                 $plagiarismfile->userid = $this->userid();
                 $plagiarismfile->identifier = $filehash;
                 $plagiarismfile->filename = $this->stored_file()->get_filename();
-                $plagiarismfile->statuscode = STATUSCODE_PENDING;
+                $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
                 $plagiarismfile->attempt = 0;
                 $plagiarismfile->progress = 0;
                 $plagiarismfile->timesubmitted = time();
@@ -139,37 +153,6 @@ class unplag_plagiarism_entity {
     }
 
     /**
-     * @return object
-     */
-    public function upload_file_on_unplag_server() {
-        global $DB;
-
-        $internalfile = $this->get_internal_file();
-
-        if (isset($internalfile->external_file_id)) {
-            return $internalfile;
-        }
-
-        // Check if $internalfile actually needs to be submitted.
-        if ($internalfile->statuscode !== STATUSCODE_PENDING) {
-            return $internalfile;
-        }
-
-        // Increment attempt number.
-        $internalfile->attempt++;
-
-        $uploadedfileresponse = unplag_api::instance()->upload_file($this->stored_file());
-        if ($uploadedfileresponse->result) {
-            $internalfile->external_file_id = $uploadedfileresponse->file->id;
-            $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
-        } else {
-            $this->store_file_errors($uploadedfileresponse);
-        }
-
-        return $internalfile;
-    }
-
-    /**
      * @param \stdClass $response
      *
      * @return bool
@@ -180,6 +163,34 @@ class unplag_plagiarism_entity {
         $plagiarismfile = $this->get_internal_file();
         $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
         $plagiarismfile->errorresponse = json_encode($response->errors);
+
+        return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+    }
+
+    /**
+     * @param \stdClass $checkresp
+     */
+    public function handle_check_response(\stdClass $checkresp) {
+        if ($checkresp->result === true) {
+            $this->update_file_accepted($checkresp->check);
+        } else {
+            $this->store_file_errors($checkresp);
+        }
+    }
+
+    /**
+     * @param $check
+     *
+     * @return bool
+     */
+    public function update_file_accepted($check) {
+        global $DB;
+
+        $plagiarismfile = $this->get_internal_file();
+        $plagiarismfile->attempt = 0; // Reset attempts for status checks.
+        $plagiarismfile->check_id = $check->id;
+        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
+        $plagiarismfile->errorresponse = null;
 
         return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
     }

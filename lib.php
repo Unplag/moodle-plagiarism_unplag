@@ -89,20 +89,16 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         // This iterator for one-time start-up.
         static $iterator;
 
-        $errors = false;
         $statuscode = $fileobj->statuscode;
-        if ($statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-            $errors = json_decode($fileobj->errorresponse, true);
-        }
-
+        $output = '';
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
-        } else if (isset($fileobj->check_id) && ($statuscode == UNPLAG_STATUSCODE_ACCEPTED || $statuscode == 'pending')) {
+        } else if (isset($fileobj->check_id) && $statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_accepted.php');
             $iterator++;
-        } else if ($statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE && is_array($errors) && array_key_exists('format', $errors)) {
+        } else if ($statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
             $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
-        } else {
+        } else if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
             $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
         }
 

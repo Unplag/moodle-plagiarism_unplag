@@ -73,7 +73,8 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
         if (isset($internalfile->check_id)) {
             print_error('File with uuid' . $file->identifier . ' already sent to Unplag');
         } else {
-            unplag_api::instance()->run_check($internalfile);
+            $checkresp = unplag_api::instance()->run_check($internalfile);
+            $plagiarismentity->handle_check_response($checkresp);
             mtrace('file ' . $file->identifier . 'send to Unplag');
         }
     }

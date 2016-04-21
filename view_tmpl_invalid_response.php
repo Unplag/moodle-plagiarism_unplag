@@ -25,9 +25,16 @@
 
 global $OUTPUT;
 
+$errors = isset($fileobj->errorresponse) ? json_decode($fileobj->errorresponse, true) : null;
+if (is_array($errors)) {
+    $erroresponse = 'Error: ' . $errors[0]['message'];
+} else {
+    $erroresponse = get_string('unknownwarning', 'plagiarism_unplag');
+}
+
 $htmlparts = ['<span class="un_report">'];
 $htmlparts[] = sprintf('<img class="un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
-    $OUTPUT->pix_url('error', 'plagiarism_unplag'), get_string('unsupportedfiletype', 'plagiarism_unplag')
+    $OUTPUT->pix_url('error', 'plagiarism_unplag'), $erroresponse
 );
 $htmlparts[] = '</span>';
 

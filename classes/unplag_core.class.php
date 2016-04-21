@@ -74,8 +74,11 @@ class unplag_core {
     }
 
     /**
+     * @param $cid
      * @param $checkstatusforthisids
      * @param $resp
+     *
+     * @throws UnplagException
      */
     public static function check_real_file_progress($cid, $checkstatusforthisids, &$resp) {
         $progresses = unplag_api::instance()->get_check_progress($checkstatusforthisids);
@@ -142,6 +145,8 @@ class unplag_core {
     /**
      * @param      $cmid
      * @param null $name
+     *
+     * @param bool $assoc
      *
      * @return array
      */
@@ -241,11 +246,7 @@ class unplag_core {
             }
 
             $checkresp = unplag_api::instance()->run_check($internalfile);
-            if ($checkresp->result === true) {
-                $plagiarismentity->update_file_accepted($checkresp->check);
-            } else {
-                $plagiarismentity->store_file_errors($checkresp);
-            }
+            $plagiarismentity->handle_check_response($checkresp);
         }
     }
 

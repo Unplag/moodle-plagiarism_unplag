@@ -31,6 +31,7 @@ $modulecontext = context_module::instance($linkarray['cmid']);
 // This is a teacher viewing the responses.
 if (has_capability('plagiarism/unplag:resetfile', $modulecontext) && !empty($fileobj->errorresponse)) {
     // Strip out some possible known text to tidy it up.
+    $errors = json_decode($fileobj->errorresponse, true);
     if (is_array($errors)) {
         $erroresponse = $errors[0]['message'];
     } else {

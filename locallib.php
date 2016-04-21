@@ -59,7 +59,7 @@ class plagiarism_unplag {
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
             }
-        } else if (self::is_assign_submitted($event) && self::is_submition_draft($event->contextinstanceid)) {
+        } else if (self::is_assign_submitted($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
             unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
         }

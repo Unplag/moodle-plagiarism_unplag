@@ -43,8 +43,7 @@ define('UNPLAG_MAX_STATUS_ATTEMPTS', 10); // Maximum number of times to try and 
 define('UNPLAG_MAX_STATUS_DELAY', 1440); // Maximum time to wait between checks (defined in minutes).
 define('UNPLAG_STATUS_DELAY', 30); // Initial delay, doubled each time a check is made until the max_status_delay is met.
 
-define('STATUSCODE_PENDING', 'pending');
-
+define('UNPLAG_STATUSCODE_PENDING', 'pending');
 define('UNPLAG_STATUSCODE_PROCESSED', 200);
 define('UNPLAG_STATUSCODE_ACCEPTED', 202);
 define('UNPLAG_STATUSCODE_UNSUPPORTED', 415);
