@@ -34,7 +34,7 @@ global $CFG;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/constants.php');
-require_once(dirname(__FILE__) . '/classes/autoloader.php');
+require_once(dirname(__FILE__) . '/autoloader.php');
 require_once($CFG->libdir . '/filelib.php');
 
 /**
@@ -59,7 +59,7 @@ class plagiarism_unplag {
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
             }
-        } else if (self::is_assign_submitted($event) && self::is_submition_draft($event->contextinstanceid)) {
+        } else if (self::is_assign_submitted($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
             unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
         }
@@ -145,7 +145,7 @@ class plagiarism_unplag {
      * @return array|bool
      */
     public static function is_plagin_enabled() {
-        return unplag_core::get_settings('unplag_use');
+        return unplag_core::get_settings('use');
     }
 
     /**

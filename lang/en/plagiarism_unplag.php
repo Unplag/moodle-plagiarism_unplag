@@ -93,3 +93,4 @@ $string['scoreavailable'] = 'This file has been processed by UNPLAG and a report
 $string['receivernotvalid'] = 'This is not a valid receiver address.';
 $string['attempts'] = 'Attempts made';
 $string['refresh'] = 'Refresh page to see results';
+$string['delete'] = 'Delete';

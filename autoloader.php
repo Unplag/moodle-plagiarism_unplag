@@ -22,8 +22,28 @@
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use plagiarism_unplag\library\unplag_autoloader;
 
-require_once(dirname(__FILE__) . '/../library/autoloader.php');
+namespace plagiarism_unplag\library;
 
-unplag_autoloader::init(dirname(__FILE__));
+/**
+ * Class unplag_autoloader
+ * @package plagiarism_unplag\library
+ */
+class unplag_autoloader {
+    /**
+     * @param $class
+     */
+    public static function init($class) {
+        if (strpos($class, 'plagiarism_unplag') === false) {
+            return;
+        }
+
+        $class = str_replace('plagiarism_unplag', '', $class);
+        $class = str_replace('\\', '/', $class);
+
+        $autoload = sprintf('%s%s.class.php', __DIR__, str_replace('plagiarism_unplag', '', $class));
+        require_once($autoload);
+    }
+}
+
+spl_autoload_register(['plagiarism_unplag\library\unplag_autoloader', 'init']);

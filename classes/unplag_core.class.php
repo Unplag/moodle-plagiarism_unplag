@@ -29,7 +29,6 @@ use coding_exception;
 use core\event\base;
 use plagiarism_unplag;
 
-require_once(dirname(__FILE__) . '/unplag_api.class.php');
 require_once(dirname(__FILE__) . '/../constants.php');
 
 /**
@@ -75,8 +74,11 @@ class unplag_core {
     }
 
     /**
+     * @param $cid
      * @param $checkstatusforthisids
      * @param $resp
+     *
+     * @throws UnplagException
      */
     public static function check_real_file_progress($cid, $checkstatusforthisids, &$resp) {
         $progresses = unplag_api::instance()->get_check_progress($checkstatusforthisids);
@@ -143,6 +145,8 @@ class unplag_core {
     /**
      * @param      $cmid
      * @param null $name
+     *
+     * @param bool $assoc
      *
      * @return array
      */
@@ -242,11 +246,7 @@ class unplag_core {
             }
 
             $checkresp = unplag_api::instance()->run_check($internalfile);
-            if ($checkresp->result === true) {
-                $plagiarismentity->update_file_accepted($checkresp->check);
-            } else {
-                $plagiarismentity->store_file_errors($checkresp);
-            }
+            $plagiarismentity->handle_check_response($checkresp);
         }
     }
 
@@ -259,7 +259,7 @@ class unplag_core {
         if (empty($file)) {
             return null;
         }
-        require_once(dirname(__FILE__) . '/unplag_plagiarism_entity.php');
+
         $this->unplagplagiarismentity = new unplag_plagiarism_entity($this, $file);
 
         return $this->unplagplagiarismentity;
@@ -277,11 +277,15 @@ class unplag_core {
     public static function get_settings($key = null) {
         static $settings;
 
+        if (!is_null($key)) {
+            $key = 'unplag_' . $key;
+        }
+
         if (!empty($settings)) {
             return isset($settings[$key]) ? $settings[$key] : $settings;
         }
 
-        $settings = (array)get_config('plagiarism_unplag');
+        $settings = (array)get_config('plagiarism');
 
         // Check if enabled.
         if (isset($settings['unplag_use']) && $settings['unplag_use']) {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_abstract_event.php
+ * unplag_abstract_event.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -46,7 +46,7 @@ abstract class unplag_abstract_event {
     }
 
     /**
-     * @param base  $event
+     * @param base                       $event
      * @param unplag_plagiarism_entity[] $plagiarismentitys
      *
      * @return null
@@ -64,6 +64,8 @@ abstract class unplag_abstract_event {
                     $checkresp = unplag_api::instance()->run_check($internalfile);
                     if ($checkresp->result === true) {
                         $plagiarismentity->update_file_accepted($checkresp->check);
+                    } else {
+                        $plagiarismentity->store_file_errors($checkresp);
                     }
                 }
             }

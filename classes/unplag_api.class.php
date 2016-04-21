@@ -25,8 +25,6 @@
 
 namespace plagiarism_unplag\classes;
 
-require_once('unplag_api_request.php');
-
 /**
  * Class unplag_api
  * @package plagiarism_unplag\classes
