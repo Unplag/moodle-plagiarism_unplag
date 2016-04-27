@@ -41,35 +41,35 @@ class unplag_setup_form extends moodleform {
      */
     public function definition() {
         $mform =& $this->_form;
-        $mform->addElement('checkbox', 'unplag_use', get_string('useunplag', 'plagiarism_unplag'));
+        $mform->addElement('checkbox', 'unplag_use', plagiarism_unplag::trans('useunplag'));
 
-        $mform->addElement('text', 'unplag_client_id', get_string('unplag_client_id', 'plagiarism_unplag'));
+        $mform->addElement('text', 'unplag_client_id', plagiarism_unplag::trans('unplag_client_id'));
         $mform->addHelpButton('unplag_client_id', 'unplag_client_id', 'plagiarism_unplag');
         $mform->addRule('unplag_client_id', null, 'required', null, 'client');
         $mform->setType('unplag_client_id', PARAM_TEXT);
 
-        $mform->addElement('text', 'unplag_api_secret', get_string('unplag_api_secret', 'plagiarism_unplag'));
+        $mform->addElement('text', 'unplag_api_secret', plagiarism_unplag::trans('unplag_api_secret'));
         $mform->addHelpButton('unplag_api_secret', 'unplag_api_secret', 'plagiarism_unplag');
         $mform->addRule('unplag_api_secret', null, 'required', null, 'client');
         $mform->setType('unplag_api_secret', PARAM_TEXT);
 
-        $mform->addElement('text', 'unplag_lang', get_string('unplag_lang', 'plagiarism_unplag'));
+        $mform->addElement('text', 'unplag_lang', plagiarism_unplag::trans('unplag_lang'));
         $mform->addHelpButton('unplag_lang', 'unplag_lang', 'plagiarism_unplag');
         $mform->addRule('unplag_lang', null, 'required', null, 'client');
         $mform->setDefault('unplag_lang', 'en-US');
         $mform->setType('unplag_lang', PARAM_TEXT);
 
-        $mform->addElement('textarea', 'unplag_student_disclosure', get_string('studentdisclosure', 'plagiarism_unplag'),
+        $mform->addElement('textarea', 'unplag_student_disclosure', plagiarism_unplag::trans('studentdisclosure'),
             'wrap="virtual" rows="6" cols="100"');
         $mform->addHelpButton('unplag_student_disclosure', 'studentdisclosure', 'plagiarism_unplag');
-        $mform->setDefault('unplag_student_disclosure', get_string('studentdisclosuredefault', 'plagiarism_unplag'));
+        $mform->setDefault('unplag_student_disclosure', plagiarism_unplag::trans('studentdisclosuredefault'));
         $mform->setType('unplag_student_disclosure', PARAM_TEXT);
 
         $mods = core_component::get_plugin_list('mod');
         foreach ($mods as $mod => $modname) {
-            if (plugin_supports('mod', $mod, FEATURE_PLAGIARISM) && in_array($mod, ['assign'])) {
+            if (plugin_supports('mod', $mod, FEATURE_PLAGIARISM) && plagiarism_unplag::is_support_mod($mod)) {
                 $modstring = 'unplag_enable_mod_' . $mod;
-                $mform->addElement('checkbox', $modstring, get_string('unplag_enableplugin', 'plagiarism_unplag', $mod));
+                $mform->addElement('checkbox', $modstring, plagiarism_unplag::trans('unplag_enableplugin', $mod));
             }
         }
 
@@ -81,7 +81,7 @@ class unplag_setup_form extends moodleform {
  * Class unplag_defaults_form
  */
 class unplag_defaults_form extends moodleform {
-    /** @var bool  */
+    /** @var bool */
     private $internalusage = false;
 
     /**
@@ -105,35 +105,32 @@ class unplag_defaults_form extends moodleform {
     public function definition() {
         $mform = &$this->_form;
 
-        $ynoptions = [0 => get_string('no'), 1 => get_string('yes')];
+        $ynoptions = [get_string('no'), get_string('yes')];
         $tiioptions = [
-            0 => get_string("never"),
-            1 => get_string("always"),
-            2 => get_string("showwhenclosed", "plagiarism_unplag"),
+            get_string("never"), get_string("always"), plagiarism_unplag::trans("showwhenclosed"),
         ];
 
         $unplagdraftoptions = [
-            PLAGIARISM_UNPLAG_DRAFTSUBMIT_IMMEDIATE => get_string("submitondraft", "plagiarism_unplag"),
-            PLAGIARISM_UNPLAG_DRAFTSUBMIT_FINAL     => get_string("submitonfinal", "plagiarism_unplag"),
+            PLAGIARISM_UNPLAG_DRAFTSUBMIT_IMMEDIATE => plagiarism_unplag::trans("submitondraft"),
+            PLAGIARISM_UNPLAG_DRAFTSUBMIT_FINAL     => plagiarism_unplag::trans("submitonfinal"),
         ];
 
-        $mform->addElement('header', 'plagiarismdesc', get_string('unplag', 'plagiarism_unplag'));
-        $mform->addElement('select', 'use_unplag', get_string("useunplag", "plagiarism_unplag"), $ynoptions);
-
+        $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
+        $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
         $mform->addElement('select', 'unplag_show_student_score',
-            get_string("unplag_show_student_score", "plagiarism_unplag"), $tiioptions
+            plagiarism_unplag::trans("unplag_show_student_score"), $tiioptions
         );
         $mform->addHelpButton('unplag_show_student_score', 'unplag_show_student_score', 'plagiarism_unplag');
         $mform->addElement('select', 'unplag_show_student_report',
-            get_string("unplag_show_student_report", "plagiarism_unplag"), $tiioptions
+            plagiarism_unplag::trans("unplag_show_student_report"), $tiioptions
         );
         $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
-        if ($mform->elementExists('var4') || $mform->elementExists('submissiondrafts')) {
+        /*if ($mform->elementExists('var4') || $mform->elementExists('submissiondrafts')) {
             $mform->addElement('select', 'unplag_draft_ubmit',
-                get_string("unplag_draft_submit", "plagiarism_unplag"), $unplagdraftoptions
+                plagiarism_unplag::trans("unplag_draft_submit"), $unplagdraftoptions
             );
-        }
-        $mform->addElement('select', 'unplag_studentemail', get_string("unplag_studentemail", "plagiarism_unplag"), $ynoptions);
+        }*/
+        $mform->addElement('select', 'unplag_studentemail', plagiarism_unplag::trans("unplag_studentemail"), $ynoptions);
         $mform->addHelpButton('unplag_studentemail', 'unplag_studentemail', 'plagiarism_unplag');
 
         if (!$this->internalusage) {

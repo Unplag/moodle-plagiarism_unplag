@@ -23,8 +23,9 @@
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+use plagiarism_unplag\classes\unplag_notification;
 
-global  $CFG, $OUTPUT, $USER;
+global $CFG, $OUTPUT, $USER;
 
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
 require_once($CFG->libdir . '/adminlib.php');
@@ -61,7 +62,8 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
             set_config($field, $value, 'plagiarism');
         }
     }
-    echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_unplag'), 'notifysuccess');
+
+    unplag_notification::success('savedconfigsuccess');
 }
 
 $mform->set_data(get_config('plagiarism'));

@@ -52,21 +52,17 @@ abstract class unplag_abstract_event {
      * @return null
      */
     protected static function after_hanle_event(base $event, array $plagiarismentitys) {
-        if (plagiarism_unplag::is_submition_draft($event->contextinstanceid)) {
+        if (empty($plagiarismentitys) || plagiarism_unplag::is_submition_draft($event->component, $event->contextinstanceid)) {
             // Skip this file check cause assign is draft.
             return null;
         }
 
-        if (!empty($plagiarismentitys)) {
-            foreach ($plagiarismentitys as $plagiarismentity) {
+        foreach ($plagiarismentitys as $plagiarismentity) {
+            if ($plagiarismentity instanceof unplag_plagiarism_entity) {
                 $internalfile = $plagiarismentity->get_internal_file();
                 if (isset($internalfile->external_file_id) && !isset($internalfile->check_id)) {
                     $checkresp = unplag_api::instance()->run_check($internalfile);
-                    if ($checkresp->result === true) {
-                        $plagiarismentity->update_file_accepted($checkresp->check);
-                    } else {
-                        $plagiarismentity->store_file_errors($checkresp);
-                    }
+                    $plagiarismentity->handle_check_response($checkresp);
                 }
             }
         }

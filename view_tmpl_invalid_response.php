@@ -29,11 +29,15 @@ $errors = isset($fileobj->errorresponse) ? json_decode($fileobj->errorresponse, 
 if (is_array($errors)) {
     $erroresponse = 'Error: ' . $errors[0]['message'];
 } else {
-    $erroresponse = get_string('unknownwarning', 'plagiarism_unplag');
+    $erroresponse = plagiarism_unplag::trans('unknownwarning');
 }
 
 $htmlparts = ['<span class="un_report">'];
-$htmlparts[] = sprintf('<img class="un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
+$htmlparts[] = sprintf('<img  width="32" height="32" src="%s" title="%s"> ',
+    $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
+);
+$htmlparts[] = $erroresponse;
+$htmlparts[] = sprintf(' <img class="un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
     $OUTPUT->pix_url('error', 'plagiarism_unplag'), $erroresponse
 );
 $htmlparts[] = '</span>';

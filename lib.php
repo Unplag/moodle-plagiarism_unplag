@@ -65,7 +65,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     public function get_links($linkarray) {
         $file = null;
 
-        if (!plagiarism_unplag::is_plagin_enabled() || !plagiarism_unplag::is_allowed_module($linkarray['cmid'])) {
+        if (!plagiarism_unplag::is_plagin_enabled()) {
             // Not allowed access to this content.
             return null;
         }

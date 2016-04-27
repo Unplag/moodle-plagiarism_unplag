@@ -194,19 +194,10 @@ class unplag_core {
         $a->modulelink = $CFG->wwwroot . '/mod/' . $cm->modname . '/view.php?id=' . $cm->id;
         $a->coursename = format_string($DB->get_field('course', 'fullname', ['id' => $cm->course]));
         $a->optoutlink = $plagiarismfile->optout;
-        $emailsubject = get_string('studentemailsubject', 'plagiarism_unplag');
-        $emailcontent = get_string('studentemailcontent', 'plagiarism_unplag', $a);
+        $emailsubject = plagiarism_unplag::trans('studentemailsubject');
+        $emailcontent = plagiarism_unplag::trans('studentemailcontent', $a);
 
         email_to_user($user, $site->shortname, $emailsubject, $emailcontent);
-    }
-
-    /**
-     * @param $data
-     *
-     * @return mixed
-     */
-    public static function parse_json($data) {
-        return json_decode($data);
     }
 
     /**
@@ -228,7 +219,6 @@ class unplag_core {
         global $DB;
 
         $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
-
         if (in_array($plagiarismfile->statuscode, [UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED])) {
             // Sanity Check.
             return null;
@@ -236,17 +226,24 @@ class unplag_core {
 
         $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
 
-        if ($cm->modname == 'assign') {
+        if (plagiarism_unplag::is_support_mod($cm->modname)) {
             $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
             $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
             $plagiarismentity = $ucore->get_plagiarism_entity($file);
             $internalfile = $plagiarismentity->get_internal_file();
-            if ($internalfile->check_id) {
-                unplag_api::instance()->delete_check($internalfile);
-            }
+            if (isset($internalfile->external_file_id)) {
+                if ($internalfile->check_id) {
+                    unplag_api::instance()->delete_check($internalfile);
+                }
 
-            $checkresp = unplag_api::instance()->run_check($internalfile);
-            $plagiarismentity->handle_check_response($checkresp);
+                unplag_notification::success('plagiarism_run_success');
+
+                $checkresp = unplag_api::instance()->run_check($internalfile);
+                $plagiarismentity->handle_check_response($checkresp);
+            } else {
+                $error = self::parse_json($internalfile->errorresponse);
+                unplag_notification::error('Can\'t restart check: ' . $error[0]->message, false);
+            }
         }
     }
 
@@ -263,6 +260,15 @@ class unplag_core {
         $this->unplagplagiarismentity = new unplag_plagiarism_entity($this, $file);
 
         return $this->unplagplagiarismentity;
+    }
+
+    /**
+     * @param $data
+     *
+     * @return mixed
+     */
+    public static function parse_json($data) {
+        return json_decode($data);
     }
 
     /**

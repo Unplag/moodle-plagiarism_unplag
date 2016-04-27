@@ -23,6 +23,7 @@
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+use plagiarism_unplag\classes\unplag_notification;
 
 global $CFG, $DB, $OUTPUT;
 
@@ -63,9 +64,10 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
             }
         }
     }
-    echo $OUTPUT->notification(get_string('defaultupdated', 'plagiarism_unplag'), 'notifysuccess');
+
+    unplag_notification::success('defaultupdated');
 }
-echo $OUTPUT->box(get_string('defaultsdesc', 'plagiarism_unplag'));
+echo $OUTPUT->box(plagiarism_unplag::trans('defaultsdesc'));
 
 $mform->display();
 echo $OUTPUT->footer();
