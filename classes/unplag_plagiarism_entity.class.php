@@ -157,7 +157,7 @@ class unplag_plagiarism_entity {
      *
      * @return bool
      */
-    public function store_file_errors(\stdClass $response) {
+    private function store_file_errors(\stdClass $response) {
         global $DB;
 
         $plagiarismfile = $this->get_internal_file();
@@ -183,7 +183,7 @@ class unplag_plagiarism_entity {
      *
      * @return bool
      */
-    public function update_file_accepted($check) {
+    private function update_file_accepted($check) {
         global $DB;
 
         $plagiarismfile = $this->get_internal_file();

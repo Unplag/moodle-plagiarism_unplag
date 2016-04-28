@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Unplag/moodle-plagiarism_unplag.svg?branch=master)](https://travis-ci.org/Unplag/moodle-plagiarism_unplag)
 
-UNPLAG Plagiarism plugin for Moodle 2.9  
+UNPLAG Plagiarism plugin for Moodle 2.6 - 3.0  
 
 Author: Vadim Titov <developer@unplag.com>  
 Copyright: UKU Group, LTD, http://www.unplag.com  
@@ -16,8 +16,12 @@ QUICK INSTALL
 2) Visit the Notifications page in Moodle to trigger the upgrade scripts  
 3) Enable the Plagiarism API under admin > Advanced Features  
 4) Configure the UNPLAG plugin under admin > plugins > Plagiarism > UNPLAG  
+
+SUPPORTED FORMAT FILES
+=======================
+Extension of file to upload.
+
+doc, docx, html, htm, odt, rtf, txt, pdf
   
-  
+
 For more information see: http://docs.moodle.org/20/en/Plagiarism_Prevention
-
-

@@ -25,7 +25,7 @@
 
 global $OUTPUT;
 
-$title = get_string('unknownwarning', 'plagiarism_unplag');
+$title = plagiarism_unplag::trans('unknownwarning');
 $reset = '';
 $modulecontext = context_module::instance($linkarray['cmid']);
 // This is a teacher viewing the responses.
@@ -35,7 +35,7 @@ if (has_capability('plagiarism/unplag:resetfile', $modulecontext) && !empty($fil
     if (is_array($errors)) {
         $erroresponse = $errors[0]['message'];
     } else {
-        $erroresponse = get_string('unknownwarning', 'plagiarism_unplag');
+        $erroresponse = plagiarism_unplag::trans('unknownwarning');
     }
 
     $erroresponse = str_replace('{&quot;LocalisedMessage&quot;:&quot;', '', $erroresponse);
@@ -54,7 +54,7 @@ if (has_capability('plagiarism/unplag:resetfile', $modulecontext) && !empty($fil
 $htmlparts = ['<span class="un_report">'];
 $htmlparts[] = sprintf('<img class="un_tooltip" src="%1$s" alt="%2$s" title="%3$s" />%4$s',
     $OUTPUT->pix_url('error', 'plagiarism_unplag'),
-    get_string('unknownwarning', 'plagiarism_unplag'), $title, $reset
+    plagiarism_unplag::trans('unknownwarning'), $title, $reset
 );
 
 $htmlparts[] = '</span>';

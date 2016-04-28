@@ -35,7 +35,9 @@ $htmlparts = ['<span class="un_report">'];
 if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
     // User is allowed to view the report.
     // Score is contained in report, so they can see the score too.
-    $htmlparts[] = '<img  width="32" height="32" src="' . $OUTPUT->pix_url('unplag', 'plagiarism_unplag') . '"> ';
+    $htmlparts[] = sprintf('<img  width="32" height="32" src="%s" title="%s"> ',
+        $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
+    );
 
     $modulecontext = context_module::instance($linkarray['cmid']);
     // This is a teacher viewing the responses.
@@ -46,7 +48,7 @@ if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
         if ($teacherhere || $assigncfg['unplag_show_student_score']) {
             // User is allowed to view only the score.
             $htmlparts[] = sprintf('%s: <span class="rank1">%s%%</span>',
-                get_string('similarity', 'plagiarism_unplag'),
+                plagiarism_unplag::trans('similarity'),
                 $fileobj->similarityscore
             );
         }
@@ -57,7 +59,7 @@ if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
             // Display opt-out link.
             $htmlparts[] = '&nbsp;<span class"plagiarismoptout">';
             $htmlparts[] = sprintf('<a title="%s" href="%s" target="_blank">',
-                get_string('report', 'plagiarism_unplag'), $teacherhere ? $fileobj->reportediturl : $fileobj->reporturl
+                plagiarism_unplag::trans('report'), $teacherhere ? $fileobj->reportediturl : $fileobj->reporturl
             );
             $htmlparts[] = '<img class="un_tooltip" src="' . $OUTPUT->pix_url('link', 'plagiarism_unplag') . '">';
             $htmlparts[] = '</a></span>';

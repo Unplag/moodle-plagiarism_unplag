@@ -65,11 +65,16 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
     /**
      * @param $file
      *
+     * @return null
      * @throws \moodle_exception
      */
     private function handle_file_plagiarism($file) {
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
         $internalfile = $plagiarismentity->get_internal_file();
+        if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
+            return null;
+        }
+
         if (isset($internalfile->check_id)) {
             print_error('File with uuid' . $file->identifier . ' already sent to Unplag');
         } else {

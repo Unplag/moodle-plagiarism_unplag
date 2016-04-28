@@ -27,9 +27,9 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    // It must be included from a Moodle page.
 }
 
-$strplagiarism = get_string('unplag', 'plagiarism_unplag');
-$strplagiarismdefaults = get_string('unplagdefaults', 'plagiarism_unplag');
-$strplagiarismdebug = get_string('unplagdebug', 'plagiarism_unplag');
+$strplagiarism = plagiarism_unplag::trans('unplag');
+$strplagiarismdefaults = plagiarism_unplag::trans('unplagdefaults');
+$strplagiarismdebug = plagiarism_unplag::trans('unplagdebug');
 
 $tabs = [
     new tabobject('unplagsettings', 'settings.php', $strplagiarism, $strplagiarism, false),

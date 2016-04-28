@@ -66,6 +66,9 @@ class unplag_event_file_submited extends unplag_abstract_event {
      */
     private function handle_uploaded_file($pathnamehash) {
         $file = get_file_storage()->get_file_by_hash($pathnamehash);
+        if ($file->is_directory()) {
+            return null;
+        }
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
         $plagiarismentity->upload_file_on_unplag_server();
 

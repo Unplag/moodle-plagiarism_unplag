@@ -40,11 +40,11 @@ $htmlparts = ['<span class="un_report" data-fid="' . $fileobj->id . '">'];
 $htmlparts[] = sprintf('<img  class="%1$s un_progress un_tooltip" src="%2$s" alt="%3$s" title="%3$s" file_id="%4$d" />',
     $fileobj->id,
     $OUTPUT->pix_url('loader', 'plagiarism_unplag'),
-    get_string('processing', 'plagiarism_unplag'),
+    plagiarism_unplag::trans('processing'),
     $fileobj->id
 );
 $htmlparts[] = sprintf('%s: <span file_id="%d" class="un_progress_val" >%d%%</span>',
-    get_string('progress', 'plagiarism_unplag'),
+    plagiarism_unplag::trans('progress'),
     $fileobj->id, intval($fileobj->progress)
 );
 

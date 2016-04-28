@@ -56,4 +56,4 @@ if ($cm->modname == 'assignment') {
     $redirect = $CFG->wwwroot;
 }
 
-redirect($redirect, get_string('filereset', 'plagiarism_unplag'));
+redirect($redirect, plagiarism_unplag::trans('filereset'));

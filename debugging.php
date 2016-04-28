@@ -26,6 +26,7 @@
 
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_notification;
 
 global $CFG, $DB, $OUTPUT;
 
@@ -67,7 +68,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
 
     if ($resetuser == 1 && $id && confirm_sesskey()) {
         if (unplag_core::resubmit_file($id)) {
-            echo $OUTPUT->notification(get_string('fileresubmitted', UNPLAG_PLAGIN_NAME));
+            unplag_notification::error('fileresubmitted');
         }
     } else if ($resetuser == 2 && $id && confirm_sesskey()) {
         $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
@@ -80,17 +81,17 @@ if (!$table->is_downloading($download, $exportfilename)) {
         }
 
         if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
-            echo $OUTPUT->notification(get_string('scorenotavailableyet', UNPLAG_PLAGIN_NAME));
+            unplag_notification::error('scorenotavailableyet');
         } else if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_PROCESSED) {
-            echo $OUTPUT->notification(get_string('scoreavailable', UNPLAG_PLAGIN_NAME));
+            unplag_notification::error('scoreavailable');
         } else {
-            echo $OUTPUT->notification(get_string('unknownwarning', UNPLAG_PLAGIN_NAME));
+            unplag_notification::error('unknownwarning');
         }
     }
 
     if (!empty($delete) && confirm_sesskey()) {
         $DB->delete_records(UNPLAG_FILES_TABLE, ['id' => $id]);
-        echo $OUTPUT->notification(get_string('filedeleted', UNPLAG_PLAGIN_NAME));
+        unplag_notification::success('filedeleted');
     }
 }
 $heldevents = [];
@@ -130,12 +131,12 @@ $unplagfiles = $DB->get_records_sql($sql, null, $page * $limit, $limit);
 
 $table->define_columns(['id', 'name', 'module', 'identifier', 'status', 'attempts', 'action']);
 $table->define_headers([
-    get_string('id', UNPLAG_PLAGIN_NAME),
+    plagiarism_unplag::trans('id'),
     get_string('user'),
-    get_string('module', UNPLAG_PLAGIN_NAME),
-    get_string('identifier', UNPLAG_PLAGIN_NAME),
-    get_string('status', UNPLAG_PLAGIN_NAME),
-    get_string('attempts', UNPLAG_PLAGIN_NAME), '',
+    plagiarism_unplag::trans('module'),
+    plagiarism_unplag::trans('identifier'),
+    plagiarism_unplag::trans('status'),
+    plagiarism_unplag::trans('attempts'), '',
 ]);
 $table->define_baseurl('debugging.php');
 $table->sortable(true);
@@ -162,7 +163,7 @@ foreach ($unplagfiles as $tf) {
 
         $builddebuglink = function ($tf, $action, $transtext) {
             return sprintf('<a href="debugging.php?%4$s&id=%1$s&sesskey=%2$s">%3$s</a>',
-                $tf->id, sesskey(), get_string($transtext, UNPLAG_PLAGIN_NAME), $action
+                $tf->id, sesskey(), plagiarism_unplag::trans($transtext), $action
             );
         };
 
@@ -213,8 +214,8 @@ if ($table->is_downloading()) {
 }
 
 if (!$table->is_downloading()) {
-    echo $OUTPUT->heading(get_string('unplagfiles', UNPLAG_PLAGIN_NAME));
-    echo $OUTPUT->box(get_string('explainerrors', UNPLAG_PLAGIN_NAME));
+    echo $OUTPUT->heading(plagiarism_unplag::trans('unplagfiles'));
+    echo $OUTPUT->box(plagiarism_unplag::trans('explainerrors'));
 }
 
 $table->finish_output();

@@ -41,12 +41,18 @@ require_once($CFG->libdir . '/filelib.php');
  * Class plagiarism_unplag
  */
 class plagiarism_unplag {
+    /** @var array */
+    private static $supportedplagiarismmods = [
+        'assign', 'workshop', 'forum',
+    ];
+
     /**
      * @param base $event
-     *
-     * @throws \plagiarism_unplag\classes\UnplagException
      */
     public static function event_handler(base $event) {
+
+        unplag_core::validate_event($event);
+
         if (self::is_allowed_events($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
 
@@ -56,6 +62,8 @@ class plagiarism_unplag {
                     break;
 
                 case 'assignsubmission_file':
+                case 'mod_workshop':
+                case 'mod_forum':
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
             }
@@ -75,6 +83,8 @@ class plagiarism_unplag {
             '\assignsubmission_file\event\submission_updated',
             '\assignsubmission_file\event\assessable_uploaded',
             '\assignsubmission_onlinetext\event\assessable_uploaded',
+            '\mod_workshop\event\assessable_uploaded',
+            '\mod_forum\event\assessable_uploaded',
         ]);
     }
 
@@ -88,15 +98,25 @@ class plagiarism_unplag {
     }
 
     /**
+     * @param $modname
+     *
+     * @return bool
+     */
+    public static function is_support_mod($modname) {
+        return in_array($modname, self::$supportedplagiarismmods);
+    }
+
+    /**
+     * @param $component
      * @param $cmid
      *
      * @return bool
      */
-    public static function is_submition_draft($cmid) {
+    public static function is_submition_draft($component, $cmid) {
         global $CFG, $USER;
 
-        if (!$cmid) {
-            throw new InvalidArgumentException('Invalid param $cmid');
+        if ($component != 'mod_assign') {
+            return false;
         }
 
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
@@ -105,7 +125,7 @@ class plagiarism_unplag {
             $modulecontext = context_module::instance($cmid);
             $assign = new assign($modulecontext, false, false);
         } catch (\Exception $ex) {
-            return null;
+            return false;
         }
 
         return ($assign->get_user_submission($USER->id, false)->status == 'draft');
@@ -149,14 +169,14 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $cmid
+     * @param      $message
+     * @param null $param
      *
-     * @return bool
+     * @return string
+     * @throws coding_exception
      */
-    public static function is_allowed_module($cmid) {
-        $modname = context_module::instance($cmid)->get_context_name();
-
-        return !preg_match('/[workshop|forum]:.*/ui', $modname);
+    public static function trans($message, $param = null) {
+        return get_string($message, 'plagiarism_unplag', $param);
     }
 
     /**
@@ -224,7 +244,7 @@ class plagiarism_unplag {
     public function unplag_callback($token) {
         global $DB;
 
-        if ($token && strlen($token) === 40) {
+        if (self::access_granted($token)) {
             $record = $DB->get_record(UNPLAG_FILES_TABLE, ['identifier' => $token]);
             $rawjson = file_get_contents('php://input');
             $respcheck = unplag_core::parse_json($rawjson);
@@ -234,5 +254,14 @@ class plagiarism_unplag {
         } else {
             print_error('error');
         }
+    }
+
+    /**
+     * @param $token
+     *
+     * @return bool
+     */
+    private static function access_granted($token) {
+        return ($token && strlen($token) === 40 && $_SERVER['REQUEST_METHOD'] == 'POST');
     }
 }
