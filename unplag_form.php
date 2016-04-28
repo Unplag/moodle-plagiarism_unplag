@@ -109,12 +109,6 @@ class unplag_defaults_form extends moodleform {
         $tiioptions = [
             get_string("never"), get_string("always"), plagiarism_unplag::trans("showwhenclosed"),
         ];
-
-        $unplagdraftoptions = [
-            PLAGIARISM_UNPLAG_DRAFTSUBMIT_IMMEDIATE => plagiarism_unplag::trans("submitondraft"),
-            PLAGIARISM_UNPLAG_DRAFTSUBMIT_FINAL     => plagiarism_unplag::trans("submitonfinal"),
-        ];
-
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
         $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
         $mform->addElement('select', 'unplag_show_student_score',
@@ -125,11 +119,6 @@ class unplag_defaults_form extends moodleform {
             plagiarism_unplag::trans("unplag_show_student_report"), $tiioptions
         );
         $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
-        /*if ($mform->elementExists('var4') || $mform->elementExists('submissiondrafts')) {
-            $mform->addElement('select', 'unplag_draft_ubmit',
-                plagiarism_unplag::trans("unplag_draft_submit"), $unplagdraftoptions
-            );
-        }*/
         $mform->addElement('select', 'unplag_studentemail', plagiarism_unplag::trans("unplag_studentemail"), $ynoptions);
         $mform->addHelpButton('unplag_studentemail', 'unplag_studentemail', 'plagiarism_unplag');
 
