@@ -97,19 +97,21 @@ class unplag_plagiarism_entity {
 
         $plagiarismfile = null;
         try {
-            $filehash = $this->stored_file()->get_pathnamehash();
-            // Now update or insert record into unplag_files.
-            $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, [
+
+            $filedata = [
                 'cm'         => $this->cmid(),
                 'userid'     => $this->userid(),
-                'identifier' => $filehash,
-            ]);
+                'identifier' => $this->stored_file()->get_pathnamehash(),
+            ];
+
+            // Now update or insert record into unplag_files.
+            $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, $filedata);
 
             if (empty($plagiarismfile)) {
                 $plagiarismfile = new \stdClass();
-                $plagiarismfile->cm = $this->cmid();
-                $plagiarismfile->userid = $this->userid();
-                $plagiarismfile->identifier = $filehash;
+                $plagiarismfile->cm = $filedata['cm'];
+                $plagiarismfile->userid = $filedata['userid'];
+                $plagiarismfile->identifier = $filedata['identifier'];
                 $plagiarismfile->filename = $this->stored_file()->get_filename();
                 $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
                 $plagiarismfile->attempt = 0;
@@ -132,13 +134,6 @@ class unplag_plagiarism_entity {
     }
 
     /**
-     * @return \stored_file
-     */
-    public function stored_file() {
-        return $this->file;
-    }
-
-    /**
      * @return integer
      */
     private function cmid() {
@@ -150,6 +145,13 @@ class unplag_plagiarism_entity {
      */
     private function userid() {
         return $this->core->userid;
+    }
+
+    /**
+     * @return \stored_file
+     */
+    public function stored_file() {
+        return $this->file;
     }
 
     /**

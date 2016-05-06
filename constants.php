@@ -30,7 +30,9 @@ define('UNPLAG_CALLBACK_URL', '/plagiarism/unplag/ajax.php?action=unplag_callbac
 
 define('UNPLAG_PROJECT_PATH', dirname(__FILE__) . '/');
 
-define('UNPLAG_FILES_AREA', 'submission_files');
+define('UNPLAG_DEFAULT_FILES_AREA', 'assign_submission');
+define('UNPLAG_WORKSHOP_FILES_AREA', 'workshop_submissions');
+define('UNPLAG_FORUM_FILES_AREA', 'forum_posts');
 
 /** TABLES **/
 define('UNPLAG_FILES_TABLE', 'plagiarism_unplag_files');

@@ -28,6 +28,7 @@ namespace plagiarism_unplag\classes;
 use coding_exception;
 use core\event\base;
 use plagiarism_unplag;
+use stored_file;
 
 require_once(dirname(__FILE__) . '/../constants.php');
 
@@ -48,7 +49,6 @@ class unplag_core {
     public function __construct($cmid, $userid) {
         $this->cmid = $cmid;
         $this->userid = $userid;
-        $this->component = 'assignsubmission_file';
     }
 
     /**
@@ -307,6 +307,53 @@ class unplag_core {
     }
 
     /**
+     * @param \context_module $context
+     *
+     * @return string
+     */
+    public static function context_files_area(\context_module $context) {
+        list($contextname, ) = explode(':', $context->get_context_name());
+
+        switch (mb_strtolower($contextname)) {
+            case 'workshop':
+                $filesarea = UNPLAG_WORKSHOP_FILES_AREA;
+                break;
+
+            case 'forum':
+                $filesarea = UNPLAG_FORUM_FILES_AREA;
+                break;
+
+            default:
+                $filesarea = UNPLAG_DEFAULT_FILES_AREA;
+                break;
+        }
+
+        return $filesarea;
+    }
+
+    /**
+     * @param $contextid
+     * @param $contenthash
+     *
+     * @return null|stored_file
+     */
+    public static function get_file_by_hash($contextid, $contenthash) {
+        global $DB;
+
+        $filerecord = $DB->get_record('files', [
+            'contextid'   => $contextid,
+            'component'   => UNPLAG_PLAGIN_NAME,
+            'contenthash' => $contenthash,
+        ]);
+
+        if (!$filerecord) {
+            return null;
+        }
+
+        return get_file_storage()->get_file_instance($filerecord);
+    }
+
+    /**
      * @param base $event
      *
      * @return \stored_file
@@ -316,42 +363,51 @@ class unplag_core {
     public function create_file_from_content(base $event) {
         global $USER;
 
-        $filename = sprintf("online-text-content-%d-%d-%d.html", $event->contextid, $this->cmid, $USER->id);
-
         $filerecord = [
             'component' => UNPLAG_PLAGIN_NAME,
-            'filearea'  => UNPLAG_FILES_AREA,
-            'contextid' => $event->contextinstanceid,
+            'filearea'  => $event->objecttable,
+            'contextid' => $event->contextid,
             'itemid'    => $event->objectid,
-            'filename'  => $filename,
+            'filename'  => sprintf("%s-content-%d-%d-%d.html",
+                str_replace('_', '-', $event->objecttable), $event->contextid, $this->cmid, $event->objectid
+            ),
             'filepath'  => '/',
             'userid'    => $USER->id,
             'license'   => 'allrightsreserved',
             'author'    => $USER->firstname . ' ' . $USER->lastname,
         ];
 
+        /** @var \stored_file $storedfile */
         $storedfile = get_file_storage()->get_file(
             $filerecord['contextid'], $filerecord['component'], $filerecord['filearea'],
             $filerecord['itemid'], $filerecord['filepath'], $filerecord['filename']
         );
 
-        if ($storedfile) {
-            $this->delete_old_file_from_content($storedfile, $filerecord);
+        if ($storedfile && $storedfile->get_contenthash() != self::content_hash($event->other['content'])) {
+            $this->delete_old_file_from_content($storedfile);
         }
 
         return get_file_storage()->create_file_from_string($filerecord, $event->other['content']);
     }
 
     /**
-     * @param \stored_file $storedfile
-     * @param              $filerecord
+     * @param $content
+     *
+     * @return string
      */
-    private function delete_old_file_from_content(\stored_file $storedfile, $filerecord) {
+    public static function content_hash($content) {
+        return sha1($content);
+    }
+
+    /**
+     * @param \stored_file $storedfile
+     */
+    private function delete_old_file_from_content(\stored_file $storedfile) {
         global $DB;
 
         $DB->delete_records(UNPLAG_FILES_TABLE, [
-            'cm'         => $filerecord['contextid'],
-            'userid'     => $filerecord['userid'],
+            'cm'         => $this->cmid,
+            'userid'     => $storedfile->get_userid(),
             'identifier' => $storedfile->get_pathnamehash(),
         ]);
 

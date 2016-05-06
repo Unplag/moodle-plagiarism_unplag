@@ -37,8 +37,7 @@ if (!$iterator) {
 }
 
 $htmlparts = ['<span class="un_report" data-fid="' . $fileobj->id . '">'];
-$htmlparts[] = sprintf('<img  class="%1$s un_progress un_tooltip" src="%2$s" alt="%3$s" title="%3$s" file_id="%4$d" />',
-    $fileobj->id,
+$htmlparts[] = sprintf('<img  class="un_progress un_tooltip" src="%1$s" alt="%2$s" title="%2$s" file_id="%3$d" />',
     $OUTPUT->pix_url('loader', 'plagiarism_unplag'),
     plagiarism_unplag::trans('processing'),
     $fileobj->id
