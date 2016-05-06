@@ -39,38 +39,73 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
     /**
      * @param unplag_core $unplagcore
      * @param base        $event
-     *
-     * @return null
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
-        global $DB;
+        //global $DB;
 
         if (empty($event->other['content'])) {
-            return null;
+            return;
         }
 
-        $plagiarismentitys = [];
-        $submission = $DB->get_record('assignsubmission_onlinetext', ['submission' => $event->objectid]);
+        //file_put_contents('/tmp/moodle_debug.txt', print_r($event->get_data(), true), FILE_APPEND);
+        /*$submission = $DB->get_record(self::handle_object_table($event->objecttable), ['id' => $event->objectid]);
 
-        if (!empty($event->other['content']) &&
-            self::is_content_changed(isset($submission->onlinetext) ? $submission->onlinetext : '', $event->other['content'])
-        ) {
-            $file = $unplagcore->create_file_from_content($event);
+        $content = null;
+        switch ($event->objecttable) {
+            case 'assignsubmission_onlinetext':
+                $content = $submission->onlinetext;
+                break;
+
+            case 'workshop_submissions':
+                $content = $submission->content;
+                break;
+        }*/
+
+        /*if (self::is_content_changed(isset($content) ? $content : '', $event->other['content'])) {
+        }*/
+
+        $plagiarismentitys = [];
+        $file = $unplagcore->create_file_from_content($event);
+
+        if (parent::is_submition_draft($event)){
+            return;
+        }
+
+        if ($file) {
             $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
             $plagiarismentity->upload_file_on_unplag_server();
             array_push($plagiarismentitys, $plagiarismentity);
         }
 
-        self::after_hanle_event($event, $plagiarismentitys);
+        self::after_hanle_event($plagiarismentitys);
     }
 
     /**
-     * @param $onlinetext
-     * @param $content
+     * @param $objecttable
+     *
+     * @return string
+     */
+    /*private static function handle_object_table($objecttable) {
+        switch ($objecttable) {
+            case 'assign_submission':
+                $table = 'assignsubmission_onlinetext';
+                break;
+
+            default:
+                $table = $objecttable;
+                break;
+        }
+
+        return $table;
+    }*/
+
+    /**
+     * @param $oldcontent
+     * @param $newcontent
      *
      * @return bool
      */
-    private static function is_content_changed($onlinetext, $content) {
-        return base64_encode($onlinetext) !== base64_encode($content);
-    }
+    /*private static function is_content_changed($oldcontent, $newcontent) {
+        return base64_encode($oldcontent) !== base64_encode($newcontent);
+    }*/
 }

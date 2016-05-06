@@ -24,8 +24,9 @@
  */
 namespace plagiarism_unplag\classes\event;
 
+use assign;
+use context_module;
 use core\event\base;
-use plagiarism_unplag;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
@@ -46,13 +47,36 @@ abstract class unplag_abstract_event {
     }
 
     /**
-     * @param base                       $event
+     * @param base $event
+     *
+     * @return bool
+     */
+    public static function is_submition_draft(base $event) {
+        global $CFG, $USER;
+
+        if ($event->target != 'assessable') {
+            return false;
+        }
+
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
+        try {
+            $modulecontext = context_module::instance($event->contextinstanceid);
+            $assign = new assign($modulecontext, false, false);
+        } catch (\Exception $ex) {
+            return false;
+        }
+
+        return ($assign->get_user_submission($USER->id, false)->status == 'draft');
+    }
+
+    /**
      * @param unplag_plagiarism_entity[] $plagiarismentitys
      *
      * @return null
      */
-    protected static function after_hanle_event(base $event, array $plagiarismentitys) {
-        if (empty($plagiarismentitys) || plagiarism_unplag::is_submition_draft($event->component, $event->contextinstanceid)) {
+    protected static function after_hanle_event(array $plagiarismentitys) {
+        if (empty($plagiarismentitys)) {
             // Skip this file check cause assign is draft.
             return null;
         }

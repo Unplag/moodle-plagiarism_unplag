@@ -50,10 +50,11 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
 
         $this->unplagcore = $unplagcore;
 
-        $unplagfiles = plagiarism_unplag::get_area_files($event->contextinstanceid);
+        $unplagfiles = plagiarism_unplag::get_area_files($event->contextid);
         $assignfiles = get_file_storage()->get_area_files($event->contextid,
             'assignsubmission_file', 'submission_files', false, null, false
         );
+
         $files = array_merge($unplagfiles, $assignfiles);
         if ($files) {
             foreach ($files as $file) {
@@ -70,7 +71,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
      */
     private function handle_file_plagiarism($file) {
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
-        $internalfile = $plagiarismentity->get_internal_file();
+        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
         if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
             return null;
         }
