@@ -67,7 +67,7 @@ abstract class unplag_abstract_event {
             return false;
         }
 
-        return ($assign->get_user_submission($USER->id, false)->status == 'draft');
+        return ($assign->get_user_submission($USER->id, false)->status !== 'submitted');
     }
 
     /**
