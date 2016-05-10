@@ -36,17 +36,15 @@ if (!$iterator) {
     $PAGE->requires->js_init_call('M.plagiarism_unplag.init', [$linkarray['cmid']], true, $jsmodule);
 }
 
-$htmlparts = ['<span class="un_report" data-fid="' . $fileobj->id . '">'];
-$htmlparts[] = sprintf('<img  class="un_progress un_tooltip" src="%1$s" alt="%2$s" title="%2$s" file_id="%3$d" />',
+$htmlparts = [sprintf('<div class="un_report fid-%1$s"><div class="un_data">{"fid":"%1$s"}</div>', $fileobj->id)];
+$htmlparts[] = sprintf('<img  class="un_progress un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
     $OUTPUT->pix_url('loader', 'plagiarism_unplag'),
-    plagiarism_unplag::trans('processing'),
-    $fileobj->id
+    plagiarism_unplag::trans('processing')
 );
-$htmlparts[] = sprintf('%s: <span file_id="%d" class="un_progress_val" >%d%%</span>',
-    plagiarism_unplag::trans('progress'),
-    $fileobj->id, intval($fileobj->progress)
+$htmlparts[] = sprintf('%s: <span class="un_progress-val" >%d%%</span>',
+    plagiarism_unplag::trans('progress'), intval($fileobj->progress)
 );
 
-$htmlparts[] = '</span>';
+$htmlparts[] = '</div>';
 
 return implode('', $htmlparts);
