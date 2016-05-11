@@ -43,7 +43,7 @@ class unplag_event_file_submited extends unplag_abstract_event {
      * @param base        $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
-        if (parent::is_submition_draft($event) ||
+        if (self::is_submition_draft($event) ||
             !isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])
         ) {
             return;
@@ -56,7 +56,7 @@ class unplag_event_file_submited extends unplag_abstract_event {
             $plagiarismentitys[] = $this->handle_uploaded_file($pathnamehash);
         }
 
-        self::after_hanle_event($plagiarismentitys);
+        self::after_handle_event($plagiarismentitys);
     }
 
     /**

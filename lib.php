@@ -148,7 +148,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     public static function config_options() {
         return [
             'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
-            'unplag_draft_submit', 'unplag_studentemail',
+            'unplag_draft_submit', 'unplag_studentemail', 'check_type',
         ];
     }
 
@@ -177,7 +177,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (has_capability('plagiarism/unplag:enable', $context)) {
             require_once(dirname(__FILE__) . '/unplag_form.php');
             $uform = new unplag_defaults_form($mform);
-            $uform->set_data(plagiarism_unplag::object_to_array(unplag_core::get_assign_settings($cmid)));
+            $uform->set_data(unplag_core::get_assign_settings($cmid, null, true));
             $uform->definition();
 
             if ($mform->elementExists('unplag_draft_submit')) {

@@ -48,7 +48,7 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
         $plagiarismentitys = [];
         $file = $unplagcore->create_file_from_content($event);
 
-        if (parent::is_submition_draft($event)) {
+        if (self::is_submition_draft($event)) {
             return;
         }
 
@@ -58,6 +58,6 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
             array_push($plagiarismentitys, $plagiarismentity);
         }
 
-        self::after_hanle_event($plagiarismentitys);
+        self::after_handle_event($plagiarismentitys);
     }
 }

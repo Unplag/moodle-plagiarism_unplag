@@ -75,7 +75,7 @@ abstract class unplag_abstract_event {
      *
      * @return null
      */
-    protected static function after_hanle_event(array $plagiarismentitys) {
+    protected static function after_handle_event(array $plagiarismentitys) {
         if (empty($plagiarismentitys)) {
             // Skip this file check cause assign is draft.
             return null;

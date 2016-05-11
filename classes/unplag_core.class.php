@@ -148,7 +148,7 @@ class unplag_core {
      *
      * @param bool $assoc
      *
-     * @return array
+     * @return \stdClass|array
      */
     public static function get_assign_settings($cmid, $name = null, $assoc = false) {
         global $DB;
@@ -162,13 +162,11 @@ class unplag_core {
         }
 
         $data = $DB->get_records(UNPLAG_CONFIG_TABLE, $condition, '', 'name,value');
-        if ($assoc) {
-            $data = array_map(function ($item) {
-                return (int)$item->value;
-            }, $data);
-        }
+        $data = array_map(function ($item) {
+            return $item->value;
+        }, $data);
 
-        return $data;
+        return $assoc ? $data : $data[$name];
     }
 
     /**
@@ -283,12 +281,8 @@ class unplag_core {
     public static function get_settings($key = null) {
         static $settings;
 
-        if (!is_null($key)) {
-            $key = 'unplag_' . $key;
-        }
-
         if (!empty($settings)) {
-            return isset($settings[$key]) ? $settings[$key] : $settings;
+            return self::get_settings_item($settings, $key);
         }
 
         $settings = (array)get_config('plagiarism');
@@ -300,10 +294,26 @@ class unplag_core {
                 error("UNPLAG API Secret not set!");
             }
 
-            return isset($settings[$key]) ? $settings[$key] : $settings;
+            return self::get_settings_item($settings, $key);
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param      $settings
+     * @param null $key
+     *
+     * @return null
+     */
+    private static function get_settings_item($settings, $key = null) {
+        if (is_null($key)) {
+            return $settings;
+        }
+
+        $key = 'unplag_' . $key;
+
+        return isset($settings[$key]) ? $settings[$key] : null;
     }
 
     /**

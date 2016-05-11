@@ -28,9 +28,9 @@ if (!isset($plugin)) {
     $plugin = new stdClass();
 }
 
-$plugin->version = 2016050600;
+$plugin->version = 2016051100;
 $plugin->requires = 2013111800.00;
 $plugin->maturity = MATURITY_STABLE;
 
 $plugin->component = 'plagiarism_unplag';
-$plugin->release = '2.0.2';
+$plugin->release = '2.0.3';
