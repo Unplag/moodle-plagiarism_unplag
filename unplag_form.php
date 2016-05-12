@@ -112,7 +112,6 @@ class unplag_defaults_form extends moodleform {
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
         $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
         $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), [
-            UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
             UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans('web'),
             UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans('my_library'),
         ]);
