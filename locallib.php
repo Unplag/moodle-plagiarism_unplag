@@ -19,7 +19,7 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,6 +28,7 @@ use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
 use plagiarism_unplag\classes\event\unplag_event_file_submited;
 use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
+use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
 use plagiarism_unplag\classes\unplag_core;
 
 global $CFG;
@@ -63,8 +64,7 @@ class plagiarism_unplag {
                 case 'assignsubmission_file':
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
-
-                case 'mod_workshop':
+	            
                 case 'mod_forum':
                     unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
@@ -73,6 +73,9 @@ class plagiarism_unplag {
         } else if (self::is_assign_submitted($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
             unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
+        }else if (self::is_workshop_swiched($event)) {
+	        $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+	        unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
         }
     }
 
@@ -86,8 +89,7 @@ class plagiarism_unplag {
             '\assignsubmission_file\event\submission_updated',
             '\assignsubmission_file\event\assessable_uploaded',
             '\assignsubmission_onlinetext\event\assessable_uploaded',
-            '\mod_workshop\event\assessable_uploaded',
-            '\mod_forum\event\assessable_uploaded',
+            '\mod_forum\event\assessable_uploaded'
         ]);
     }
 
@@ -99,6 +101,15 @@ class plagiarism_unplag {
     private static function is_assign_submitted(base $event) {
         return $event->target == 'assessable' && $event->action == 'submitted';
     }
+
+	/**
+	 * @param base $event
+	 *
+	 * @return bool
+	 */
+	private static function is_workshop_swiched(base $event) {
+		return $event->target == 'phase' && $event->action == 'switched' && $event->component == 'mod_workshop';
+	}
 
     /**
      * @param $modname
