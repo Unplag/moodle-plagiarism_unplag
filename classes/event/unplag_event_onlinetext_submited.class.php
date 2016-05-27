@@ -39,38 +39,25 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
     /**
      * @param unplag_core $unplagcore
      * @param base        $event
-     *
-     * @return null
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
-        global $DB;
-
         if (empty($event->other['content'])) {
-            return null;
+            return;
         }
 
         $plagiarismentitys = [];
-        $submission = $DB->get_record('assignsubmission_onlinetext', ['submission' => $event->objectid]);
+        $file = $unplagcore->create_file_from_content($event);
 
-        if (!empty($event->other['content']) &&
-            self::is_content_changed(isset($submission->onlinetext) ? $submission->onlinetext : '', $event->other['content'])
-        ) {
-            $file = $unplagcore->create_file_from_content($event);
+        if (self::is_submition_draft($event)) {
+            return;
+        }
+
+        if ($file) {
             $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
             $plagiarismentity->upload_file_on_unplag_server();
             array_push($plagiarismentitys, $plagiarismentity);
         }
 
-        self::after_hanle_event($event, $plagiarismentitys);
-    }
-
-    /**
-     * @param $onlinetext
-     * @param $content
-     *
-     * @return bool
-     */
-    private static function is_content_changed($onlinetext, $content) {
-        return base64_encode($onlinetext) !== base64_encode($content);
+        self::after_handle_event($plagiarismentitys);
     }
 }

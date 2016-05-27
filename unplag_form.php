@@ -107,10 +107,15 @@ class unplag_defaults_form extends moodleform {
 
         $ynoptions = [get_string('no'), get_string('yes')];
         $tiioptions = [
-            get_string("never"), get_string("always"), plagiarism_unplag::trans("showwhenclosed"),
+            get_string("never"), get_string("always"),
         ];
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
         $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
+        $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), [
+            UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
+            UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans('web'),
+            UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans('my_library'),
+        ]);
         $mform->addElement('select', 'unplag_show_student_score',
             plagiarism_unplag::trans("unplag_show_student_score"), $tiioptions
         );
@@ -119,8 +124,6 @@ class unplag_defaults_form extends moodleform {
             plagiarism_unplag::trans("unplag_show_student_report"), $tiioptions
         );
         $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
-        $mform->addElement('select', 'unplag_studentemail', plagiarism_unplag::trans("unplag_studentemail"), $ynoptions);
-        $mform->addHelpButton('unplag_studentemail', 'unplag_studentemail', 'plagiarism_unplag');
 
         if (!$this->internalusage) {
             $this->add_action_buttons(true);

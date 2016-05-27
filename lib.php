@@ -18,7 +18,7 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -64,6 +64,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public function get_links($linkarray) {
         $file = null;
+        $fileobj = null;
 
         if (!plagiarism_unplag::is_plagin_enabled()) {
             // Not allowed access to this content.
@@ -71,8 +72,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         }
 
         if (isset($linkarray['content'])) {
-            $file = plagiarism_unplag::get_area_files($linkarray['cmid']);
-            $file = array_shift($file);
+            $context = context_module::instance($linkarray['cmid']);
+            if (isset($linkarray['forum'])) {
+                $file = plagiarism_unplag::get_forum_topic_results($context, $linkarray);
+            } else {
+                $files = plagiarism_unplag::get_area_files($context->id, unplag_core::context_files_area($context));
+                $file = array_shift($files);
+            }
         } else if (isset($linkarray['file'])) {
             $file = $linkarray['file'];
         }
@@ -82,15 +88,16 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
         }
 
+        $output = '';
         if (empty($fileobj)) {
-            return '';
+            return $output;
         }
 
         // This iterator for one-time start-up.
         static $iterator;
 
         $statuscode = $fileobj->statuscode;
-        $output = '';
+
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
         } else if (isset($fileobj->check_id) && $statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
@@ -112,6 +119,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public function save_form_elements($data) {
         global $DB;
+
+	    if(isset($data->submissiondrafts) && !$data->submissiondrafts){
+		    $data->use_unplag = 0;
+	    }
 
         if (isset($data->use_unplag)) {
             // First get existing values.
@@ -141,7 +152,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     public static function config_options() {
         return [
             'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
-            'unplag_draft_submit', 'unplag_studentemail',
+            'unplag_draft_submit', 'check_type',
         ];
     }
 
@@ -170,16 +181,17 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (has_capability('plagiarism/unplag:enable', $context)) {
             require_once(dirname(__FILE__) . '/unplag_form.php');
             $uform = new unplag_defaults_form($mform);
-            $uform->set_data(plagiarism_unplag::object_to_array(unplag_core::get_assign_settings($cmid)));
+            $uform->set_data(unplag_core::get_assign_settings($cmid, null, true));
             $uform->definition();
 
-            if ($mform->elementExists('unplag_draft_submit')) {
-                if ($mform->elementExists('var4')) {
-                    $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
-                } else if ($mform->elementExists('submissiondrafts')) {
-                    $mform->disabledIf('unplag_draft_submit', 'submissiondrafts', 'eq', 0);
-                }
-            }
+	        if ($mform->elementExists('submissiondrafts')) {
+		        //Disable all plagiarism elements if submissiondrafts eg 0.
+		        foreach ($plagiarismelements as $element) {
+			        $mform->disabledIf($element, 'submissiondrafts', 'eq', 0);
+		        }
+	        }elseif ($mform->elementExists('unplag_draft_submit') && $mform->elementExists('var4')){
+		        $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
+	        }
 
             // Disable all plagiarism elements if use_plagiarism eg 0.
             foreach ($plagiarismelements as $element) {
@@ -194,7 +206,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 $mform->setType('unplag_show_student_score', PARAM_INT);
                 $mform->setType('unplag_show_student_report', PARAM_INT);
                 $mform->setType('unplag_draft_submit', PARAM_INT);
-                $mform->setType('unplag_studentemail', PARAM_INT);
             }
         }
     }

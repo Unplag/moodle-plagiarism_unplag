@@ -44,7 +44,7 @@ if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
     $teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
     $assigncfg = unplag_core::get_assign_settings($linkarray['cmid'], null, true);
 
-    if (!empty($fileobj->similarityscore)) {
+    if (isset($fileobj->similarityscore)) {
         if ($teacherhere || $assigncfg['unplag_show_student_score']) {
             // User is allowed to view only the score.
             $htmlparts[] = sprintf('%s: <span class="rank1">%s%%</span>',
