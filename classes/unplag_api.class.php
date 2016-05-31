@@ -30,9 +30,8 @@ namespace plagiarism_unplag\classes;
  * @package plagiarism_unplag\classes
  */
 class unplag_api {
+    /** @var null */
     private static $instance = null;
-    /** @var string */
-    private static $checktype = 'web';
 
     /**
      * @return null|static
@@ -74,8 +73,9 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument $file');
         }
 
+        $checktype = unplag_core::get_assign_settings($file->cm, 'check_type');
         $postdata = [
-            'type'         => self::$checktype,
+            'type'         => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
             'file_id'      => $file->external_file_id,
             'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
         ];

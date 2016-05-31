@@ -52,7 +52,6 @@ class plagiarism_unplag {
     public static function event_handler(base $event) {
 
         unplag_core::validate_event($event);
-
         if (self::is_allowed_events($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
 
@@ -62,8 +61,12 @@ class plagiarism_unplag {
                     break;
 
                 case 'assignsubmission_file':
+                    unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
+                    break;
+
                 case 'mod_workshop':
                 case 'mod_forum':
+                    unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
             }
@@ -107,31 +110,6 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $component
-     * @param $cmid
-     *
-     * @return bool
-     */
-    public static function is_submition_draft($component, $cmid) {
-        global $CFG, $USER;
-
-        if ($component != 'mod_assign') {
-            return false;
-        }
-
-        require_once($CFG->dirroot . '/mod/assign/locallib.php');
-
-        try {
-            $modulecontext = context_module::instance($cmid);
-            $assign = new assign($modulecontext, false, false);
-        } catch (\Exception $ex) {
-            return false;
-        }
-
-        return ($assign->get_user_submission($USER->id, false)->status == 'draft');
-    }
-
-    /**
      * @param $obj
      *
      * @return array
@@ -153,12 +131,14 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $contextid
+     * @param        $contextid
+     * @param string $filearea
+     * @param bool   $itemid
      *
      * @return stored_file[]
      */
-    public static function get_area_files($contextid) {
-        return get_file_storage()->get_area_files($contextid, UNPLAG_PLAGIN_NAME, UNPLAG_FILES_AREA, false, null, false);
+    public static function get_area_files($contextid, $filearea = UNPLAG_DEFAULT_FILES_AREA, $itemid = false) {
+        return get_file_storage()->get_area_files($contextid, UNPLAG_PLAGIN_NAME, $filearea, $itemid, null, false);
     }
 
     /**
@@ -177,6 +157,19 @@ class plagiarism_unplag {
      */
     public static function trans($message, $param = null) {
         return get_string($message, 'plagiarism_unplag', $param);
+    }
+
+    /**
+     * @param $context
+     * @param $linkarray
+     *
+     * @return null|stored_file
+     */
+    public static function get_forum_topic_results($context, $linkarray) {
+        $contenthash = unplag_core::content_hash($linkarray['content']);
+        $file = unplag_core::get_file_by_hash($context->id, $contenthash);
+
+        return $file;
     }
 
     /**

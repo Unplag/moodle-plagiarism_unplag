@@ -95,3 +95,8 @@ $string['attempts'] = 'Attempts made';
 $string['refresh'] = 'Refresh page to see results';
 $string['delete'] = 'Delete';
 $string['plagiarism_run_success'] = 'File send on plagiarism verification';
+
+$string['check_type'] = 'Check types for plagiarism';
+$string['web'] = 'Doc vs Internet';
+$string['my_library'] = 'Doc vs Library';
+$string['web_and_my_library'] = 'Doc vs Internet + Library';

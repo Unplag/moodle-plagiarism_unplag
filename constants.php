@@ -30,24 +30,20 @@ define('UNPLAG_CALLBACK_URL', '/plagiarism/unplag/ajax.php?action=unplag_callbac
 
 define('UNPLAG_PROJECT_PATH', dirname(__FILE__) . '/');
 
-define('UNPLAG_FILES_AREA', 'submission_files');
+define('UNPLAG_DEFAULT_FILES_AREA', 'assign_submission');
+define('UNPLAG_WORKSHOP_FILES_AREA', 'workshop_submissions');
+define('UNPLAG_FORUM_FILES_AREA', 'forum_posts');
 
 /** TABLES **/
 define('UNPLAG_FILES_TABLE', 'plagiarism_unplag_files');
 define('UNPLAG_CONFIG_TABLE', 'plagiarism_unplag_config');
 
-define('UNPLAG_MAX_SUBMISSION_ATTEMPTS', 6); // Maximum number of times to try and send a submission to UNPLAG.
-define('UNPLAG_MAX_SUBMISSION_DELAY', 60); // Maximum time to wait between submissions (defined in minutes).
-define('UNPLAG_SUBMISSION_DELAY', 15); // Initial delay, doubled each time a check is made until the max_submission_delay is met.
-define('UNPLAG_MAX_STATUS_ATTEMPTS', 10); // Maximum number of times to try and obtain the status of a submission.
-define('UNPLAG_MAX_STATUS_DELAY', 1440); // Maximum time to wait between checks (defined in minutes).
-define('UNPLAG_STATUS_DELAY', 30); // Initial delay, doubled each time a check is made until the max_status_delay is met.
+define('UNPLAG_CHECK_TYPE_WEB', 'web');
+define('UNPLAG_CHECK_TYPE_MY_LIBRARY', 'my_library');
+define('UNPLAG_CHECK_TYPE_WEB__LIBRARY', 'web_and_my_library');
 
 define('UNPLAG_STATUSCODE_PENDING', 'pending');
 define('UNPLAG_STATUSCODE_PROCESSED', 200);
 define('UNPLAG_STATUSCODE_ACCEPTED', 202);
 define('UNPLAG_STATUSCODE_UNSUPPORTED', 415);
 define('UNPLAG_STATUSCODE_INVALID_RESPONSE', 613); // Invalid response received from UNPLAG.
-
-define('PLAGIARISM_UNPLAG_DRAFTSUBMIT_IMMEDIATE', 0);
-define('PLAGIARISM_UNPLAG_DRAFTSUBMIT_FINAL', 1);
