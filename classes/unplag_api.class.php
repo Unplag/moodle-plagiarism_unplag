@@ -47,6 +47,9 @@ class unplag_api {
      * @throws \file_exception
      */
     public function upload_file(\stored_file $file) {
+
+        set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
+
         $format = 'html';
         if ($source = $file->get_source()) {
             $format = pathinfo($source, PATHINFO_EXTENSION);
