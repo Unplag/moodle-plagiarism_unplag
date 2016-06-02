@@ -97,6 +97,8 @@ $string['delete'] = 'Delete';
 $string['plagiarism_run_success'] = 'File send on plagiarism verification';
 
 $string['check_type'] = 'Check types for plagiarism';
+$string['check_file'] = 'Check file by UNPLAG plagiarism plugin';
+
 $string['web'] = 'Doc vs Internet';
 $string['my_library'] = 'Doc vs Library';
 $string['web_and_my_library'] = 'Doc vs Internet + Library';

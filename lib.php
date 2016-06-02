@@ -97,6 +97,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         static $iterator;
 
         $statuscode = $fileobj->statuscode;
+        $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid']);
 
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
@@ -107,6 +108,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
         } else if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
             $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
+        } else if ($submission->status == 'submitted'){
+            $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
         }
 
         return $output;

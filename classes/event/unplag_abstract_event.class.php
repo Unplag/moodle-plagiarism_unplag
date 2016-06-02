@@ -60,14 +60,9 @@ abstract class unplag_abstract_event {
 
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-        try {
-            $modulecontext = context_module::instance($event->contextinstanceid);
-            $assign = new assign($modulecontext, false, false);
-        } catch (\Exception $ex) {
-            return false;
-        }
+        $submission = unplag_core::get_user_submission_by_cmid($event->contextinstanceid);
 
-        return ($assign->get_user_submission($USER->id, false)->status !== 'submitted');
+        return ($submission->status !== 'submitted');
     }
 
     /**
