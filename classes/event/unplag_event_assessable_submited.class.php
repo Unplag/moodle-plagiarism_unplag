@@ -50,9 +50,11 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
 
         $this->unplagcore = $unplagcore;
 
-        $unplagfiles = plagiarism_unplag::get_area_files($event->contextid);
+        $submission = unplag_core::get_user_submission_by_cmid($event->contextinstanceid);
+
+        $unplagfiles = plagiarism_unplag::get_area_files($event->contextid , UNPLAG_DEFAULT_FILES_AREA, (!empty($submission->id) ? $submission->id : false));
         $assignfiles = get_file_storage()->get_area_files($event->contextid,
-            'assignsubmission_file', 'submission_files', false, null, false
+            'assignsubmission_file', 'submission_files', (!empty($submission->id) ? $submission->id : false), null, false
         );
 
         $files = array_merge($unplagfiles, $assignfiles);
