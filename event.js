@@ -26,7 +26,25 @@ M.plagiarism_unplag_event = {
     items: []
 };
 
-M.plagiarism_unplag_event.init = function (Y, contextid) {
+M.plagiarism_unplag_event.init = function (Y) {
+
+    var dialog = function (message, success, failure) {
+        var open_time = new Date();
+        var result = window.confirm(message);
+        var close_time = new Date();
+
+        if (close_time - open_time < 10) {
+            failure();
+        } else {
+            success(result);
+        }
+    };
+
+    var start_check_by_url = function (url) {
+        if(url){
+            location.href = url;
+        }
+    };
 
     var $unplag_check_link = Y.one('.unplag-check');
 
@@ -45,22 +63,4 @@ M.plagiarism_unplag_event.init = function (Y, contextid) {
 
         });
     }
-
-    var dialog = function (message, success, failure) {
-        var open_time = new Date();
-        var result = confirm(message);
-        var close_time = new Date();
-
-        if (close_time - open_time < 10) {
-            failure();
-        } else {
-            success(result);
-        }
-    };
-
-    var start_check_by_url = function (url) {
-        if(url){
-            location.href = url;
-        }
-    };
 };
