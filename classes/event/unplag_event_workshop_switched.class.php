@@ -38,64 +38,56 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
  */
 class unplag_event_workshop_switched extends unplag_abstract_event
 {
-	/** @var self */
-	protected static $instance;
-	/** @var unplag_core */
-	private $unplagcore;
+    /** @var self */
+    protected static $instance;
+    /** @var unplag_core */
+    private $unplagcore;
 
-	/**
-	 * @param unplag_core $unplagcore
-	 * @param base $event
-	 */
-	public function handle_event(unplag_core $unplagcore, base $event)
-	{
-		if (!empty($event->other['workshopphase']) && $event->other['workshopphase'] == 30)
-		{//step from Submission phase to Assessment phase
-			$this->unplagcore = $unplagcore;
+    /**
+     * @param unplag_core $unplagcore
+     * @param base $event
+     */
+    public function handle_event(unplag_core $unplagcore, base $event) {
 
-			$unplagfiles = plagiarism_unplag::get_area_files($event->contextid);
-			$assignfiles = get_file_storage()->get_area_files($event->contextid,
-				'mod_workshop', 'submission_attachment', false, null, false
-			);
+        if (!empty($event->other['workshopphase']) && $event->other['workshopphase'] == 30) { // Assessment phase.
+            $this->unplagcore = $unplagcore;
 
-			$files = array_merge($unplagfiles, $assignfiles);
+            $unplagfiles = plagiarism_unplag::get_area_files($event->contextid);
+            $assignfiles = get_file_storage()->get_area_files($event->contextid,
+                'mod_workshop', 'submission_attachment', false, null, false
+            );
 
-			if ($files)
-			{
-				foreach ($files as $file)
-				{
-					$this->handle_file_plagiarism($file);
-				}
-			}
-		}
-	}
+            $files = array_merge($unplagfiles, $assignfiles);
 
-	/**
-	 * @param $file
-	 *
-	 * @return null
-	 * @throws \moodle_exception
-	 */
-	private function handle_file_plagiarism($file)
-	{
-		$this->unplagcore->userid = $file->get_userid();
+            if ($files) {
+                foreach ($files as $file) {
+                    $this->handle_file_plagiarism($file);
+                }
+            }
+        }
+    }
 
-		$plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
-		$internalfile = $plagiarismentity->upload_file_on_unplag_server();
-		if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE)
-		{
-			return null;
-		}
+    /**
+     * @param $file
+     *
+     * @return null
+     * @throws \moodle_exception
+     */
+    private function handle_file_plagiarism($file) {
+        $this->unplagcore->userid = $file->get_userid();
 
-		if (isset($internalfile->check_id))
-		{
-			print_error('File with uuid' . $file->identifier . ' already sent to Unplag');
-		}
-		else
-		{
-			$checkresp = unplag_api::instance()->run_check($internalfile);
-			$plagiarismentity->handle_check_response($checkresp);
-			mtrace('file ' . $file->identifier . 'send to Unplag');
-		}
-	}
+        $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
+        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+        if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
+            return null;
+        }
+
+        if (isset($internalfile->check_id)) {
+            print_error('File with uuid' . $file->identifier . ' already sent to Unplag');
+        } else {
+            $checkresp = unplag_api::instance()->run_check($internalfile);
+            $plagiarismentity->handle_check_response($checkresp);
+            mtrace('file ' . $file->identifier . 'send to Unplag');
+        }
+    }
 }

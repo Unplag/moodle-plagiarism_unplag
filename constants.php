@@ -48,4 +48,4 @@ define('UNPLAG_STATUSCODE_ACCEPTED', 202);
 define('UNPLAG_STATUSCODE_UNSUPPORTED', 415);
 define('UNPLAG_STATUSCODE_INVALID_RESPONSE', 613); // Invalid response received from UNPLAG.
 
-define('UNPLAG_UPLOAD_TIME_LIMIT', 5*60); // time limit for upload file
+define('UNPLAG_UPLOAD_TIME_LIMIT', 5 * 60); // Time limit for upload file.

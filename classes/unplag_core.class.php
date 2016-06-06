@@ -273,7 +273,6 @@ class unplag_core {
             $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
             $plagiarismentity = $ucore->get_plagiarism_entity($file);
 
-
             $internalfile = $plagiarismentity->upload_file_on_unplag_server();
 
             if (isset($internalfile->external_file_id)) {
@@ -477,7 +476,7 @@ class unplag_core {
      *
      * @return bool
      */
-    public static function get_user_submission_by_cmid($cmid, $user_id = null) {
+    public static function get_user_submission_by_cmid($cmid, $userid = null) {
         global $USER;
 
         try {
@@ -487,7 +486,7 @@ class unplag_core {
             return false;
         }
 
-        return ($assign->get_user_submission(($user_id !== null) ? $user_id : $USER->id, false));
+        return ($assign->get_user_submission(($userid !== null) ? $userid : $USER->id, false));
     }
 }
 

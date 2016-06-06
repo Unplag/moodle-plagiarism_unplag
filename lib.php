@@ -66,7 +66,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $file = null;
         $fileobj = null;
 
-        if (!plagiarism_unplag::is_plagin_enabled() || !unplag_core::get_assign_settings($linkarray['cmid'],'use_unplag')) {
+        if (!plagiarism_unplag::is_plagin_enabled() || !unplag_core::get_assign_settings($linkarray['cmid'], 'use_unplag')) {
             // Not allowed access to this content.
             return null;
         }
@@ -108,9 +108,9 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
         } else if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
             $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
-        } else if ($cm->modname == 'assign' && !$fileobj->check_id){
+        } else if ($cm->modname == 'assign' && !$fileobj->check_id) {
             $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-            if($submission->status == 'submitted'){
+            if ($submission->status == 'submitted') {
                 $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
                 $iterator++;
             }
@@ -127,9 +127,9 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     public function save_form_elements($data) {
         global $DB;
 
-	    if(isset($data->submissiondrafts) && !$data->submissiondrafts){
-		    $data->use_unplag = 0;
-	    }
+        if (isset($data->submissiondrafts) && !$data->submissiondrafts) {
+            $data->use_unplag = 0;
+        }
 
         if (isset($data->use_unplag)) {
             // First get existing values.
@@ -191,14 +191,14 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $uform->set_data(unplag_core::get_assign_settings($cmid, null, true));
             $uform->definition();
 
-	        if ($mform->elementExists('submissiondrafts')) {
-		        //Disable all plagiarism elements if submissiondrafts eg 0.
-		        foreach ($plagiarismelements as $element) {
-			        $mform->disabledIf($element, 'submissiondrafts', 'eq', 0);
-		        }
-	        }elseif ($mform->elementExists('unplag_draft_submit') && $mform->elementExists('var4')){
-		        $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
-	        }
+            if ($mform->elementExists('submissiondrafts')) {
+                // Disable all plagiarism elements if submissiondrafts eg 0.
+                foreach ($plagiarismelements as $element) {
+                    $mform->disabledIf($element, 'submissiondrafts', 'eq', 0);
+                }
+            } else if ($mform->elementExists('unplag_draft_submit') && $mform->elementExists('var4')) {
+                $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
+            }
 
             // Disable all plagiarism elements if use_plagiarism eg 0.
             foreach ($plagiarismelements as $element) {
