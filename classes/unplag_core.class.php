@@ -248,6 +248,51 @@ class unplag_core {
     }
 
     /**
+     * @param $id
+     *
+     * @return null
+     * @throws coding_exception
+     */
+    public static function check_submitted_assignment($id) {
+        global $DB;
+
+        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
+        if (in_array($plagiarismfile->statuscode, [UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED])) {
+            // Sanity Check.
+            return null;
+        }
+
+        $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
+
+        if (plagiarism_unplag::is_support_mod($cm->modname)) {
+
+            $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
+            if ($file->is_directory()) {
+                return null;
+            }
+            $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
+            $plagiarismentity = $ucore->get_plagiarism_entity($file);
+
+
+            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+
+            if (isset($internalfile->external_file_id)) {
+                if ($internalfile->check_id) {
+                    unplag_api::instance()->delete_check($internalfile);
+                }
+
+                unplag_notification::success('plagiarism_run_success');
+
+                $checkresp = unplag_api::instance()->run_check($internalfile);
+                $plagiarismentity->handle_check_response($checkresp);
+            } else {
+                $error = self::parse_json($internalfile->errorresponse);
+                unplag_notification::error('Can\'t start check: ' . $error[0]->message, false);
+            }
+        }
+    }
+
+    /**
      * @param $file
      *
      * @return null|unplag_plagiarism_entity
@@ -427,11 +472,12 @@ class unplag_core {
     }
 
     /**
-     * @param $cmid
+     * @param      $cmid
+     * @param null $user_id
      *
-     * @return mixed
+     * @return bool
      */
-    public static function get_user_submission_by_cmid($cmid) {
+    public static function get_user_submission_by_cmid($cmid, $user_id = null) {
         global $USER;
 
         try {
@@ -441,7 +487,7 @@ class unplag_core {
             return false;
         }
 
-        return ($assign->get_user_submission($USER->id, false));
+        return ($assign->get_user_submission(($user_id !== null) ? $user_id : $USER->id, false));
     }
 }
 

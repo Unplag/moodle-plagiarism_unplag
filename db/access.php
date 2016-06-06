@@ -41,4 +41,13 @@ $capabilities = [
             'manager'        => CAP_ALLOW,
         ],
     ],
+    'plagiarism/unplag:checkfile'  => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+        ],
+    ],
 ];

@@ -78,6 +78,8 @@ class unplag_event_workshop_switched extends unplag_abstract_event
 	 */
 	private function handle_file_plagiarism($file)
 	{
+		$this->unplagcore->userid = $file->get_userid();
+
 		$plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
 		$internalfile = $plagiarismentity->upload_file_on_unplag_server();
 		if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE)

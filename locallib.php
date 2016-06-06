@@ -47,6 +47,11 @@ class plagiarism_unplag {
         'assign', 'workshop', 'forum',
     ];
 
+    /** @var array */
+    private static $supportedfilearea = [
+        'submission_files', 'assign_submission', 'submission_attachment', 'forum_posts', 'attachment'
+    ];
+
     /**
      * @param base $event
      */
@@ -118,6 +123,15 @@ class plagiarism_unplag {
      */
     public static function is_support_mod($modname) {
         return in_array($modname, self::$supportedplagiarismmods);
+    }
+
+    /**
+     * @param $filearea
+     *
+     * @return bool
+     */
+    public static function is_support_filearea($filearea) {
+        return in_array($filearea, self::$supportedfilearea);
     }
 
     /**

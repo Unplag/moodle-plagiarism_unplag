@@ -66,7 +66,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $file = null;
         $fileobj = null;
 
-        if (!plagiarism_unplag::is_plagin_enabled()) {
+        if (!plagiarism_unplag::is_plagin_enabled() || !unplag_core::get_assign_settings($linkarray['cmid'],'use_unplag')) {
             // Not allowed access to this content.
             return null;
         }
@@ -83,7 +83,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $file = $linkarray['file'];
         }
 
-        if ($file) {
+        if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
             $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
             $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
         }
@@ -97,7 +97,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         static $iterator;
 
         $statuscode = $fileobj->statuscode;
-        $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid']);
+        $cm = get_coursemodule_from_id('', $fileobj->cm);
 
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
@@ -108,8 +108,12 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
         } else if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
             $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
-        } else if ($submission->status == 'submitted'){
-            $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
+        } else if ($cm->modname == 'assign' && !$fileobj->check_id){
+            $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+            if($submission->status == 'submitted'){
+                $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
+                $iterator++;
+            }
         }
 
         return $output;

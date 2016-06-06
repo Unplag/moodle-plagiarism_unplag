@@ -18,28 +18,41 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Aleksandr Kostylev <v.titov@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
-global $OUTPUT;
+global $PAGE, $OUTPUT;
 
-$title = plagiarism_unplag::trans('unknownwarning');
-$reset = '';
+if (!$iterator) {
+    // Now add JS to validate receiver indicator using Ajax.
+    $jsmodule = [
+        'name'     => 'plagiarism_unplag_event',
+        'fullpath' => '/plagiarism/unplag/event.js',
+        'requires' => ['json'],
+    ];
+
+    $PAGE->requires->js_init_call('M.plagiarism_unplag_event.init', [$linkarray['cmid']], true, $jsmodule);
+
+    $PAGE->requires->string_for_js('check_confirm', 'plagiarism_unplag');
+
+}
+
+$check = '';
 $modulecontext = context_module::instance($linkarray['cmid']);
 // This is a teacher viewing the responses.
 
-if (has_capability('plagiarism/unplag:resetfile', $modulecontext) && empty($fileobj->check_id) && !empty($fileobj->id)) {
+if (has_capability('plagiarism/unplag:checkfile', $modulecontext) && empty($fileobj->check_id) && !empty($fileobj->id)) {
 
     $url = new moodle_url('/plagiarism/unplag/check.php', [
         'cmid'    => $linkarray['cmid'],
         'pf'      => $fileobj->id,
         'sesskey' => sesskey(),
     ]);
-    $check = sprintf('&nbsp;<a href="%1$s"><img src="%2$s" title="%3$s" width="32" height="32">%4$s</a>',
-        $url, $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), get_string('reset'), get_string('check_file')
+    $check = sprintf('&nbsp;<a href="%1$s" class="unplag-check"><img src="%2$s" title="%3$s" width="32" height="32">%4$s</a>',
+        $url, $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), get_string('reset'), plagiarism_unplag::trans('check_file')
     );
 }
 
