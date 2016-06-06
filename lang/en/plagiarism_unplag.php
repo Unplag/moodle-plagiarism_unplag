@@ -99,7 +99,7 @@ $string['plagiarism_run_success'] = 'File send on plagiarism verification';
 $string['check_type'] = 'Check types for plagiarism';
 $string['check_confirm'] = 'Are you sure you want start checking by UNPLAG plagiarism plugin?';
 $string['check_start'] = 'A file start checking for submission to UNPLAG';
-$string['check_file'] = 'Check file by UNPLAG plagiarism plugin';
+$string['check_file'] = 'Start a scan';
 
 $string['web'] = 'Doc vs Internet';
 $string['my_library'] = 'Doc vs Library';
