@@ -65,11 +65,9 @@ class plagiarism_unplag {
                 case 'assignsubmission_onlinetext':
                     unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
                     break;
-
                 case 'assignsubmission_file':
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
-	            
                 case 'mod_forum':
                     unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
@@ -78,9 +76,9 @@ class plagiarism_unplag {
         } else if (self::is_assign_submitted($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
             unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
-        }else if (self::is_workshop_swiched($event)) {
-	        $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-	        unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
+        } else if (self::is_workshop_swiched($event)) {
+            $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+            unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
         }
     }
 
@@ -107,14 +105,14 @@ class plagiarism_unplag {
         return $event->target == 'assessable' && $event->action == 'submitted';
     }
 
-	/**
-	 * @param base $event
-	 *
-	 * @return bool
-	 */
-	private static function is_workshop_swiched(base $event) {
-		return $event->target == 'phase' && $event->action == 'switched' && $event->component == 'mod_workshop';
-	}
+    /**
+     * @param base $event
+     *
+     * @return bool
+     */
+    private static function is_workshop_swiched(base $event) {
+        return $event->target == 'phase' && $event->action == 'switched' && $event->component == 'mod_workshop';
+    }
 
     /**
      * @param $modname
