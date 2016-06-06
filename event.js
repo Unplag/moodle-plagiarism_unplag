@@ -30,7 +30,7 @@ M.plagiarism_unplag_event.init = function (Y) {
 
     var dialog = function (message, success, failure) {
         var open_time = new Date();
-        var result = confirm(message);
+        var result = window.confirm(message);
         var close_time = new Date();
 
         if (close_time - open_time < 10) {
