@@ -34,7 +34,7 @@ if (!$iterator) {
         'requires' => ['json'],
     ];
 
-    $PAGE->requires->js_init_call('M.plagiarism_unplag_event.init', [$linkarray['cmid']], true, $jsmodule);
+    $PAGE->requires->js_init_call('M.plagiarism_unplag_event.init', [], true, $jsmodule);
 
     $PAGE->requires->string_for_js('check_confirm', 'plagiarism_unplag');
 

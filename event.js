@@ -26,25 +26,7 @@ M.plagiarism_unplag_event = {
     items: []
 };
 
-M.plagiarism_unplag_event.init = function (Y, contextid) {
-
-    var $unplag_check_link = Y.one('.unplag-check');
-
-    if($unplag_check_link.length){
-        Y.one('.unplag-check').on('click', function(e) {
-            e.preventDefault();
-
-            var url = this.get('href');
-            dialog(M.util.get_string('check_confirm', 'plagiarism_unplag'), function(result) {
-                if(result.toString() == 'true'){
-                    start_check_by_url(url);
-                }
-            }, function() {
-                start_check_by_url(url);
-            });
-
-        });
-    }
+M.plagiarism_unplag_event.init = function (Y) {
 
     var dialog = function (message, success, failure) {
         var open_time = new Date();
@@ -63,4 +45,22 @@ M.plagiarism_unplag_event.init = function (Y, contextid) {
             location.href = url;
         }
     };
+
+    var $unplag_check_link = Y.one('.unplag-check');
+
+    if($unplag_check_link.length){
+        Y.one('.unplag-check').on('click', function(e) {
+            e.preventDefault();
+
+            var url = this.get('href');
+            dialog(M.util.get_string('check_confirm', 'plagiarism_unplag'), function(result) {
+                if(result.toString() == 'true'){
+                    start_check_by_url(url);
+                }
+            }, function() {
+                start_check_by_url(url);
+            });
+
+        });
+    }
 };
