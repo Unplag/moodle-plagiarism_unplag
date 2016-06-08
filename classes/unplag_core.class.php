@@ -419,6 +419,10 @@ class unplag_core {
     public function create_file_from_content(base $event) {
         global $USER;
 
+        if (empty($event->other['content'])) {
+            return false;
+        }
+
         $filerecord = [
             'component' => UNPLAG_PLAGIN_NAME,
             'filearea'  => $event->objecttable,
