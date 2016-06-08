@@ -49,7 +49,12 @@ class plagiarism_unplag {
 
     /** @var array */
     private static $supportedfilearea = [
-        'submission_files', 'assign_submission', 'submission_attachment', 'forum_posts', 'attachment'
+        UNPLAG_WORKSHOP_FILES_AREA,
+        UNPLAG_DEFAULT_FILES_AREA,
+        UNPLAG_FORUM_FILES_AREA,
+        'submission_files',
+        'submission_attachment',
+        'attachment'
     ];
 
     /**
@@ -67,6 +72,9 @@ class plagiarism_unplag {
                     break;
                 case 'assignsubmission_file':
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
+                    break;
+                case 'mod_workshop':
+                    $unplagcore->create_file_from_content($event);
                     break;
                 case 'mod_forum':
                     unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
@@ -92,7 +100,8 @@ class plagiarism_unplag {
             '\assignsubmission_file\event\submission_updated',
             '\assignsubmission_file\event\assessable_uploaded',
             '\assignsubmission_onlinetext\event\assessable_uploaded',
-            '\mod_forum\event\assessable_uploaded'
+            '\mod_forum\event\assessable_uploaded',
+            '\mod_workshop\event\assessable_uploaded'
         ]);
     }
 
