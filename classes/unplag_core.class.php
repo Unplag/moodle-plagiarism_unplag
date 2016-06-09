@@ -25,10 +25,13 @@
 
 namespace plagiarism_unplag\classes;
 
+use assign;
+use context_module;
 use coding_exception;
 use core\event\base;
 use plagiarism_unplag;
 use stored_file;
+use workshop;
 
 require_once(dirname(__FILE__) . '/../constants.php');
 
@@ -246,6 +249,50 @@ class unplag_core {
     }
 
     /**
+     * @param $id
+     *
+     * @return null
+     * @throws coding_exception
+     */
+    public static function check_submitted_assignment($id) {
+        global $DB;
+
+        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
+        if (in_array($plagiarismfile->statuscode, [UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED])) {
+            // Sanity Check.
+            return null;
+        }
+
+        $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
+
+        if (plagiarism_unplag::is_support_mod($cm->modname)) {
+
+            $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
+            if ($file->is_directory()) {
+                return null;
+            }
+            $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
+            $plagiarismentity = $ucore->get_plagiarism_entity($file);
+
+            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+
+            if (isset($internalfile->external_file_id)) {
+                if ($internalfile->check_id) {
+                    unplag_api::instance()->delete_check($internalfile);
+                }
+
+                unplag_notification::success('plagiarism_run_success');
+
+                $checkresp = unplag_api::instance()->run_check($internalfile);
+                $plagiarismentity->handle_check_response($checkresp);
+            } else {
+                $error = self::parse_json($internalfile->errorresponse);
+                unplag_notification::error('Can\'t start check: ' . $error[0]->message, false);
+            }
+        }
+    }
+
+    /**
      * @param $file
      *
      * @return null|unplag_plagiarism_entity
@@ -317,31 +364,6 @@ class unplag_core {
     }
 
     /**
-     * @param \context_module $context
-     *
-     * @return string
-     */
-    public static function context_files_area(\context_module $context) {
-        list($contextname, ) = explode(':', $context->get_context_name());
-
-        switch (mb_strtolower($contextname)) {
-            case 'workshop':
-                $filesarea = UNPLAG_WORKSHOP_FILES_AREA;
-                break;
-
-            case 'forum':
-                $filesarea = UNPLAG_FORUM_FILES_AREA;
-                break;
-
-            default:
-                $filesarea = UNPLAG_DEFAULT_FILES_AREA;
-                break;
-        }
-
-        return $filesarea;
-    }
-
-    /**
      * @param $contextid
      * @param $contenthash
      *
@@ -372,6 +394,10 @@ class unplag_core {
      */
     public function create_file_from_content(base $event) {
         global $USER;
+
+        if (empty($event->other['content'])) {
+            return false;
+        }
 
         $filerecord = [
             'component' => UNPLAG_PLAGIN_NAME,
@@ -422,6 +448,45 @@ class unplag_core {
         ]);
 
         $storedfile->delete();
+    }
+
+    /**
+     * @param      $cmid
+     * @param null $user_id
+     *
+     * @return bool
+     */
+    public static function get_user_submission_by_cmid($cmid, $userid = null) {
+        global $USER;
+
+        try {
+            $modulecontext = context_module::instance($cmid);
+            $assign = new assign($modulecontext, false, false);
+        } catch (\Exception $ex) {
+            return false;
+        }
+
+        return ($assign->get_user_submission(($userid !== null) ? $userid : $USER->id, false));
+    }
+
+    /**
+     * @param      $cm
+     * @param null $userid
+     *
+     * @return bool
+     */
+    public static function get_user_workshop_submission_by_cm($cm, $userid = null) {
+        global $USER, $DB;
+
+        try {
+            $workshoprecord = $DB->get_record('workshop', array('id' => $cm->instance), '*', MUST_EXIST);
+            $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+            $workshop = new workshop($workshoprecord, $cm, $course);
+        } catch (\Exception $ex) {
+            return false;
+        }
+
+        return ($workshop->get_submission_by_author(($userid !== null) ? $userid : $USER->id, false));
     }
 }
 

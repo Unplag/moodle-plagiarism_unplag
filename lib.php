@@ -18,7 +18,7 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -66,24 +66,38 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $file = null;
         $fileobj = null;
 
-        if (!plagiarism_unplag::is_plagin_enabled()) {
+        if (!plagiarism_unplag::is_plagin_enabled() || !unplag_core::get_assign_settings($linkarray['cmid'], 'use_unplag')) {
             // Not allowed access to this content.
             return null;
         }
 
+        $cm = get_coursemodule_from_id('', $linkarray['cmid'], 0, false, MUST_EXIST);
         if (isset($linkarray['content'])) {
             $context = context_module::instance($linkarray['cmid']);
-            if (isset($linkarray['forum'])) {
-                $file = plagiarism_unplag::get_forum_topic_results($context, $linkarray);
-            } else {
-                $files = plagiarism_unplag::get_area_files($context->id, unplag_core::context_files_area($context));
-                $file = array_shift($files);
+            switch ($cm->modname) {
+                case 'workshop':
+                    $workshopsubmission = unplag_core::get_user_workshop_submission_by_cm($cm, $linkarray['userid']);
+                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_WORKSHOP_FILES_AREA, $workshopsubmission->id );
+                    $file = array_shift($files);
+                    break;
+                case 'forum':
+                    $file = plagiarism_unplag::get_forum_topic_results($context, $linkarray);
+                    break;
+                case 'assign':
+                    $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA, $submission->id);
+                    $file = array_shift($files);
+                    break;
+                default:
+                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA);
+                    $file = array_shift($files);
+                    break;
             }
         } else if (isset($linkarray['file'])) {
             $file = $linkarray['file'];
         }
 
-        if ($file) {
+        if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
             $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
             $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
         }
@@ -97,7 +111,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         static $iterator;
 
         $statuscode = $fileobj->statuscode;
-
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
         } else if (isset($fileobj->check_id) && $statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
@@ -107,6 +120,12 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
         } else if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
             $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
+        } else if ($cm->modname == 'assign' && !$fileobj->check_id) {
+            $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+            if ($submission->status == 'submitted') {
+                $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
+                $iterator++;
+            }
         }
 
         return $output;
@@ -119,6 +138,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public function save_form_elements($data) {
         global $DB;
+
+        if (isset($data->submissiondrafts) && !$data->submissiondrafts) {
+            $data->use_unplag = 0;
+        }
 
         if (isset($data->use_unplag)) {
             // First get existing values.
@@ -148,7 +171,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     public static function config_options() {
         return [
             'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
-            'unplag_draft_submit', 'unplag_studentemail', 'check_type',
+            'unplag_draft_submit', 'check_type',
         ];
     }
 
@@ -180,12 +203,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $uform->set_data(unplag_core::get_assign_settings($cmid, null, true));
             $uform->definition();
 
-            if ($mform->elementExists('unplag_draft_submit')) {
-                if ($mform->elementExists('var4')) {
-                    $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
-                } else if ($mform->elementExists('submissiondrafts')) {
-                    $mform->disabledIf('unplag_draft_submit', 'submissiondrafts', 'eq', 0);
+            if ($mform->elementExists('submissiondrafts')) {
+                // Disable all plagiarism elements if submissiondrafts eg 0.
+                foreach ($plagiarismelements as $element) {
+                    $mform->disabledIf($element, 'submissiondrafts', 'eq', 0);
                 }
+            } else if ($mform->elementExists('unplag_draft_submit') && $mform->elementExists('var4')) {
+                $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
             }
 
             // Disable all plagiarism elements if use_plagiarism eg 0.
@@ -201,7 +225,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 $mform->setType('unplag_show_student_score', PARAM_INT);
                 $mform->setType('unplag_show_student_report', PARAM_INT);
                 $mform->setType('unplag_draft_submit', PARAM_INT);
-                $mform->setType('unplag_studentemail', PARAM_INT);
             }
         }
     }

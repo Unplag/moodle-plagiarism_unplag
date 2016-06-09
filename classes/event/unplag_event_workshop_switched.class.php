@@ -18,7 +18,7 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -34,10 +34,10 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
 
 /**
  * Class unplag_event_file_submited
- *
  * @package plagiarism_unplag\classes\event
  */
-class unplag_event_assessable_submited extends unplag_abstract_event {
+class unplag_event_workshop_switched extends unplag_abstract_event
+{
     /** @var self */
     protected static $instance;
     /** @var unplag_core */
@@ -45,24 +45,25 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
 
     /**
      * @param unplag_core $unplagcore
-     * @param base        $event
+     * @param base $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
 
-        $this->unplagcore = $unplagcore;
+        if (!empty($event->other['workshopphase'])
+            && $event->other['workshopphase'] == UNPLAG_WORKSHOP_ASSESSMENT_PHASE) { // Assessment phase.
+            $this->unplagcore = $unplagcore;
 
-        $submission = unplag_core::get_user_submission_by_cmid($event->contextinstanceid);
-        $submissionid = (!empty($submission->id) ? $submission->id : false);
+            $unplagfiles = plagiarism_unplag::get_area_files($event->contextid, UNPLAG_WORKSHOP_FILES_AREA);
+            $assignfiles = get_file_storage()->get_area_files($event->contextid,
+                'mod_workshop', 'submission_attachment', false, null, false
+            );
 
-        $unplagfiles = plagiarism_unplag::get_area_files($event->contextid , UNPLAG_DEFAULT_FILES_AREA, $submissionid);
-        $assignfiles = get_file_storage()->get_area_files($event->contextid,
-            'assignsubmission_file', 'submission_files', $submissionid, null, false
-        );
+            $files = array_merge($unplagfiles, $assignfiles);
 
-        $files = array_merge($unplagfiles, $assignfiles);
-        if ($files) {
-            foreach ($files as $file) {
-                $this->handle_file_plagiarism($file);
+            if ($files) {
+                foreach ($files as $file) {
+                    $this->handle_file_plagiarism($file);
+                }
             }
         }
     }
@@ -74,6 +75,8 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
      * @throws \moodle_exception
      */
     private function handle_file_plagiarism($file) {
+        $this->unplagcore->userid = $file->get_userid();
+
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
         $internalfile = $plagiarismentity->upload_file_on_unplag_server();
         if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {

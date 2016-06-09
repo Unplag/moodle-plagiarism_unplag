@@ -19,7 +19,7 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,6 +28,7 @@ use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
 use plagiarism_unplag\classes\event\unplag_event_file_submited;
 use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
+use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
 use plagiarism_unplag\classes\unplag_core;
 
 global $CFG;
@@ -46,6 +47,16 @@ class plagiarism_unplag {
         'assign', 'workshop', 'forum',
     ];
 
+    /** @var array */
+    private static $supportedfilearea = [
+        UNPLAG_WORKSHOP_FILES_AREA,
+        UNPLAG_DEFAULT_FILES_AREA,
+        UNPLAG_FORUM_FILES_AREA,
+        'submission_files',
+        'submission_attachment',
+        'attachment'
+    ];
+
     /**
      * @param base $event
      */
@@ -59,12 +70,12 @@ class plagiarism_unplag {
                 case 'assignsubmission_onlinetext':
                     unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
                     break;
-
                 case 'assignsubmission_file':
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
-
                 case 'mod_workshop':
+                    $unplagcore->create_file_from_content($event);
+                    break;
                 case 'mod_forum':
                     unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
@@ -73,6 +84,9 @@ class plagiarism_unplag {
         } else if (self::is_assign_submitted($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
             unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
+        } else if (self::is_workshop_swiched($event)) {
+            $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+            unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
         }
     }
 
@@ -86,8 +100,8 @@ class plagiarism_unplag {
             '\assignsubmission_file\event\submission_updated',
             '\assignsubmission_file\event\assessable_uploaded',
             '\assignsubmission_onlinetext\event\assessable_uploaded',
-            '\mod_workshop\event\assessable_uploaded',
             '\mod_forum\event\assessable_uploaded',
+            '\mod_workshop\event\assessable_uploaded'
         ]);
     }
 
@@ -101,12 +115,30 @@ class plagiarism_unplag {
     }
 
     /**
+     * @param base $event
+     *
+     * @return bool
+     */
+    private static function is_workshop_swiched(base $event) {
+        return $event->target == 'phase' && $event->action == 'switched' && $event->component == 'mod_workshop';
+    }
+
+    /**
      * @param $modname
      *
      * @return bool
      */
     public static function is_support_mod($modname) {
         return in_array($modname, self::$supportedplagiarismmods);
+    }
+
+    /**
+     * @param $filearea
+     *
+     * @return bool
+     */
+    public static function is_support_filearea($filearea) {
+        return in_array($filearea, self::$supportedfilearea);
     }
 
     /**
