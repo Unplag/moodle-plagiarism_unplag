@@ -26,20 +26,6 @@
 
 global $PAGE, $OUTPUT;
 
-if (!$iterator) {
-    // Now add JS to validate receiver indicator using Ajax.
-    $jsmodule = [
-        'name'     => 'plagiarism_unplag_event',
-        'fullpath' => '/plagiarism/unplag/event.js',
-        'requires' => ['json'],
-    ];
-
-    $PAGE->requires->js_init_call('M.plagiarism_unplag_event.init', [], true, $jsmodule);
-
-    $PAGE->requires->string_for_js('check_confirm', 'plagiarism_unplag');
-
-}
-
 $check = '';
 $modulecontext = context_module::instance($linkarray['cmid']);
 // This is a teacher viewing the responses.

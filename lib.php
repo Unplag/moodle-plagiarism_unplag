@@ -71,13 +71,27 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             return null;
         }
 
+        $cm = get_coursemodule_from_id('', $linkarray['cmid'], 0, false, MUST_EXIST);
         if (isset($linkarray['content'])) {
             $context = context_module::instance($linkarray['cmid']);
-            if (isset($linkarray['forum'])) {
-                $file = plagiarism_unplag::get_forum_topic_results($context, $linkarray);
-            } else {
-                $files = plagiarism_unplag::get_area_files($context->id, unplag_core::context_files_area($context));
-                $file = array_shift($files);
+            switch ($cm->modname) {
+                case 'workshop':
+                    $workshopsubmission = unplag_core::get_user_workshop_submission_by_cm($cm, $linkarray['userid']);
+                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_WORKSHOP_FILES_AREA, $workshopsubmission->id );
+                    $file = array_shift($files);
+                    break;
+                case 'forum':
+                    $file = plagiarism_unplag::get_forum_topic_results($context, $linkarray);
+                    break;
+                case 'assign':
+                    $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA, $submission->id);
+                    $file = array_shift($files);
+                    break;
+                default:
+                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA);
+                    $file = array_shift($files);
+                    break;
             }
         } else if (isset($linkarray['file'])) {
             $file = $linkarray['file'];
@@ -97,8 +111,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         static $iterator;
 
         $statuscode = $fileobj->statuscode;
-        $cm = get_coursemodule_from_id('', $fileobj->cm);
-
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
         } else if (isset($fileobj->check_id) && $statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
