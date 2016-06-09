@@ -31,6 +31,7 @@ use coding_exception;
 use core\event\base;
 use plagiarism_unplag;
 use stored_file;
+use workshop;
 
 require_once(dirname(__FILE__) . '/../constants.php');
 
@@ -363,31 +364,6 @@ class unplag_core {
     }
 
     /**
-     * @param \context_module $context
-     *
-     * @return string
-     */
-    public static function context_files_area(\context_module $context) {
-        list($contextname, ) = explode(':', $context->get_context_name());
-
-        switch (mb_strtolower($contextname)) {
-            case 'workshop':
-                $filesarea = UNPLAG_WORKSHOP_FILES_AREA;
-                break;
-
-            case 'forum':
-                $filesarea = UNPLAG_FORUM_FILES_AREA;
-                break;
-
-            default:
-                $filesarea = UNPLAG_DEFAULT_FILES_AREA;
-                break;
-        }
-
-        return $filesarea;
-    }
-
-    /**
      * @param $contextid
      * @param $contenthash
      *
@@ -491,6 +467,26 @@ class unplag_core {
         }
 
         return ($assign->get_user_submission(($userid !== null) ? $userid : $USER->id, false));
+    }
+
+    /**
+     * @param      $cm
+     * @param null $userid
+     *
+     * @return bool
+     */
+    public static function get_user_workshop_submission_by_cm($cm, $userid = null) {
+        global $USER, $DB;
+
+        try {
+            $workshoprecord = $DB->get_record('workshop', array('id' => $cm->instance), '*', MUST_EXIST);
+            $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+            $workshop = new workshop($workshoprecord, $cm, $course);
+        } catch (\Exception $ex) {
+            return false;
+        }
+
+        return ($workshop->get_submission_by_author(($userid !== null) ? $userid : $USER->id, false));
     }
 }
 

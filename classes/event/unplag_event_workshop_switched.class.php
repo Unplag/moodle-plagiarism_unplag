@@ -49,7 +49,8 @@ class unplag_event_workshop_switched extends unplag_abstract_event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
 
-        if (!empty($event->other['workshopphase']) && $event->other['workshopphase'] == 30) { // Assessment phase.
+        if (!empty($event->other['workshopphase'])
+            && $event->other['workshopphase'] == UNPLAG_WORKSHOP_ASSESSMENT_PHASE) { // Assessment phase.
             $this->unplagcore = $unplagcore;
 
             $unplagfiles = plagiarism_unplag::get_area_files($event->contextid, UNPLAG_WORKSHOP_FILES_AREA);
