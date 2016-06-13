@@ -199,7 +199,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $plagiarismelements = self::config_options();
         if (has_capability('plagiarism/unplag:enable', $context)) {
             require_once(dirname(__FILE__) . '/unplag_form.php');
-            $uform = new unplag_defaults_form($mform);
+            $uform = new unplag_defaults_form($mform, $modulename);
             $uform->set_data(unplag_core::get_assign_settings($cmid, null, true));
             $uform->definition();
 
