@@ -84,17 +84,28 @@ class unplag_defaults_form extends moodleform {
     /** @var bool */
     private $internalusage = false;
 
+    /** @var string */
+    private $modname = '';
+
     /**
      * unplag_defaults_form constructor.
      *
      * @param object|null $mform - Moodle form
+     * @param string|null $modname
      */
-    public function __construct($mform = null) {
+    public function __construct($mform = null, $modname = null) {
         parent::__construct();
 
         if (!is_null($mform)) {
             $this->_form = $mform;
             $this->internalusage = true;
+        }
+
+        if (!is_null($modname) && is_string($modname)) {
+            $modname = str_replace('mod_','',$modname);
+            if(plagiarism_unplag::is_support_mod($modname)) {
+                $this->modname = $modname;
+            };
         }
     }
 
@@ -107,10 +118,13 @@ class unplag_defaults_form extends moodleform {
 
         $ynoptions = [get_string('no'), get_string('yes')];
         $tiioptions = [
-            get_string("never"), get_string("always"),
+            get_string("no"), get_string("yes"),
         ];
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
         $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
+        if ($this->modname === 'assign') {
+            $mform->addHelpButton('use_unplag', 'useunplag', 'plagiarism_unplag');
+        }
         $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), [
             UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
             UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans('web'),
