@@ -31,9 +31,9 @@ $strplagiarism = plagiarism_unplag::trans('unplag');
 $strplagiarismdefaults = plagiarism_unplag::trans('unplagdefaults');
 $strplagiarismdebug = plagiarism_unplag::trans('unplagdebug');
 
-$tabs = [
-    new tabobject('unplagsettings', 'settings.php', $strplagiarism, $strplagiarism, false),
-    new tabobject('unplagdefaults', 'default_settings.php', $strplagiarismdefaults, $strplagiarismdefaults, false),
-    new tabobject('unplagdebug', 'debugging.php', $strplagiarismdebug, $strplagiarismdebug, false),
-];
-print_tabs([$tabs], $currenttab);
+$tabs = array(
+        new tabobject('unplagsettings', 'settings.php', $strplagiarism, $strplagiarism, false),
+        new tabobject('unplagdefaults', 'default_settings.php', $strplagiarismdefaults, $strplagiarismdefaults, false),
+        new tabobject('unplagdebug', 'debugging.php', $strplagiarismdebug, $strplagiarismdebug, false),
+);
+print_tabs(array($tabs), $currenttab);

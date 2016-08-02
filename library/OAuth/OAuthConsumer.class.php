@@ -18,6 +18,7 @@ namespace plagiarism_unplag\library\OAuth;
 
 /**
  * Class OAuthConsumer
+ *
  * @package plagiarism_unplag\library\OAuth
  */
 class OAuthConsumer {

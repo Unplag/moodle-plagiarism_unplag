@@ -27,22 +27,22 @@ global $PAGE, $OUTPUT;
 
 if (!$iterator) {
     // Now add JS to validate receiver indicator using Ajax.
-    $jsmodule = [
-        'name'     => 'plagiarism_unplag',
-        'fullpath' => '/plagiarism/unplag/ajax.js',
-        'requires' => ['json'],
-    ];
+    $jsmodule = array(
+            'name' => 'plagiarism_unplag',
+            'fullpath' => '/plagiarism/unplag/ajax.js',
+            'requires' => array('json'),
+    );
 
-    $PAGE->requires->js_init_call('M.plagiarism_unplag.init', [$linkarray['cmid']], true, $jsmodule);
+    $PAGE->requires->js_init_call('M.plagiarism_unplag.init', array($linkarray['cmid']), true, $jsmodule);
 }
 
-$htmlparts = [sprintf('<div class="un_report fid-%1$s"><div class="un_data">{"fid":"%1$s"}</div>', $fileobj->id)];
+$htmlparts = array(sprintf('<div class="un_report fid-%1$s"><div class="un_data">{"fid":"%1$s"}</div>', $fileobj->id));
 $htmlparts[] = sprintf('<img  class="un_progress un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
-    $OUTPUT->pix_url('loader', 'plagiarism_unplag'),
-    plagiarism_unplag::trans('processing')
+        $OUTPUT->pix_url('loader', 'plagiarism_unplag'),
+        plagiarism_unplag::trans('processing')
 );
 $htmlparts[] = sprintf('%s: <span class="un_progress-val" >%d%%</span>',
-    plagiarism_unplag::trans('progress'), intval($fileobj->progress)
+        plagiarism_unplag::trans('progress'), intval($fileobj->progress)
 );
 
 $htmlparts[] = '</div>';

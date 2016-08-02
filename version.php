@@ -33,4 +33,4 @@ $plugin->requires = 2013111800.00;
 $plugin->maturity = MATURITY_STABLE;
 
 $plugin->component = 'plagiarism_unplag';
-$plugin->release = '2.0.7';
+$plugin->release = '2.0.8';

@@ -23,7 +23,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 global $PAGE, $OUTPUT;
 
 $check = '';
@@ -32,17 +31,17 @@ $modulecontext = context_module::instance($linkarray['cmid']);
 
 if (has_capability('plagiarism/unplag:checkfile', $modulecontext) && empty($fileobj->check_id) && !empty($fileobj->id)) {
 
-    $url = new moodle_url('/plagiarism/unplag/check.php', [
-        'cmid'    => $linkarray['cmid'],
-        'pf'      => $fileobj->id,
-        'sesskey' => sesskey(),
-    ]);
+    $url = new moodle_url('/plagiarism/unplag/check.php', array(
+            'cmid' => $linkarray['cmid'],
+            'pf' => $fileobj->id,
+            'sesskey' => sesskey(),
+    ));
     $check = sprintf('&nbsp;<a href="%1$s" class="unplag-check"><img src="%2$s" title="%3$s" width="32" height="32">%4$s</a>',
-        $url, $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), get_string('reset'), plagiarism_unplag::trans('check_file')
+            $url, $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), get_string('reset'), plagiarism_unplag::trans('check_file')
     );
 }
 
-$htmlparts = ['<span class="un_report">'];
+$htmlparts = array('<span class="un_report">');
 $htmlparts[] = sprintf('%1$s', $check);
 $htmlparts[] = '</span>';
 

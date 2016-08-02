@@ -34,10 +34,10 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
 
 /**
  * Class unplag_event_file_submited
+ *
  * @package plagiarism_unplag\classes\event
  */
-class unplag_event_workshop_switched extends unplag_abstract_event
-{
+class unplag_event_workshop_switched extends unplag_abstract_event {
     /** @var self */
     protected static $instance;
     /** @var unplag_core */
@@ -50,12 +50,13 @@ class unplag_event_workshop_switched extends unplag_abstract_event
     public function handle_event(unplag_core $unplagcore, base $event) {
 
         if (!empty($event->other['workshopphase'])
-            && $event->other['workshopphase'] == UNPLAG_WORKSHOP_ASSESSMENT_PHASE) { // Assessment phase.
+                && $event->other['workshopphase'] == UNPLAG_WORKSHOP_ASSESSMENT_PHASE
+        ) { // Assessment phase.
             $this->unplagcore = $unplagcore;
 
             $unplagfiles = plagiarism_unplag::get_area_files($event->contextid, UNPLAG_WORKSHOP_FILES_AREA);
             $assignfiles = get_file_storage()->get_area_files($event->contextid,
-                'mod_workshop', 'submission_attachment', false, null, false
+                    'mod_workshop', 'submission_attachment', false, null, false
             );
 
             $files = array_merge($unplagfiles, $assignfiles);

@@ -30,6 +30,7 @@ use plagiarism_unplag\classes\unplag_core;
 
 /**
  * Class unplag_event_onlinetext_submited
+ *
  * @package plagiarism_unplag\classes\event
  */
 class unplag_event_onlinetext_submited extends unplag_abstract_event {
@@ -38,14 +39,14 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
 
     /**
      * @param unplag_core $unplagcore
-     * @param base        $event
+     * @param base $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
         if (empty($event->other['content'])) {
             return;
         }
 
-        $plagiarismentitys = [];
+        $plagiarismentitys = array();
         $file = $unplagcore->create_file_from_content($event);
 
         if (self::is_submition_draft($event)) {
