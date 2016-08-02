@@ -14,13 +14,12 @@ php:
  - 7.0
 
 env:
-  global:
-    - MOODLE_BRANCH=MOODLE_30_STABLE
-    - IGNORE_PATHS=library/OAuth
+  - MOODLE_BRANCH=MOODLE_31_STABLE
+  - IGNORE_PATHS=library/OAuth
 
-  matrix:
-    - DB=pgsql
-    - DB=mysqli
+matrix:
+  - DB=pgsql
+  - DB=mysqli
 
 before_install:
   - phpenv config-rm xdebug.ini
