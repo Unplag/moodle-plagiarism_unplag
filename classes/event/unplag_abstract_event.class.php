@@ -24,8 +24,6 @@
  */
 namespace plagiarism_unplag\classes\event;
 
-use assign;
-use context_module;
 use core\event\base;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
@@ -33,6 +31,7 @@ use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
 /**
  * Class unplag_abstract_event
+ *
  * @package plagiarism_unplag\classes\event
  */
 abstract class unplag_abstract_event {
@@ -89,7 +88,7 @@ abstract class unplag_abstract_event {
 
     /**
      * @param unplag_core $unplagcore
-     * @param base        $event
+     * @param base $event
      */
     abstract public function handle_event(unplag_core $unplagcore, base $event);
 }

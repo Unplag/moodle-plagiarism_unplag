@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-$observers = [
-
+$observers = array(
     /*
      * Event Handlers
-     */
-    [
-        'eventname'   => '*',
-        'includefile' => '/plagiarism/unplag/locallib.php',
-        'callback'    => 'plagiarism_unplag::event_handler',
-    ],
-];
+    */
+        array(
+                'eventname' => '*',
+                'includefile' => '/plagiarism/unplag/locallib.php',
+                'callback' => 'plagiarism_unplag::event_handler',
+        ),
+);

@@ -27,6 +27,7 @@ namespace plagiarism_unplag\library;
 
 /**
  * Class unplag_autoloader
+ *
  * @package plagiarism_unplag\library
  */
 class unplag_autoloader {
@@ -46,4 +47,4 @@ class unplag_autoloader {
     }
 }
 
-spl_autoload_register(['plagiarism_unplag\library\unplag_autoloader', 'init']);
+spl_autoload_register(array('plagiarism_unplag\library\unplag_autoloader', 'init'));

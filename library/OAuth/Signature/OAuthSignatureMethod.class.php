@@ -20,6 +20,7 @@ use plagiarism_unplag\library\OAuth\OAuthRequest;
 
 /**
  * Class OAuthSignatureMethod
+ *
  * @package plagiarism_unplag\library\OAuth\Signature
  */
 abstract class OAuthSignatureMethod {

@@ -42,17 +42,17 @@ class backup_plagiarism_unplag_plugin extends backup_plagiarism_plugin {
         $plugin->add_child($pluginwrapper);
 
         $unplagconfigs = new backup_nested_element('unplag_configs');
-        $unplagconfig = new backup_nested_element('unplag_config', ['id'], ['name', 'value']);
+        $unplagconfig = new backup_nested_element('unplag_config', array('id'), array('name', 'value'));
         $pluginwrapper->add_child($unplagconfigs);
         $unplagconfigs->add_child($unplagconfig);
-        $unplagconfig->set_source_table(UNPLAG_CONFIG_TABLE, ['cm' => backup::VAR_PARENTID]);
+        $unplagconfig->set_source_table(UNPLAG_CONFIG_TABLE, array('cm' => backup::VAR_PARENTID));
 
         // Now information about files to module.
         $unplagfiles = new backup_nested_element('unplag_files');
-        $unplagfile = new backup_nested_element('unplag_file', ['id'], [
-            'userid', 'identifier', 'filename', 'progress', 'reporturl', 'optout', 'statuscode',
-            'similarityscore', 'errorresponse', 'timesubmitted',
-        ]);
+        $unplagfile = new backup_nested_element('unplag_file', array('id'), array(
+                'userid', 'identifier', 'filename', 'progress', 'reporturl', 'optout', 'statuscode',
+                'similarityscore', 'errorresponse', 'timesubmitted',
+        ));
 
         $pluginwrapper->add_child($unplagfiles);
         $unplagfiles->add_child($unplagfile);
@@ -60,7 +60,7 @@ class backup_plagiarism_unplag_plugin extends backup_plagiarism_plugin {
         // To know if we are including userinfo.
         $userinfo = $this->get_setting_value('userinfo');
         if ($userinfo) {
-            $unplagfile->set_source_table('plagiarism_unplag_files', ['cm' => backup::VAR_PARENTID]);
+            $unplagfile->set_source_table('plagiarism_unplag_files', array('cm' => backup::VAR_PARENTID));
         }
 
         return $plugin;
@@ -80,12 +80,12 @@ class backup_plagiarism_unplag_plugin extends backup_plagiarism_plugin {
         $plugin->add_child($pluginwrapper);
         // Save id from unplag course.
         $unplagconfigs = new backup_nested_element('unplag_configs');
-        $unplagconfig = new backup_nested_element('unplag_config', ['id'], ['plugin', 'name', 'value']);
+        $unplagconfig = new backup_nested_element('unplag_config', array('id'), array('plugin', 'name', 'value'));
         $pluginwrapper->add_child($unplagconfigs);
         $unplagconfigs->add_child($unplagconfig);
-        $unplagconfig->set_source_table('config_plugins', [
-            'name' => backup::VAR_PARENTID, 'plugin' => backup_helper::is_sqlparam('plagiarism_unplag_course'),
-        ]);
+        $unplagconfig->set_source_table('config_plugins', array(
+                'name' => backup::VAR_PARENTID, 'plugin' => backup_helper::is_sqlparam('plagiarism_unplag_course'),
+        ));
 
         return $plugin;
     }

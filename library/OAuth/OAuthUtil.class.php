@@ -18,6 +18,7 @@ namespace plagiarism_unplag\library\OAuth;
 
 /**
  * Class OAuthUtil
+ *
  * @package plagiarism_unplag\library\OAuth
  */
 class OAuthUtil {
@@ -30,7 +31,7 @@ class OAuthUtil {
     public static function split_header($header, $only_allow_oauth_parameters = true) {
         $pattern = '/(([-_a-z]*)=("([^"]*)"|([^,]*)),?)/';
         $offset = 0;
-        $params = [];
+        $params = array();
         while (preg_match($pattern, $header, $matches, PREG_OFFSET_CAPTURE, $offset) > 0) {
             $match = $matches[0];
             $header_name = $matches[2][0];
@@ -89,16 +90,16 @@ class OAuthUtil {
         }
         // Otherwise we don't have apache and are just going to have to hope
         // that $_SERVER actually contains what we need.
-        $out = [];
+        $out = array();
         foreach ($_SERVER as $key => $value) {
             if (substr($key, 0, 5) == "HTTP_") {
                 // This is chaos, basically it is just there to capitalize the first
                 // letter of every word that is not an initial HTTP and strip HTTP
                 // code from przemek.
                 $key = str_replace(
-                    " ",
-                    "-",
-                    ucwords(strtolower(str_replace("_", " ", substr($key, 5))))
+                        " ",
+                        "-",
+                        ucwords(strtolower(str_replace("_", " ", substr($key, 5))))
                 );
                 $out[$key] = $value;
             }
@@ -115,10 +116,10 @@ class OAuthUtil {
      */
     public static function parse_parameters($input) {
         if (!isset($input) || !$input) {
-            return [];
+            return array();
         }
         $pairs = explode('&', $input);
-        $parsed_parameters = [];
+        $parsed_parameters = array();
         foreach ($pairs as $pair) {
             $split = explode('=', $pair, 2);
             $parameter = OAuthUtil::urldecode_rfc3986($split[0]);
@@ -129,7 +130,7 @@ class OAuthUtil {
                 if (is_scalar($parsed_parameters[$parameter])) {
                     // This is the first duplicate, so transform scalar (string) into an array
                     // so we can add the duplicates.
-                    $parsed_parameters[$parameter] = [$parsed_parameters[$parameter]];
+                    $parsed_parameters[$parameter] = array($parsed_parameters[$parameter]);
                 }
                 $parsed_parameters[$parameter][] = $value;
             } else {
@@ -159,7 +160,7 @@ class OAuthUtil {
         // Parameters are sorted by name, using lexicographical byte value ordering.
         // Ref: Spec: 9.1.1 (1)
         uksort($params, 'strcmp');
-        $pairs = [];
+        $pairs = array();
         foreach ($params as $parameter => $value) {
             if (is_array($value)) {
                 // If two or more parameters share the same name, they are sorted by their value
@@ -184,15 +185,17 @@ class OAuthUtil {
      */
     public static function urlencode_rfc3986($input) {
         if (is_array($input)) {
-            return array_map([__NAMESPACE__ . '\OAuthUtil', 'urlencode_rfc3986'], $input);
-        } else if (is_scalar($input)) {
-            return str_replace(
-                '+',
-                ' ',
-                str_replace('%7E', '~', rawurlencode($input))
-            );
+            return array_map(array(__NAMESPACE__ . '\OAuthUtil', 'urlencode_rfc3986'), $input);
         } else {
-            return '';
+            if (is_scalar($input)) {
+                return str_replace(
+                        '+',
+                        ' ',
+                        str_replace('%7E', '~', rawurlencode($input))
+                );
+            } else {
+                return '';
+            }
         }
     }
 }
