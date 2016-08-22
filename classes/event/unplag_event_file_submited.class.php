@@ -30,6 +30,7 @@ use plagiarism_unplag\classes\unplag_core;
 
 /**
  * Class unplag_event_file_submited
+ *
  * @package plagiarism_unplag\classes\event
  */
 class unplag_event_file_submited extends unplag_abstract_event {
@@ -40,18 +41,18 @@ class unplag_event_file_submited extends unplag_abstract_event {
 
     /**
      * @param unplag_core $unplagcore
-     * @param base        $event
+     * @param base $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
         if (self::is_submition_draft($event) ||
-            !isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])
+                !isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])
         ) {
             return;
         }
 
         $this->unplagcore = $unplagcore;
 
-        $plagiarismentitys = [];
+        $plagiarismentitys = array();
         foreach ($event->other['pathnamehashes'] as $pathnamehash) {
             $plagiarismentitys[] = $this->handle_uploaded_file($pathnamehash);
         }

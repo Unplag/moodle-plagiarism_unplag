@@ -48,9 +48,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @return array
      */
     public static function default_plagin_options() {
-        return [
-            'unplag_use', 'unplag_enable_mod_assign',
-        ];
+        return array('unplag_use', 'unplag_enable_mod_assign');
     }
 
     /**
@@ -77,7 +75,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             switch ($cm->modname) {
                 case 'workshop':
                     $workshopsubmission = unplag_core::get_user_workshop_submission_by_cm($cm, $linkarray['userid']);
-                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_WORKSHOP_FILES_AREA, $workshopsubmission->id );
+                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_WORKSHOP_FILES_AREA, $workshopsubmission->id);
                     $file = array_shift($files);
                     break;
                 case 'forum':
@@ -93,8 +91,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     $file = array_shift($files);
                     break;
             }
-        } else if (isset($linkarray['file'])) {
-            $file = $linkarray['file'];
+        } else {
+            if (isset($linkarray['file'])) {
+                $file = $linkarray['file'];
+            }
         }
 
         if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
@@ -113,18 +113,26 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $statuscode = $fileobj->statuscode;
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
-        } else if (isset($fileobj->check_id) && $statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
-            $output = require(dirname(__FILE__) . '/view_tmpl_accepted.php');
-            $iterator++;
-        } else if ($statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-            $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
-        } else if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
-            $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
-        } else if ($cm->modname == 'assign' && !$fileobj->check_id) {
-            $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-            if ($submission->status == 'submitted') {
-                $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
+        } else {
+            if (isset($fileobj->check_id) && $statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
+                $output = require(dirname(__FILE__) . '/view_tmpl_accepted.php');
                 $iterator++;
+            } else {
+                if ($statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
+                    $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
+                } else {
+                    if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
+                        $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
+                    } else {
+                        if ($cm->modname == 'assign' && !$fileobj->check_id) {
+                            $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+                            if ($submission->status == 'submitted') {
+                                $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
+                                $iterator++;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -145,7 +153,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         if (isset($data->use_unplag)) {
             // First get existing values.
-            $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => $data->coursemodule], '', 'name, id');
+            $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $data->coursemodule), '', 'name, id');
             // Array of possible plagiarism config options.
             foreach (self::config_options() as $element) {
                 $newelement = new stdClass();
@@ -169,16 +177,16 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      *
      */
     public static function config_options() {
-        return [
-            'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
-            'unplag_draft_submit', 'check_type',
-        ];
+        return array(
+                'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
+                'unplag_draft_submit', 'check_type',
+        );
     }
 
     /**
      * hook to add plagiarism specific settings to a module settings page
      *
-     * @param object $mform   - Moodle form
+     * @param object $mform - Moodle form
      * @param object $context - current context
      * @param string $modulename
      */
@@ -208,8 +216,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 foreach ($plagiarismelements as $element) {
                     $mform->disabledIf($element, 'submissiondrafts', 'eq', 0);
                 }
-            } else if ($mform->elementExists('unplag_draft_submit') && $mform->elementExists('var4')) {
-                $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
+            } else {
+                if ($mform->elementExists('unplag_draft_submit') && $mform->elementExists('var4')) {
+                    $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
+                }
             }
 
             // Disable all plagiarism elements if use_plagiarism eg 0.
@@ -258,7 +268,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * hook to allow status of submitted files to be updated - called on grading/report pages.
      *
      * @param object $course - full Course object
-     * @param object $cm     - full cm object
+     * @param object $cm - full cm object
      */
     public function update_status($course, $cm) {
         // Called at top of submissions/grading pages - allows printing of admin style links or updating status.

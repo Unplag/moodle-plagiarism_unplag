@@ -21,6 +21,7 @@ use plagiarism_unplag\library\OAuth\OAuthUtil;
 
 /**
  * Class OAuthSignatureMethod_HMAC_SHA1
+ *
  * @package plagiarism_unplag\library\OAuth\Signature
  */
 class OAuthSignatureMethod_HMAC_SHA1 extends OAuthSignatureMethod {
@@ -45,10 +46,10 @@ class OAuthSignatureMethod_HMAC_SHA1 extends OAuthSignatureMethod {
         $base_string = $request->get_signature_base_string();
         $request->base_string = $base_string;
 
-        $key_parts = [
-            $consumer->secret,
-            ($token) ? $token->secret : "",
-        ];
+        $key_parts = array(
+                $consumer->secret,
+                ($token) ? $token->secret : "",
+        );
 
         $key_parts = OAuthUtil::urlencode_rfc3986($key_parts);
         $key = implode('&', $key_parts);

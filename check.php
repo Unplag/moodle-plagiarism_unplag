@@ -48,12 +48,14 @@ require_capability('plagiarism/unplag:checkfile', $modulecontext);
 unplag_core::check_submitted_assignment($pf);
 
 if ($cm->modname == 'assignment') {
-    $redirect = new moodle_url('/mod/assignment/submissions.php', ['id' => $cmid]);
-} else if ($cm->modname == 'assign') {
-    $redirect = new moodle_url('/mod/assign/view.php', ['id' => $cmid, 'action' => 'grading']);
+    $redirect = new moodle_url('/mod/assignment/submissions.php', array('id' => $cmid));
 } else {
-    // TODO: add correct locations for workshop and forum.
-    $redirect = $CFG->wwwroot;
+    if ($cm->modname == 'assign') {
+        $redirect = new moodle_url('/mod/assign/view.php', array('id' => $cmid, 'action' => 'grading'));
+    } else {
+        // TODO: add correct locations for workshop and forum.
+        $redirect = $CFG->wwwroot;
+    }
 }
 
 redirect($redirect, plagiarism_unplag::trans('check_start'));

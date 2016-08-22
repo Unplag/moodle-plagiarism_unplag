@@ -18,6 +18,7 @@ namespace plagiarism_unplag\library\OAuth;
 
 /**
  * Class OAuthRequest
+ *
  * @package plagiarism_unplag\library\OAuth
  */
 class OAuthRequest {
@@ -42,7 +43,7 @@ class OAuthRequest {
      * @param null $parameters
      */
     public function __construct($http_method, $http_url, $parameters = null) {
-        @$parameters or $parameters = [];
+        @$parameters or $parameters = array();
         $this->parameters = $parameters;
         $this->http_method = $http_method;
         $this->http_url = $http_url;
@@ -58,9 +59,9 @@ class OAuthRequest {
             $port = ':' . $_SERVER['SERVER_PORT'];
         }
         @$http_url or $http_url = $scheme .
-            '://' . $_SERVER['HTTP_HOST'] .
-            $port .
-            $_SERVER['REQUEST_URI'];
+                '://' . $_SERVER['HTTP_HOST'] .
+                $port .
+                $_SERVER['REQUEST_URI'];
         @$http_method or $http_method = $_SERVER['REQUEST_METHOD'];
 
         // We weren't handed any parameters, so let's find the ones relevant to
@@ -78,7 +79,7 @@ class OAuthRequest {
             // Deal with magic_quotes
             // http://www.php.net/manual/en/security.magicquotes.disabling.php.
             if (get_magic_quotes_gpc()) {
-                $outpost = [];
+                $outpost = array();
                 foreach ($_POST as $k => $v) {
                     $v = stripslashes($v);
                     $ourpost[$k] = $v;
@@ -102,13 +103,13 @@ class OAuthRequest {
      * pretty much a helper function to set up the request
      */
     public static function from_consumer_and_token($consumer, $token, $http_method, $http_url, $parameters = null) {
-        @$parameters or $parameters = [];
-        $defaults = [
-            "oauth_version"      => OAuthRequest::$version,
-            "oauth_nonce"        => OAuthRequest::generate_nonce(),
-            "oauth_timestamp"    => OAuthRequest::generate_timestamp(),
-            "oauth_consumer_key" => $consumer->key,
-        ];
+        @$parameters or $parameters = array();
+        $defaults = array(
+                "oauth_version" => OAuthRequest::$version,
+                "oauth_nonce" => OAuthRequest::generate_nonce(),
+                "oauth_timestamp" => OAuthRequest::generate_timestamp(),
+                "oauth_consumer_key" => $consumer->key,
+        );
         if ($token) {
             $defaults['oauth_token'] = $token->key;
         }
@@ -171,11 +172,11 @@ class OAuthRequest {
      * and the concated with &.
      */
     public function get_signature_base_string() {
-        $parts = [
-            $this->get_normalized_http_method(),
-            $this->get_normalized_http_url(),
-            $this->get_signable_parameters(),
-        ];
+        $parts = array(
+                $this->get_normalized_http_method(),
+                $this->get_normalized_http_url(),
+                $this->get_signable_parameters(),
+        );
         $parts = OAuthUtil::urlencode_rfc3986($parts);
 
         return implode('&', $parts);
@@ -200,7 +201,7 @@ class OAuthRequest {
         $path = @$parts['path'];
         $port or $port = ($scheme == 'https') ? '443' : '80';
         if (($scheme == 'https' && $port != '443')
-            || ($scheme == 'http' && $port != '80')
+                || ($scheme == 'http' && $port != '80')
         ) {
             $host = "$host:$port";
         }
@@ -210,6 +211,7 @@ class OAuthRequest {
 
     /**
      * The request parameters, sorted and concatenated into a normalized string.
+     *
      * @return string
      */
     public function get_signable_parameters() {
@@ -238,7 +240,7 @@ class OAuthRequest {
     public function to_header_internal($start) {
         $out = $start;
         $comma = ',';
-        $total = [];
+        $total = array();
         foreach ($this->parameters as $k => $v) {
             if (substr($k, 0, 5) != "oauth") {
                 continue;
@@ -247,10 +249,10 @@ class OAuthRequest {
                 throw new OAuthException('Arrays not supported in headers');
             }
             $out .= $comma .
-                OAuthUtil::urlencode_rfc3986($k) .
-                '="' .
-                OAuthUtil::urlencode_rfc3986($v) .
-                '"';
+                    OAuthUtil::urlencode_rfc3986($k) .
+                    '="' .
+                    OAuthUtil::urlencode_rfc3986($v) .
+                    '"';
             $comma = ',';
         }
 
@@ -299,9 +301,9 @@ class OAuthRequest {
      */
     public function sign_request($signature_method, $consumer, $token) {
         $this->set_parameter(
-            "oauth_signature_method",
-            $signature_method->get_name(),
-            false
+                "oauth_signature_method",
+                $signature_method->get_name(),
+                false
         );
         $signature = $this->build_signature($signature_method, $consumer, $token);
         $this->set_parameter("oauth_signature", $signature, false);
@@ -318,7 +320,7 @@ class OAuthRequest {
             if (is_scalar($this->parameters[$name])) {
                 // This is the first duplicate, so transform scalar (string)
                 // into an array so we can add the duplicates.
-                $this->parameters[$name] = [$this->parameters[$name]];
+                $this->parameters[$name] = array($this->parameters[$name]);
             }
             $this->parameters[$name][] = $value;
         } else {

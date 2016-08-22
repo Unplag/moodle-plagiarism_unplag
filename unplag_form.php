@@ -60,7 +60,7 @@ class unplag_setup_form extends moodleform {
         $mform->setType('unplag_lang', PARAM_TEXT);
 
         $mform->addElement('textarea', 'unplag_student_disclosure', plagiarism_unplag::trans('studentdisclosure'),
-            'wrap="virtual" rows="6" cols="100"');
+                'wrap="virtual" rows="6" cols="100"');
         $mform->addHelpButton('unplag_student_disclosure', 'studentdisclosure', 'plagiarism_unplag');
         $mform->setDefault('unplag_student_disclosure', plagiarism_unplag::trans('studentdisclosuredefault'));
         $mform->setType('unplag_student_disclosure', PARAM_TEXT);
@@ -116,26 +116,26 @@ class unplag_defaults_form extends moodleform {
     public function definition() {
         $mform = &$this->_form;
 
-        $ynoptions = [get_string('no'), get_string('yes')];
-        $tiioptions = [
-            get_string("no"), get_string("yes"),
-        ];
+        $ynoptions = array(get_string('no'), get_string('yes'));
+        $tiioptions = array(
+                get_string("no"), get_string("yes"),
+        );
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
         $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
         if ($this->modname === 'assign') {
             $mform->addHelpButton('use_unplag', 'useunplag', 'plagiarism_unplag');
         }
-        $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), [
-            UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
-            UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans('web'),
-            UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans('my_library'),
-        ]);
+        $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), array(
+                UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
+                UNPLAG_CHECK_TYPE_WEB => plagiarism_unplag::trans('web'),
+                UNPLAG_CHECK_TYPE_MY_LIBRARY => plagiarism_unplag::trans('my_library'),
+        ));
         $mform->addElement('select', 'unplag_show_student_score',
-            plagiarism_unplag::trans("unplag_show_student_score"), $tiioptions
+                plagiarism_unplag::trans("unplag_show_student_score"), $tiioptions
         );
         $mform->addHelpButton('unplag_show_student_score', 'unplag_show_student_score', 'plagiarism_unplag');
         $mform->addElement('select', 'unplag_show_student_report',
-            plagiarism_unplag::trans("unplag_show_student_report"), $tiioptions
+                plagiarism_unplag::trans("unplag_show_student_report"), $tiioptions
         );
         $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
 

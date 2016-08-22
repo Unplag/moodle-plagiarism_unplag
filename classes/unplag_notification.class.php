@@ -29,6 +29,7 @@ use plagiarism_unplag;
 
 /**
  * Class unplag_notification
+ *
  * @package plagiarism_unplag\classes
  */
 class unplag_notification {

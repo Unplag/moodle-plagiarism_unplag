@@ -26,8 +26,8 @@
 namespace plagiarism_unplag\classes;
 
 use assign;
-use context_module;
 use coding_exception;
+use context_module;
 use core\event\base;
 use plagiarism_unplag;
 use stored_file;
@@ -37,6 +37,7 @@ require_once(dirname(__FILE__) . '/../constants.php');
 
 /**
  * Class unplag_core
+ *
  * @package plagiarism_unplag\classes
  */
 class unplag_core {
@@ -64,14 +65,14 @@ class unplag_core {
 
         $cmid = $event->contextinstanceid;
 
-        $plagiarismvalues = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => $cmid], '', 'name, value');
+        $plagiarismvalues = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $cmid), '', 'name, value');
         if (empty($plagiarismvalues['use_unplag'])) {
             // Unplag not in use for this cm - return.
             throw new \Exception('Unplag not in use for this cm');
         }
 
         // Check if the module associated with this event still exists.
-        if (!$DB->record_exists('course_modules', ['id' => $cmid])) {
+        if (!$DB->record_exists('course_modules', array('id' => $cmid))) {
             throw new \Exception('Module not associated with this event');
         }
     }
@@ -105,7 +106,7 @@ class unplag_core {
     private static function update_file_progress($id, $progres) {
         global $DB;
 
-        $record = $DB->get_record(UNPLAG_FILES_TABLE, ['check_id' => $id]);
+        $record = $DB->get_record(UNPLAG_FILES_TABLE, array('check_id' => $id));
         if ($record->progress <= $progres) {
             $record->progress = $progres;
 
@@ -156,16 +157,16 @@ class unplag_core {
     public static function get_assign_settings($cmid, $name = null, $assoc = false) {
         global $DB;
 
-        $condition = [
-            'cm' => $cmid,
-        ];
+        $condition = array(
+                'cm' => $cmid,
+        );
 
         if (isset($name)) {
             $condition['name'] = $name;
         }
 
         $data = $DB->get_records(UNPLAG_CONFIG_TABLE, $condition, '', 'name,value');
-        $data = array_map(function ($item) {
+        $data = array_map(function($item) {
             return $item->value;
         }, $data);
 
@@ -187,13 +188,13 @@ class unplag_core {
             return null;
         }
 
-        $user = $DB->get_record('user', ['id' => $plagiarismfile->userid]);
+        $user = $DB->get_record('user', array('id' => $plagiarismfile->userid));
         $site = get_site();
         $a = new \stdClass();
         $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
         $a->modulename = format_string($cm->name);
         $a->modulelink = $CFG->wwwroot . '/mod/' . $cm->modname . '/view.php?id=' . $cm->id;
-        $a->coursename = format_string($DB->get_field('course', 'fullname', ['id' => $cm->course]));
+        $a->coursename = format_string($DB->get_field('course', 'fullname', array('id' => $cm->course)));
         $a->optoutlink = $plagiarismfile->optout;
         $emailsubject = plagiarism_unplag::trans('studentemailsubject');
         $emailcontent = plagiarism_unplag::trans('studentemailcontent', $a);
@@ -219,8 +220,8 @@ class unplag_core {
     public static function resubmit_file($id) {
         global $DB;
 
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
-        if (in_array($plagiarismfile->statuscode, [UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED])) {
+        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
+        if (in_array($plagiarismfile->statuscode, array(UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED))) {
             // Sanity Check.
             return null;
         }
@@ -257,8 +258,8 @@ class unplag_core {
     public static function check_submitted_assignment($id) {
         global $DB;
 
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
-        if (in_array($plagiarismfile->statuscode, [UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED])) {
+        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
+        if (in_array($plagiarismfile->statuscode, array(UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED))) {
             // Sanity Check.
             return null;
         }
@@ -332,7 +333,7 @@ class unplag_core {
             return self::get_settings_item($settings, $key);
         }
 
-        $settings = (array)get_config('plagiarism');
+        $settings = (array) get_config('plagiarism');
 
         // Check if enabled.
         if (isset($settings['unplag_use']) && $settings['unplag_use']) {
@@ -372,11 +373,11 @@ class unplag_core {
     public static function get_file_by_hash($contextid, $contenthash) {
         global $DB;
 
-        $filerecord = $DB->get_record('files', [
-            'contextid'   => $contextid,
-            'component'   => UNPLAG_PLAGIN_NAME,
-            'contenthash' => $contenthash,
-        ]);
+        $filerecord = $DB->get_record('files', array(
+                'contextid' => $contextid,
+                'component' => UNPLAG_PLAGIN_NAME,
+                'contenthash' => $contenthash,
+        ));
 
         if (!$filerecord) {
             return null;
@@ -399,24 +400,24 @@ class unplag_core {
             return false;
         }
 
-        $filerecord = [
-            'component' => UNPLAG_PLAGIN_NAME,
-            'filearea'  => $event->objecttable,
-            'contextid' => $event->contextid,
-            'itemid'    => $event->objectid,
-            'filename'  => sprintf("%s-content-%d-%d-%d.html",
-                str_replace('_', '-', $event->objecttable), $event->contextid, $this->cmid, $event->objectid
-            ),
-            'filepath'  => '/',
-            'userid'    => $USER->id,
-            'license'   => 'allrightsreserved',
-            'author'    => $USER->firstname . ' ' . $USER->lastname,
-        ];
+        $filerecord = array(
+                'component' => UNPLAG_PLAGIN_NAME,
+                'filearea' => $event->objecttable,
+                'contextid' => $event->contextid,
+                'itemid' => $event->objectid,
+                'filename' => sprintf("%s-content-%d-%d-%d.html",
+                        str_replace('_', '-', $event->objecttable), $event->contextid, $this->cmid, $event->objectid
+                ),
+                'filepath' => '/',
+                'userid' => $USER->id,
+                'license' => 'allrightsreserved',
+                'author' => $USER->firstname . ' ' . $USER->lastname,
+        );
 
         /** @var \stored_file $storedfile */
         $storedfile = get_file_storage()->get_file(
-            $filerecord['contextid'], $filerecord['component'], $filerecord['filearea'],
-            $filerecord['itemid'], $filerecord['filepath'], $filerecord['filename']
+                $filerecord['contextid'], $filerecord['component'], $filerecord['filearea'],
+                $filerecord['itemid'], $filerecord['filepath'], $filerecord['filename']
         );
 
         if ($storedfile && $storedfile->get_contenthash() != self::content_hash($event->other['content'])) {
@@ -441,11 +442,11 @@ class unplag_core {
     private function delete_old_file_from_content(\stored_file $storedfile) {
         global $DB;
 
-        $DB->delete_records(UNPLAG_FILES_TABLE, [
-            'cm'         => $this->cmid,
-            'userid'     => $storedfile->get_userid(),
-            'identifier' => $storedfile->get_pathnamehash(),
-        ]);
+        $DB->delete_records(UNPLAG_FILES_TABLE, array(
+                'cm' => $this->cmid,
+                'userid' => $storedfile->get_userid(),
+                'identifier' => $storedfile->get_pathnamehash(),
+        ));
 
         $storedfile->delete();
     }
@@ -492,6 +493,7 @@ class unplag_core {
 
 /**
  * Class UnplagException
+ *
  * @package plagiarism_unplag\classes
  */
 class UnplagException extends \Exception {

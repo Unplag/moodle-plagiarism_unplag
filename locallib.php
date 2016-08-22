@@ -43,19 +43,19 @@ require_once($CFG->libdir . '/filelib.php');
  */
 class plagiarism_unplag {
     /** @var array */
-    private static $supportedplagiarismmods = [
-        'assign', 'workshop', 'forum',
-    ];
+    private static $supportedplagiarismmods = array(
+            'assign', 'workshop', 'forum',
+    );
 
     /** @var array */
-    private static $supportedfilearea = [
-        UNPLAG_WORKSHOP_FILES_AREA,
-        UNPLAG_DEFAULT_FILES_AREA,
-        UNPLAG_FORUM_FILES_AREA,
-        'submission_files',
-        'submission_attachment',
-        'attachment'
-    ];
+    private static $supportedfilearea = array(
+            UNPLAG_WORKSHOP_FILES_AREA,
+            UNPLAG_DEFAULT_FILES_AREA,
+            UNPLAG_FORUM_FILES_AREA,
+            'submission_files',
+            'submission_attachment',
+            'attachment'
+    );
 
     /**
      * @param base $event
@@ -81,12 +81,16 @@ class plagiarism_unplag {
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
             }
-        } else if (self::is_assign_submitted($event)) {
-            $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-            unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
-        } else if (self::is_workshop_swiched($event)) {
-            $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-            unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
+        } else {
+            if (self::is_assign_submitted($event)) {
+                $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+                unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
+            } else {
+                if (self::is_workshop_swiched($event)) {
+                    $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+                    unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
+                }
+            }
         }
     }
 
@@ -96,13 +100,14 @@ class plagiarism_unplag {
      * @return bool
      */
     private static function is_allowed_events(base $event) {
-        return in_array($event->get_data()['eventname'], [
-            '\assignsubmission_file\event\submission_updated',
-            '\assignsubmission_file\event\assessable_uploaded',
-            '\assignsubmission_onlinetext\event\assessable_uploaded',
-            '\mod_forum\event\assessable_uploaded',
-            '\mod_workshop\event\assessable_uploaded'
-        ]);
+        $eventdata = $event->get_data();
+        return in_array($eventdata['eventname'], array(
+                '\assignsubmission_file\event\submission_updated',
+                '\assignsubmission_file\event\assessable_uploaded',
+                '\assignsubmission_onlinetext\event\assessable_uploaded',
+                '\mod_forum\event\assessable_uploaded',
+                '\mod_workshop\event\assessable_uploaded'
+        ));
     }
 
     /**
@@ -148,10 +153,10 @@ class plagiarism_unplag {
      */
     public static function object_to_array($obj) {
         if (is_object($obj)) {
-            $obj = (array)$obj;
+            $obj = (array) $obj;
         }
         if (is_array($obj)) {
-            $new = [];
+            $new = array();
             foreach ($obj as $key => $val) {
                 $new[$key] = self::object_to_array($val);
             }
@@ -165,7 +170,7 @@ class plagiarism_unplag {
     /**
      * @param        $contextid
      * @param string $filearea
-     * @param bool   $itemid
+     * @param bool $itemid
      *
      * @return stored_file[]
      */
@@ -217,7 +222,7 @@ class plagiarism_unplag {
         $resp = null;
         $records = $DB->get_records_list(UNPLAG_FILES_TABLE, 'id', $data->ids);
         if ($records) {
-            $checkstatusforthisids = [];
+            $checkstatusforthisids = array();
             foreach ($records as $record) {
                 if (empty($record->check_id)) {
                     continue;
@@ -227,11 +232,11 @@ class plagiarism_unplag {
                     array_push($checkstatusforthisids, $record->check_id);
                 }
 
-                $resp[$record->check_id] = [
-                    'file_id'  => $record->id,
-                    'progress' => (int)$record->progress,
-                    'content'  => self::gen_row_content_score($data->cid, $record),
-                ];
+                $resp[$record->check_id] = array(
+                        'file_id' => $record->id,
+                        'progress' => (int) $record->progress,
+                        'content' => self::gen_row_content_score($data->cid, $record),
+                );
             }
 
             try {
@@ -270,7 +275,7 @@ class plagiarism_unplag {
         global $DB;
 
         if (self::access_granted($token)) {
-            $record = $DB->get_record(UNPLAG_FILES_TABLE, ['identifier' => $token]);
+            $record = $DB->get_record(UNPLAG_FILES_TABLE, array('identifier' => $token));
             $rawjson = file_get_contents('php://input');
             $respcheck = unplag_core::parse_json($rawjson);
             if ($record && isset($respcheck->check)) {
