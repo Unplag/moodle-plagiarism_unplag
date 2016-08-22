@@ -17,7 +17,7 @@ Copyright: UKU Group, LTD, http://www.unplag.com
 QUICK INSTALL  
 ==============  
 
-1) Get latest release (zip file) on [GitHub](https://github.com/Unplag/moodle-plagiarism_unplag/releases) or [Moodle plugins directory](https://moodle.org/plugins/plagiarism_unplag)
-2) Follow the instructions described [here](https://docs.moodle.org/31/en/Installing_plugins#Installing_via_uploaded_ZIP_file) to install plugin
-3) Enable the Plagiarism API under admin > Advanced Features  
-4) Configure the UNPLAG plugin under admin > plugins > Plagiarism > UNPLAG  
+1. Get latest release (zip file) on [GitHub](https://github.com/Unplag/moodle-plagiarism_unplag/releases) or [Moodle plugins directory](https://moodle.org/plugins/plagiarism_unplag)
+2. Follow the instructions described [here](https://docs.moodle.org/31/en/Installing_plugins#Installing_via_uploaded_ZIP_file) to install plugin
+3. Enable the Plagiarism API under admin > Advanced Features  
+4. Configure the UNPLAG plugin under admin > plugins > Plagiarism > UNPLAG  
