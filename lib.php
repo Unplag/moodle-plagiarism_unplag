@@ -110,6 +110,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         // This iterator for one-time start-up.
         static $iterator;
 
+        $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
+
         $statuscode = $fileobj->statuscode;
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
@@ -251,9 +253,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         $outputhtml = '';
 
-        $unplaguse = unplag_core::get_assign_settings($cmid);
+        $unplaguse = unplag_core::get_assign_settings($cmid, 'use_unplag');
         $disclosure = unplag_core::get_settings('student_disclosure');
-        if (!empty($disclosure) && !empty($unplaguse)) {
+
+        if (!empty($disclosure) && $unplaguse) {
             $outputhtml .= $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
             $formatoptions = new stdClass;
             $formatoptions->noclean = true;
