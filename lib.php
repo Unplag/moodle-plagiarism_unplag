@@ -110,8 +110,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         // This iterator for one-time start-up.
         static $iterator;
 
-        $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
-
         $statuscode = $fileobj->statuscode;
         if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
             $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');

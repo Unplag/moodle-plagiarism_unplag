@@ -55,11 +55,18 @@ if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
     }
 
     if (!empty($fileobj->reporturl)) {
+
+        $reporturl = $fileobj->reporturl;
+        $editreporturl = $fileobj->reportediturl;
+
+        unplag_core::inject_language_to_url($reporturl);
+        unplag_core::inject_language_to_url($editreporturl);
+
         if ($teacherhere || $assigncfg['unplag_show_student_report']) {
             // Display opt-out link.
             $htmlparts[] = '&nbsp;<span class"plagiarismoptout">';
             $htmlparts[] = sprintf('<a title="%s" href="%s" target="_blank">',
-                    plagiarism_unplag::trans('report'), $teacherhere ? $fileobj->reportediturl : $fileobj->reporturl
+                    plagiarism_unplag::trans('report'), $teacherhere ? $editreporturl : $reporturl
             );
             $htmlparts[] = '<img class="un_tooltip" src="' . $OUTPUT->pix_url('link', 'plagiarism_unplag') . '">';
             $htmlparts[] = '</a></span>';

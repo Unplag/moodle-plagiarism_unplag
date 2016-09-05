@@ -45,6 +45,16 @@ class unplag_core {
     private $unplagplagiarismentity;
 
     /**
+     * @var array
+     */
+    private static $supportedlanguage = array(
+            'en' => 'en_EN',
+            'es' => 'es_ES',
+            'uk' => 'uk_UA',
+            'nl' => 'nl_BE'
+    );
+
+    /**
      * unplag_core constructor.
      *
      * @param $cmid
@@ -488,6 +498,41 @@ class unplag_core {
         }
 
         return ($workshop->get_submission_by_author(($userid !== null) ? $userid : $USER->id, false));
+    }
+
+    /**
+     * @return array|bool|mixed
+     */
+    public static function get_unplag_language() {
+
+        if (isset(self::$supportedlanguage[current_language()])) {
+            $language = self::$supportedlanguage[current_language()];
+        } else {
+            $language = self::get_settings('lang');
+        }
+
+        return $language;
+    }
+
+    /**
+     * @param $url
+     */
+    public static function inject_language_to_url(&$url) {
+        if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
+            $language = self::get_unplag_language();
+            $parsedurl = parse_url($url);
+
+            if ($parsedurl) {
+                $url = $parsedurl['scheme'] . '://' . $parsedurl['host'] . $parsedurl['path'];
+                $slugs = array();
+                if (!empty($parsedurl['query'])) {
+                    parse_str($parsedurl['query'], $slugs);
+                }
+                $slugs['lang'] = $language;
+                $query = http_build_query($slugs);
+                $url .= '?' . $query;
+            }
+        }
     }
 }
 
