@@ -26,6 +26,7 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
@@ -59,7 +60,7 @@ abstract class unplag_abstract_event {
 
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-        $submission = unplag_core::get_user_submission_by_cmid($event->contextinstanceid);
+        $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
 
         return ($submission->status !== 'submitted');
     }

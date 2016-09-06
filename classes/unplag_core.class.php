@@ -16,9 +16,7 @@
 
 namespace plagiarism_unplag\classes;
 
-use assign;
 use coding_exception;
-use context_module;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\exception\UnplagException;
@@ -318,23 +316,5 @@ class unplag_core {
         ));
 
         $storedfile->delete();
-    }
-
-    /**
-     * @param $cmid
-     * @param null $userid
-     * @return bool|\stdClass
-     */
-    public static function get_user_submission_by_cmid($cmid, $userid = null) {
-        global $USER;
-
-        try {
-            $modulecontext = context_module::instance($cmid);
-            $assign = new assign($modulecontext, false, false);
-        } catch (\Exception $ex) {
-            return false;
-        }
-
-        return ($assign->get_user_submission(($userid !== null) ? $userid : $USER->id, false));
     }
 }

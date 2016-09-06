@@ -26,6 +26,7 @@
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 use plagiarism_unplag\classes\unplag_workshop;
+use plagiarism_unplag\classes\unplag_assign;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -84,7 +85,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     $file = plagiarism_unplag::get_forum_topic_results($context, $linkarray);
                     break;
                 case 'assign':
-                    $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+                    $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
                     $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA, $submission->id);
                     $file = array_shift($files);
                     break;
@@ -127,7 +128,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                         $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
                     } else {
                         if ($cm->modname == 'assign' && !$fileobj->check_id) {
-                            $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+                            $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
                             if ($submission->status == 'submitted') {
                                 $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
                                 $iterator++;
@@ -209,6 +210,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @param object $mform - Moodle form
      * @param object $context - current context
      * @param string $modulename
+     *
+     * @return bool
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
         if ($modulename && !$this->is_enabled_module($modulename)) {
@@ -241,13 +244,23 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 }
             }
         } else { // Add plagiarism settings as hidden vars.
-            foreach ($plagiarismelements as $element) {
-                $mform->addElement('hidden', $element);
-                $mform->setType('use_unplag', PARAM_INT);
-                $mform->setType('unplag_show_student_score', PARAM_INT);
-                $mform->setType('unplag_show_student_report', PARAM_INT);
-                $mform->setType('unplag_draft_submit', PARAM_INT);
-            }
+            $this->add_plagiarism_hidden_vars($plagiarismelements, $mform);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param $plagiarismelements
+     * @param moodleform $mform
+     */
+    private function add_plagiarism_hidden_vars($plagiarismelements, moodleform $mform) {
+        foreach ($plagiarismelements as $element) {
+            $mform->addElement('hidden', $element);
+            $mform->setType('use_unplag', PARAM_INT);
+            $mform->setType('unplag_show_student_score', PARAM_INT);
+            $mform->setType('unplag_show_student_report', PARAM_INT);
+            $mform->setType('unplag_draft_submit', PARAM_INT);
         }
     }
 

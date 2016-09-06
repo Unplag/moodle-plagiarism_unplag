@@ -28,6 +28,7 @@ namespace plagiarism_unplag\classes\event;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
 require_once(dirname(__FILE__) . '/../../locallib.php');
@@ -51,7 +52,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
 
         $this->unplagcore = $unplagcore;
 
-        $submission = unplag_core::get_user_submission_by_cmid($event->contextinstanceid);
+        $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
         $submissionid = (!empty($submission->id) ? $submission->id : false);
 
         $unplagfiles = plagiarism_unplag::get_area_files($event->contextid, UNPLAG_DEFAULT_FILES_AREA, $submissionid);
