@@ -25,6 +25,7 @@
 
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
+use plagiarism_unplag\classes\unplag_workshop;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -75,7 +76,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $context = context_module::instance($linkarray['cmid']);
             switch ($cm->modname) {
                 case 'workshop':
-                    $workshopsubmission = unplag_core::get_user_workshop_submission_by_cm($cm, $linkarray['userid']);
+                    $workshopsubmission = unplag_workshop::get_user_workshop_submission_by_cm($cm, $linkarray['userid']);
                     $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_WORKSHOP_FILES_AREA, $workshopsubmission->id);
                     $file = array_shift($files);
                     break;
@@ -185,6 +186,24 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
+     * @param $modulename
+     * @return bool
+     */
+    private function is_enabled_module($modulename) {
+        $plagiarismsettings = unplag_settings::get_settings();
+        if (!$plagiarismsettings) {
+            return false;
+        }
+
+        $modname = 'unplag_enable_' . $modulename;
+        if (empty($plagiarismsettings[$modname])) {
+            return false; // Return if unplag is not enabled for the module.
+        }
+
+        return true;
+    }
+
+    /**
      * hook to add plagiarism specific settings to a module settings page
      *
      * @param object $mform - Moodle form
@@ -192,16 +211,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @param string $modulename
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
-        $plagiarismsettings = unplag_settings::get_settings();
-        if (!$plagiarismsettings) {
-            return;
-        }
-
-        if (!empty($modulename)) {
-            $modname = 'unplag_enable_' . $modulename;
-            if (empty($plagiarismsettings[$modname])) {
-                return; // Return if unplag is not enabled for the module.
-            }
+        if ($modulename && !$this->is_enabled_module($modulename)) {
+            return false;
         }
 
         $cmid = optional_param('update', 0, PARAM_INT); // Get cm as $this->_cm is not available here.

@@ -82,4 +82,33 @@ class unplag_notification {
     public static function message($message, $translate) {
         echo self::notify($message, self::$notifymessage, $translate);
     }
+
+    /**
+     * @param $plagiarismfile
+     *
+     * @return bool|null
+     */
+    public static function send_student_email_notification($plagiarismfile) {
+        global $DB, $CFG;
+
+        if (empty($plagiarismfile->userid)) {
+            // Sanity check.
+            return null;
+        }
+
+        $user = $DB->get_record('user', array('id' => $plagiarismfile->userid));
+        $site = get_site();
+        $a = new \stdClass();
+        $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
+        $a->modulename = format_string($cm->name);
+        $a->modulelink = $CFG->wwwroot . '/mod/' . $cm->modname . '/view.php?id=' . $cm->id;
+        $a->coursename = format_string($DB->get_field('course', 'fullname', array('id' => $cm->course)));
+        $a->optoutlink = $plagiarismfile->optout;
+        $emailsubject = plagiarism_unplag::trans('studentemailsubject');
+        $emailcontent = plagiarism_unplag::trans('studentemailcontent', $a);
+
+        $result = email_to_user($user, $site->shortname, $emailsubject, $emailcontent);
+
+        return $result;
+    }
 }

@@ -23,7 +23,6 @@ use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\exception\UnplagException;
 use stored_file;
-use workshop;
 
 /**
  * Class unplag_core
@@ -115,37 +114,8 @@ class unplag_core {
 
         $emailstudents = unplag_settings::get_assign_settings($record->cm, 'unplag_studentemail');
         if ($updated && !empty($emailstudents)) {
-            self::send_student_email_notification($record);
+            unplag_notification::send_student_email_notification($record);
         }
-    }
-
-    /**
-     * @param $plagiarismfile
-     *
-     * @return null
-     * @throws \moodle_exception
-     * @throws coding_exception
-     */
-    public static function send_student_email_notification($plagiarismfile) {
-        global $DB, $CFG;
-
-        if (empty($plagiarismfile->userid)) {
-            // Sanity check.
-            return null;
-        }
-
-        $user = $DB->get_record('user', array('id' => $plagiarismfile->userid));
-        $site = get_site();
-        $a = new \stdClass();
-        $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
-        $a->modulename = format_string($cm->name);
-        $a->modulelink = $CFG->wwwroot . '/mod/' . $cm->modname . '/view.php?id=' . $cm->id;
-        $a->coursename = format_string($DB->get_field('course', 'fullname', array('id' => $cm->course)));
-        $a->optoutlink = $plagiarismfile->optout;
-        $emailsubject = plagiarism_unplag::trans('studentemailsubject');
-        $emailcontent = plagiarism_unplag::trans('studentemailcontent', $a);
-
-        email_to_user($user, $site->shortname, $emailsubject, $emailcontent);
     }
 
     /**
@@ -287,8 +257,8 @@ class unplag_core {
 
     /**
      * @param base $event
+     * @return bool|stored_file
      *
-     * @return \stored_file
      * @throws \file_exception
      * @throws \stored_file_creation_exception
      */
@@ -366,24 +336,5 @@ class unplag_core {
         }
 
         return ($assign->get_user_submission(($userid !== null) ? $userid : $USER->id, false));
-    }
-
-    /**
-     * @param $cm
-     * @param null $userid
-     * @return bool|false|\stdclass
-     */
-    public static function get_user_workshop_submission_by_cm($cm, $userid = null) {
-        global $USER, $DB;
-
-        try {
-            $workshoprecord = $DB->get_record('workshop', array('id' => $cm->instance), '*', MUST_EXIST);
-            $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-            $workshop = new workshop($workshoprecord, $cm, $course);
-        } catch (\Exception $ex) {
-            return false;
-        }
-
-        return ($workshop->get_submission_by_author(($userid !== null) ? $userid : $USER->id));
     }
 }
