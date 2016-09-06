@@ -94,7 +94,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @return mixed|null|stored_file
      */
     private function get_file_from_linkarray($cm, $linkarray) {
-
         $file = null;
         if (isset($linkarray['content'])) {
             $context = context_module::instance($linkarray['cmid']);
@@ -221,13 +220,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     private function is_enabled_module($modulename) {
         $plagiarismsettings = unplag_settings::get_settings();
-        if (!$plagiarismsettings) {
-            return false;
-        }
-
         $modname = 'unplag_enable_' . $modulename;
-        if (empty($plagiarismsettings[$modname])) {
-            return false; // Return if unplag is not enabled for the module.
+
+        if (!$plagiarismsettings || empty($plagiarismsettings[$modname])) {
+            return false;// Return if unplag is not enabled for the module.
         }
 
         return true;
