@@ -42,44 +42,44 @@ class unplag_notification {
 
     /**
      * @param      $message
-     * @param bool $translate
+     * @param      $translate
      */
-    public static function error($message, $translate = true) {
+    public static function error($message, $translate) {
         echo self::notify($message, self::$notifyerror, $translate);
     }
 
     /**
      * @param      $message
      * @param      $level
-     * @param bool $translate
+     * @param      $translate
      *
      * @return string
      */
-    private static function notify($message, $level, $translate = true) {
+    private static function notify($message, $level, $translate) {
         global $OUTPUT;
 
         if (empty($message)) {
             return '';
         }
 
-        $message = $translate ? plagiarism_unplag::trans($message) : $message;
+        $message = (is_bool($translate) && $translate) ? plagiarism_unplag::trans($message) : $message;
 
         return $OUTPUT->notification($message, $level);
     }
 
     /**
      * @param      $message
-     * @param bool $translate
+     * @param      $translate
      */
-    public static function success($message, $translate = true) {
+    public static function success($message, $translate) {
         echo self::notify($message, self::$notifysuccess, $translate);
     }
 
     /**
      * @param      $message
-     * @param bool $translate
+     * @param      $translate
      */
-    public static function message($message, $translate = true) {
+    public static function message($message, $translate) {
         echo self::notify($message, self::$notifymessage, $translate);
     }
 }

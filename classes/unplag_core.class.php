@@ -184,7 +184,7 @@ class unplag_core {
                     unplag_api::instance()->delete_check($internalfile);
                 }
 
-                unplag_notification::success('plagiarism_run_success');
+                unplag_notification::success('plagiarism_run_success', true);
 
                 $checkresp = unplag_api::instance()->run_check($internalfile);
                 $plagiarismentity->handle_check_response($checkresp);
@@ -228,7 +228,7 @@ class unplag_core {
                     unplag_api::instance()->delete_check($internalfile);
                 }
 
-                unplag_notification::success('plagiarism_run_success');
+                unplag_notification::success('plagiarism_run_success', true);
 
                 $checkresp = unplag_api::instance()->run_check($internalfile);
                 $plagiarismentity->handle_check_response($checkresp);

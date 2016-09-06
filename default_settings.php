@@ -65,7 +65,7 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
         }
     }
 
-    unplag_notification::success('defaultupdated');
+    unplag_notification::success('defaultupdated', true);
 }
 echo $OUTPUT->box(plagiarism_unplag::trans('defaultsdesc'));
 

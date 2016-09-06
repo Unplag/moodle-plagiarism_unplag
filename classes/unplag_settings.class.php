@@ -31,11 +31,11 @@ class unplag_settings {
      * @param      $cmid
      * @param null $name
      *
-     * @param bool $assoc
+     * @param      $assoc
      *
      * @return \stdClass|array
      */
-    public static function get_assign_settings($cmid, $name = null, $assoc = false) {
+    public static function get_assign_settings($cmid, $name = null, $assoc = null) {
         global $DB;
 
         $condition = array(
@@ -51,7 +51,7 @@ class unplag_settings {
             return $item->value;
         }, $data);
 
-        return $assoc ? $data : $data[$name];
+        return (is_bool($assoc) && $assoc) ? $data : $data[$name];
     }
 
     /**

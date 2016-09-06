@@ -68,7 +68,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
 
     if ($resetuser == 1 && $id && confirm_sesskey()) {
         if (unplag_core::resubmit_file($id)) {
-            unplag_notification::error('fileresubmitted');
+            unplag_notification::error('fileresubmitted', true);
         }
     } else {
         if ($resetuser == 2 && $id && confirm_sesskey()) {
@@ -82,12 +82,12 @@ if (!$table->is_downloading($download, $exportfilename)) {
             }
 
             if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
-                unplag_notification::error('scorenotavailableyet');
+                unplag_notification::error('scorenotavailableyet', true);
             } else {
                 if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_PROCESSED) {
-                    unplag_notification::error('scoreavailable');
+                    unplag_notification::error('scoreavailable', true);
                 } else {
-                    unplag_notification::error('unknownwarning');
+                    unplag_notification::error('unknownwarning', true);
                 }
             }
         }
@@ -95,7 +95,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
 
     if (!empty($delete) && confirm_sesskey()) {
         $DB->delete_records(UNPLAG_FILES_TABLE, array('id' => $id));
-        unplag_notification::success('filedeleted');
+        unplag_notification::success('filedeleted', true);
     }
 }
 $heldevents = array();

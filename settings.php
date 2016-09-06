@@ -63,7 +63,7 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
         }
     }
 
-    unplag_notification::success('savedconfigsuccess');
+    unplag_notification::success('savedconfigsuccess', true);
 }
 
 $mform->set_data(get_config('plagiarism'));
