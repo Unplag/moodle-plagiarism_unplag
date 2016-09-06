@@ -29,7 +29,9 @@ use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
 use plagiarism_unplag\classes\event\unplag_event_file_submited;
 use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
 use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
+use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_settings;
 
 global $CFG;
 
@@ -62,7 +64,7 @@ class plagiarism_unplag {
      */
     public static function event_handler(base $event) {
 
-        unplag_core::validate_event($event);
+        unplag_event_validator::validate_event($event);
         if (self::is_allowed_events($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
 
@@ -182,7 +184,7 @@ class plagiarism_unplag {
      * @return array|bool
      */
     public static function is_plagin_enabled() {
-        return unplag_core::get_settings('use');
+        return unplag_settings::get_settings('use');
     }
 
     /**

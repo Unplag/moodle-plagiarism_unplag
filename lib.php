@@ -24,6 +24,7 @@
  */
 
 use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -64,7 +65,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $file = null;
         $fileobj = null;
 
-        if (!plagiarism_unplag::is_plagin_enabled() || !unplag_core::get_assign_settings($linkarray['cmid'], 'use_unplag')) {
+        if (!plagiarism_unplag::is_plagin_enabled() || !unplag_settings::get_assign_settings($linkarray['cmid'], 'use_unplag')) {
             // Not allowed access to this content.
             return null;
         }
@@ -191,7 +192,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @param string $modulename
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
-        $plagiarismsettings = unplag_core::get_settings();
+        $plagiarismsettings = unplag_settings::get_settings();
         if (!$plagiarismsettings) {
             return;
         }
@@ -208,7 +209,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (has_capability('plagiarism/unplag:enable', $context)) {
             require_once(dirname(__FILE__) . '/unplag_form.php');
             $uform = new unplag_defaults_form($mform, $modulename);
-            $uform->set_data(unplag_core::get_assign_settings($cmid, null, true));
+            $uform->set_data(unplag_settings::get_assign_settings($cmid, null, true));
             $uform->definition();
 
             if ($mform->elementExists('submissiondrafts')) {
@@ -251,8 +252,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         $outputhtml = '';
 
-        $unplaguse = unplag_core::get_assign_settings($cmid, 'use_unplag');
-        $disclosure = unplag_core::get_settings('student_disclosure');
+        $unplaguse = unplag_settings::get_assign_settings($cmid, 'use_unplag');
+        $disclosure = unplag_settings::get_settings('student_disclosure');
 
         if (!empty($disclosure) && $unplaguse) {
             $outputhtml .= $OUTPUT->box_start('generalbox boxaligncenter', 'intro');

@@ -44,7 +44,6 @@ class restore_plagiarism_unplag_plugin extends restore_plagiarism_plugin {
         global $DB;
 
         $data = (object) $data;
-        $oldid = $data->id;
         $data->cm = $this->task->get_moduleid();
 
         $DB->insert_record(UNPLAG_CONFIG_TABLE, $data);
@@ -57,7 +56,6 @@ class restore_plagiarism_unplag_plugin extends restore_plagiarism_plugin {
         global $DB;
 
         $data = (object) $data;
-        $oldid = $data->id;
         $data->cm = $this->task->get_moduleid();
         $data->userid = $this->get_mappingid('user', $data->userid);
 

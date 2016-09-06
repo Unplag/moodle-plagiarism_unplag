@@ -13,15 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-/**
- * unplag_core.class.php
- *
- * @package     plagiarism_unplag
- * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 
 namespace plagiarism_unplag\classes;
 
@@ -40,22 +31,15 @@ require_once(dirname(__FILE__) . '/../constants.php');
  * Class unplag_core
  *
  * @package plagiarism_unplag\classes
+ * @subpackage  plagiarism
+ * @namespace plagiarism_unplag\classes
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_core {
     /** @var unplag_plagiarism_entity */
     private $unplagplagiarismentity;
-
-    /**
-     * @var array
-     */
-    private static $supportedlanguage = array(
-            'en' => 'en_EN',
-            'es' => 'es_ES',
-            'uk' => 'uk_UA',
-            'nl' => 'nl_BE',
-            'tr' => 'tr_TR',
-            'fr' => 'fr_FR'
-    );
 
     /**
      * unplag_core constructor.
@@ -66,28 +50,6 @@ class unplag_core {
     public function __construct($cmid, $userid) {
         $this->cmid = $cmid;
         $this->userid = $userid;
-    }
-
-    /**
-     * @param base $event
-     *
-     * @throws \Exception
-     */
-    public static function validate_event(base $event) {
-        global $DB;
-
-        $cmid = $event->contextinstanceid;
-
-        $plagiarismvalues = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $cmid), '', 'name, value');
-        if (empty($plagiarismvalues['use_unplag'])) {
-            // Unplag not in use for this cm - return.
-            throw new \Exception('Unplag not in use for this cm');
-        }
-
-        // Check if the module associated with this event still exists.
-        if (!$DB->record_exists('course_modules', array('id' => $cmid))) {
-            throw new \Exception('Module not associated with this event');
-        }
     }
 
     /**
@@ -153,37 +115,10 @@ class unplag_core {
 
         $updated = $DB->update_record(UNPLAG_FILES_TABLE, $record);
 
-        $emailstudents = self::get_assign_settings($record->cm, 'unplag_studentemail');
+        $emailstudents = unplag_settings::get_assign_settings($record->cm, 'unplag_studentemail');
         if ($updated && !empty($emailstudents)) {
             self::send_student_email_notification($record);
         }
-    }
-
-    /**
-     * @param      $cmid
-     * @param null $name
-     *
-     * @param bool $assoc
-     *
-     * @return \stdClass|array
-     */
-    public static function get_assign_settings($cmid, $name = null, $assoc = false) {
-        global $DB;
-
-        $condition = array(
-                'cm' => $cmid,
-        );
-
-        if (isset($name)) {
-            $condition['name'] = $name;
-        }
-
-        $data = $DB->get_records(UNPLAG_CONFIG_TABLE, $condition, '', 'name,value');
-        $data = array_map(function($item) {
-            return $item->value;
-        }, $data);
-
-        return $assoc ? $data : $data[$name];
     }
 
     /**
@@ -331,53 +266,6 @@ class unplag_core {
     }
 
     /**
-     * This function should be used to initialise settings and check if plagiarism is enabled.
-     *
-     * @param null $key
-     *
-     * @return array|bool
-     * @throws \dml_exception
-     * @throws \moodle_exception
-     */
-    public static function get_settings($key = null) {
-        static $settings;
-
-        if (!empty($settings)) {
-            return self::get_settings_item($settings, $key);
-        }
-
-        $settings = (array) get_config('plagiarism');
-
-        // Check if enabled.
-        if (isset($settings['unplag_use']) && $settings['unplag_use']) {
-            // Now check to make sure required settings are set!
-            if (empty($settings['unplag_api_secret'])) {
-                error("UNPLAG API Secret not set!");
-            }
-
-            return self::get_settings_item($settings, $key);
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @param      $settings
-     * @param null $key
-     *
-     * @return null
-     */
-    private static function get_settings_item($settings, $key = null) {
-        if (is_null($key)) {
-            return $settings;
-        }
-
-        $key = 'unplag_' . $key;
-
-        return isset($settings[$key]) ? $settings[$key] : null;
-    }
-
-    /**
      * @param $contextid
      * @param $contenthash
      *
@@ -465,10 +353,9 @@ class unplag_core {
     }
 
     /**
-     * @param      $cmid
-     * @param null $user_id
-     *
-     * @return bool
+     * @param $cmid
+     * @param null $userid
+     * @return bool|\stdClass
      */
     public static function get_user_submission_by_cmid($cmid, $userid = null) {
         global $USER;
@@ -500,41 +387,6 @@ class unplag_core {
             return false;
         }
 
-        return ($workshop->get_submission_by_author(($userid !== null) ? $userid : $USER->id, false));
-    }
-
-    /**
-     * @return array|bool|mixed
-     */
-    public static function get_unplag_language() {
-
-        if (isset(self::$supportedlanguage[current_language()])) {
-            $language = self::$supportedlanguage[current_language()];
-        } else {
-            $language = self::get_settings('lang');
-        }
-
-        return $language;
-    }
-
-    /**
-     * @param $url
-     */
-    public static function inject_language_to_url(&$url) {
-        if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
-            $language = self::get_unplag_language();
-            $parsedurl = parse_url($url);
-
-            if ($parsedurl) {
-                $url = $parsedurl['scheme'] . '://' . $parsedurl['host'] . $parsedurl['path'];
-                $slugs = array();
-                if (!empty($parsedurl['query'])) {
-                    parse_str($parsedurl['query'], $slugs);
-                }
-                $slugs['lang'] = $language;
-                $query = http_build_query($slugs);
-                $url .= '?' . $query;
-            }
-        }
+        return ($workshop->get_submission_by_author(($userid !== null) ? $userid : $USER->id));
     }
 }

@@ -23,7 +23,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_language;
+use plagiarism_unplag\classes\unplag_settings;
 
 global $OUTPUT, $USER;
 
@@ -42,7 +43,7 @@ if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
     $modulecontext = context_module::instance($linkarray['cmid']);
     // This is a teacher viewing the responses.
     $teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
-    $assigncfg = unplag_core::get_assign_settings($linkarray['cmid'], null, true);
+    $assigncfg = unplag_settings::get_assign_settings($linkarray['cmid'], null, true);
 
     if (isset($fileobj->similarityscore)) {
         if ($teacherhere || $assigncfg['unplag_show_student_score']) {
@@ -59,8 +60,8 @@ if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
         $reporturl = $fileobj->reporturl;
         $editreporturl = $fileobj->reportediturl;
 
-        unplag_core::inject_language_to_url($reporturl);
-        unplag_core::inject_language_to_url($editreporturl);
+        unplag_language::inject_language_to_url($reporturl);
+        unplag_language::inject_language_to_url($editreporturl);
 
         if ($teacherhere || $assigncfg['unplag_show_student_report']) {
             // Display opt-out link.

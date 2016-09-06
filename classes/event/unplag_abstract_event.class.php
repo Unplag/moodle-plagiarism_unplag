@@ -51,7 +51,7 @@ abstract class unplag_abstract_event {
      * @return bool
      */
     public static function is_submition_draft(base $event) {
-        global $CFG, $USER;
+        global $CFG;
 
         if ($event->objecttable != 'assign_submission') {
             return false;

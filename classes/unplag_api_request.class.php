@@ -121,7 +121,7 @@ class unplag_api_request {
             $oauthdata = $this->get_request_data();
         }
 
-        $oauthconsumer = new OAuthConsumer(unplag_core::get_settings('client_id'), unplag_core::get_settings('api_secret'));
+        $oauthconsumer = new OAuthConsumer(unplag_settings::get_settings('client_id'), unplag_settings::get_settings('api_secret'));
         $oauthreq = OAuthRequest::from_consumer_and_token(
                 $oauthconsumer, $this->get_token_secret(), $this->httpmethod, $this->get_url(), $oauthdata
         );
