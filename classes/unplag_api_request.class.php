@@ -29,8 +29,6 @@ use plagiarism_unplag\library\OAuth\OAuthConsumer;
 use plagiarism_unplag\library\OAuth\OAuthRequest;
 use plagiarism_unplag\library\OAuth\Signature\OAuthSignatureMethod_HMAC_SHA1;
 
-require_once(dirname(__FILE__) . '/../constants.php');
-
 /**
  * Class unplag_api_request
  *

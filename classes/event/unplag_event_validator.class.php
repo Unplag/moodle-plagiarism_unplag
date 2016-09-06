@@ -18,8 +18,6 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 
-require_once(dirname(__FILE__) . '/../constants.php');
-
 /**
  * Class unplag_event_validator
  *

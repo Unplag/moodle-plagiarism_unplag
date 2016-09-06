@@ -25,8 +25,6 @@ use plagiarism_unplag\classes\exception\UnplagException;
 use stored_file;
 use workshop;
 
-require_once(dirname(__FILE__) . '/../constants.php');
-
 /**
  * Class unplag_core
  *
@@ -54,13 +52,13 @@ class unplag_core {
 
     /**
      * @param $cid
-     * @param $checkstatusforthisids
+     * @param $checkstatusforids
      * @param $resp
      *
      * @throws UnplagException
      */
-    public static function check_real_file_progress($cid, $checkstatusforthisids, &$resp) {
-        $progresses = unplag_api::instance()->get_check_progress($checkstatusforthisids);
+    public static function check_real_file_progress($cid, $checkstatusforids, &$resp) {
+        $progresses = unplag_api::instance()->get_check_progress($checkstatusforids);
         if ($progresses->result) {
             foreach ($progresses->progress as $id => $val) {
                 $val *= 100;
@@ -371,10 +369,9 @@ class unplag_core {
     }
 
     /**
-     * @param      $cm
+     * @param $cm
      * @param null $userid
-     *
-     * @return bool
+     * @return bool|false|\stdclass
      */
     public static function get_user_workshop_submission_by_cm($cm, $userid = null) {
         global $USER, $DB;

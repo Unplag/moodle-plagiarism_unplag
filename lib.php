@@ -265,14 +265,4 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         return $outputhtml;
     }
-
-    /**
-     * hook to allow status of submitted files to be updated - called on grading/report pages.
-     *
-     * @param object $course - full Course object
-     * @param object $cm - full cm object
-     */
-    public function update_status($course, $cm) {
-        // Called at top of submissions/grading pages - allows printing of admin style links or updating status.
-    }
 }

@@ -28,8 +28,6 @@ use plagiarism_unplag\classes\unplag_settings;
 
 global $OUTPUT, $USER;
 
-require_once(dirname(__FILE__) . '/classes/unplag_core.class.php');
-
 // Normal situation - UNPLAG has successfully analyzed the file.
 $htmlparts = array('<span class="un_report">');
 
