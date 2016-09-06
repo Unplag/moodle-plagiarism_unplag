@@ -17,7 +17,9 @@
 namespace plagiarism_unplag\classes;
 
 use assign;
+use coding_exception;
 use context_module;
+use plagiarism_unplag;
 
 /**
  * Class unplag_assign
@@ -46,5 +48,49 @@ class unplag_assign {
         }
 
         return ($assign->get_user_submission(($userid !== null) ? $userid : $USER->id, false));
+    }
+
+    /**
+     * @param $id
+     *
+     * @return null
+     * @throws coding_exception
+     */
+    public static function check_submitted_assignment($id) {
+        global $DB;
+
+        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
+        if (in_array($plagiarismfile->statuscode, array(UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED))) {
+            // Sanity Check.
+            return null;
+        }
+
+        $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
+
+        if (plagiarism_unplag::is_support_mod($cm->modname)) {
+
+            $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
+            if ($file->is_directory()) {
+                return null;
+            }
+            $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
+            $plagiarismentity = $ucore->get_plagiarism_entity($file);
+
+            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+
+            if (isset($internalfile->external_file_id)) {
+                if ($internalfile->check_id) {
+                    unplag_api::instance()->delete_check($internalfile);
+                }
+
+                unplag_notification::success('plagiarism_run_success', true);
+
+                $checkresp = unplag_api::instance()->run_check($internalfile);
+                $plagiarismentity->handle_check_response($checkresp);
+            } else {
+                $error = unplag_core::parse_json($internalfile->errorresponse);
+                unplag_notification::error('Can\'t start check: ' . $error[0]->message, false);
+            }
+        }
     }
 }

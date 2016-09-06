@@ -23,10 +23,10 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 use plagiarism_unplag\classes\unplag_workshop;
-use plagiarism_unplag\classes\unplag_assign;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -73,6 +73,29 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         }
 
         $cm = get_coursemodule_from_id('', $linkarray['cmid'], 0, false, MUST_EXIST);
+
+        $file = $this->get_file_from_linkarray($cm, $linkarray);
+
+        $fileobj = null;
+        if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
+            $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
+            $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
+        }
+
+        $output = $this->get_output_for_linkarray($fileobj, $cm, $linkarray);
+
+        return $output;
+    }
+
+    /**
+     * @param $cm
+     * @param $linkarray
+     *
+     * @return mixed|null|stored_file
+     */
+    private function get_file_from_linkarray($cm, $linkarray) {
+
+        $file = null;
         if (isset($linkarray['content'])) {
             $context = context_module::instance($linkarray['cmid']);
             switch ($cm->modname) {
@@ -100,13 +123,21 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             }
         }
 
-        if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
-            $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
-            $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
-        }
+        return $file;
+    }
+
+    /**
+     * @param $fileobj
+     * @param $cm
+     * @param $linkarray
+     *
+     * @return mixed|string
+     */
+    private function get_output_for_linkarray($fileobj, $cm, $linkarray) {
 
         $output = '';
-        if (empty($fileobj)) {
+
+        if (!$fileobj) {
             return $output;
         }
 
@@ -211,11 +242,11 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @param object $context - current context
      * @param string $modulename
      *
-     * @return bool
+     * @return null
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
         if ($modulename && !$this->is_enabled_module($modulename)) {
-            return false;
+            return null;
         }
 
         $cmid = optional_param('update', 0, PARAM_INT); // Get cm as $this->_cm is not available here.
@@ -236,25 +267,30 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
                 }
             }
-
-            // Disable all plagiarism elements if use_plagiarism eg 0.
-            foreach ($plagiarismelements as $element) {
-                if ($element <> 'use_unplag') { // Ignore this var.
-                    $mform->disabledIf($element, 'use_unplag', 'eq', 0);
-                }
-            }
+            $this->disable_elements_if_not_use($plagiarismelements, $mform);
         } else { // Add plagiarism settings as hidden vars.
             $this->add_plagiarism_hidden_vars($plagiarismelements, $mform);
         }
-
-        return true;
     }
 
     /**
      * @param $plagiarismelements
-     * @param moodleform $mform
+     * @param $mform
      */
-    private function add_plagiarism_hidden_vars($plagiarismelements, moodleform $mform) {
+    private function disable_elements_if_not_use($plagiarismelements, $mform) {
+        // Disable all plagiarism elements if use_plagiarism eg 0.
+        foreach ($plagiarismelements as $element) {
+            if ($element <> 'use_unplag') { // Ignore this var.
+                $mform->disabledIf($element, 'use_unplag', 'eq', 0);
+            }
+        }
+    }
+
+    /**
+     * @param $plagiarismelements
+     * @param $mform
+     */
+    private function add_plagiarism_hidden_vars($plagiarismelements, $mform) {
         foreach ($plagiarismelements as $element) {
             $mform->addElement('hidden', $element);
             $mform->setType('use_unplag', PARAM_INT);
