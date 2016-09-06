@@ -121,10 +121,16 @@ class unplag_defaults_form extends moodleform {
                 get_string("no"), get_string("yes"),
         );
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
+
+        if ($this->modname === 'assign') {
+            $mform->addElement('static', 'use_unplag_static_description', plagiarism_unplag::trans('useunplag_assign_desc_param'),
+                    plagiarism_unplag::trans('useunplag_assign_desc_value'));
+        }
         $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
         if ($this->modname === 'assign') {
             $mform->addHelpButton('use_unplag', 'useunplag', 'plagiarism_unplag');
         }
+
         $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), array(
                 UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
                 UNPLAG_CHECK_TYPE_WEB => plagiarism_unplag::trans('web'),

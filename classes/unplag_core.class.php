@@ -18,7 +18,7 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,6 +30,7 @@ use coding_exception;
 use context_module;
 use core\event\base;
 use plagiarism_unplag;
+use plagiarism_unplag\classes\exception\UnplagException;
 use stored_file;
 use workshop;
 
@@ -51,7 +52,9 @@ class unplag_core {
             'en' => 'en_EN',
             'es' => 'es_ES',
             'uk' => 'uk_UA',
-            'nl' => 'nl_BE'
+            'nl' => 'nl_BE',
+            'tr' => 'tr_TR',
+            'fr' => 'fr_FR'
     );
 
     /**
@@ -533,23 +536,5 @@ class unplag_core {
                 $url .= '?' . $query;
             }
         }
-    }
-}
-
-/**
- * Class UnplagException
- *
- * @package plagiarism_unplag\classes
- */
-class UnplagException extends \Exception {
-    /**
-     * UnplagException constructor.
-     *
-     * @param string $errors
-     */
-    public function __construct($errors) {
-        $errors = array_shift($errors);
-
-        throw new \InvalidArgumentException($errors->message);
     }
 }
