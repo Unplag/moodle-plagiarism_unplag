@@ -136,38 +136,42 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     private function get_output_for_linkarray($fileobj, $cm, $linkarray) {
 
         $output = '';
-
         if (!$fileobj) {
             return $output;
         }
 
         // This iterator for one-time start-up.
         static $iterator;
-
         $statuscode = $fileobj->statuscode;
-        if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
-            $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
-        } else {
-            if (isset($fileobj->check_id) && $statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
-                $output = require(dirname(__FILE__) . '/view_tmpl_accepted.php');
-                $iterator++;
-            } else {
-                if ($statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-                    $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
+        switch ($statuscode) {
+            case UNPLAG_STATUSCODE_PROCESSED:
+                $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
+                break;
+            case UNPLAG_STATUSCODE_ACCEPTED:
+                if (isset($fileobj->check_id)) {
+                    $output = require(dirname(__FILE__) . '/view_tmpl_accepted.php');
+                    $iterator++;
                 } else {
-                    if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
-                        $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
-                    } else {
-                        if ($cm->modname == 'assign' && !$fileobj->check_id) {
-                            $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-                            if ($submission->status == 'submitted') {
-                                $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
-                                $iterator++;
-                            }
-                        }
-                    }
+                    $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
                 }
-            }
+                break;
+            case UNPLAG_STATUSCODE_INVALID_RESPONSE:
+                $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
+                break;
+            case UNPLAG_STATUSCODE_PENDING:
+                if ($cm->modname == 'assign' && !$fileobj->check_id) {
+                    $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+                    if ($submission->status == 'submitted') {
+                        $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
+                        $iterator++;
+                    }
+                } else {
+                    $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
+                }
+                break;
+            default:
+                $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
+                break;
         }
 
         return $output;

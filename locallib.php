@@ -264,8 +264,6 @@ class plagiarism_unplag {
      */
     public static function gen_row_content_score($cid, $fileobj) {
         if ($fileobj->progress == 100) {
-            $linkarray['cmid'] = $cid;
-
             return require(dirname(__FILE__) . '/view_tmpl_processed.php');
         }
 

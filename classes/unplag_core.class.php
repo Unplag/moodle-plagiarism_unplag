@@ -16,11 +16,9 @@
 
 namespace plagiarism_unplag\classes;
 
-use coding_exception;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\exception\UnplagException;
-use stored_file;
 
 /**
  * Class unplag_core
@@ -129,7 +127,7 @@ class unplag_core {
      * @param $id
      *
      * @return null
-     * @throws coding_exception
+     * @throws \coding_exception
      */
     public static function resubmit_file($id) {
         global $DB;
@@ -191,7 +189,7 @@ class unplag_core {
      * @param $contextid
      * @param $contenthash
      *
-     * @return null|stored_file
+     * @return null|\stored_file
      */
     public static function get_file_by_hash($contextid, $contenthash) {
         global $DB;
@@ -211,7 +209,7 @@ class unplag_core {
 
     /**
      * @param base $event
-     * @return bool|stored_file
+     * @return bool|\stored_file
      *
      * @throws \file_exception
      * @throws \stored_file_creation_exception

@@ -31,17 +31,21 @@ global $OUTPUT, $USER;
 // Normal situation - UNPLAG has successfully analyzed the file.
 $htmlparts = array('<span class="un_report">');
 
-if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
+if (empty($cid) && !empty($linkarray['cmid'])) {
+    $cid = $linkarray['cmid'];
+}
+
+if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
     // User is allowed to view the report.
     // Score is contained in report, so they can see the score too.
     $htmlparts[] = sprintf('<img  width="32" height="32" src="%s" title="%s"> ',
             $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
     );
 
-    $modulecontext = context_module::instance($linkarray['cmid']);
+    $modulecontext = context_module::instance($cid);
     // This is a teacher viewing the responses.
     $teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
-    $assigncfg = unplag_settings::get_assign_settings($linkarray['cmid'], null, true);
+    $assigncfg = unplag_settings::get_assign_settings($cid, null, true);
 
     if (isset($fileobj->similarityscore)) {
         if ($teacherhere || $assigncfg['unplag_show_student_score']) {
