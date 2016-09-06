@@ -263,7 +263,7 @@ class plagiarism_unplag {
      * @return bool|mixed
      */
     public static function gen_row_content_score($cid, $fileobj) {
-        if ($fileobj->progress == 100) {
+        if ($fileobj->progress == 100 && $cid) {
             return require(dirname(__FILE__) . '/view_tmpl_processed.php');
         }
 

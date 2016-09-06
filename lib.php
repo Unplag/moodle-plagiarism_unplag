@@ -74,15 +74,15 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         $cm = get_coursemodule_from_id('', $linkarray['cmid'], 0, false, MUST_EXIST);
 
+        $output = '';
         $file = $this->get_file_from_linkarray($cm, $linkarray);
-
-        $fileobj = null;
         if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
             $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
             $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
+            if (!empty($fileobj) && is_object($fileobj)) {
+                $output = $this->get_output_for_linkarray($fileobj, $cm, $linkarray);
+            }
         }
-
-        $output = $this->get_output_for_linkarray($fileobj, $cm, $linkarray);
 
         return $output;
     }
@@ -127,19 +127,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param $fileobj
+     * @param stdClass $fileobj
      * @param $cm
      * @param $linkarray
      *
-     * @return mixed|string
+     * @return mixed
      */
-    private function get_output_for_linkarray($fileobj, $cm, $linkarray) {
-
-        $output = '';
-        if (!$fileobj) {
-            return $output;
-        }
-
+    private function get_output_for_linkarray(stdClass $fileobj, $cm, $linkarray) {
         // This iterator for one-time start-up.
         static $iterator;
         $statuscode = $fileobj->statuscode;
