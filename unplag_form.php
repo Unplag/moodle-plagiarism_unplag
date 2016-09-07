@@ -66,7 +66,7 @@ class unplag_setup_form extends moodleform {
         $mform->setType('unplag_student_disclosure', PARAM_TEXT);
 
         $mods = core_component::get_plugin_list('mod');
-        foreach ($mods as $mod => $modname) {
+        foreach (array_keys($mods) as $mod) {
             if (plugin_supports('mod', $mod, FEATURE_PLAGIARISM) && plagiarism_unplag::is_support_mod($mod)) {
                 $modstring = 'unplag_enable_mod_' . $mod;
                 $mform->addElement('checkbox', $modstring, plagiarism_unplag::trans('unplag_enableplugin', $mod));
@@ -121,10 +121,16 @@ class unplag_defaults_form extends moodleform {
                 get_string("no"), get_string("yes"),
         );
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
+
+        if ($this->modname === 'assign') {
+            $mform->addElement('static', 'use_unplag_static_description', plagiarism_unplag::trans('useunplag_assign_desc_param'),
+                    plagiarism_unplag::trans('useunplag_assign_desc_value'));
+        }
         $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
         if ($this->modname === 'assign') {
             $mform->addHelpButton('use_unplag', 'useunplag', 'plagiarism_unplag');
         }
+
         $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), array(
                 UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
                 UNPLAG_CHECK_TYPE_WEB => plagiarism_unplag::trans('web'),

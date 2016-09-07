@@ -28,8 +28,10 @@ use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
 use plagiarism_unplag\classes\event\unplag_event_file_submited;
 use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
+use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
 use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_settings;
 
 global $CFG;
 
@@ -62,7 +64,7 @@ class plagiarism_unplag {
      */
     public static function event_handler(base $event) {
 
-        unplag_core::validate_event($event);
+        unplag_event_validator::validate_event($event);
         if (self::is_allowed_events($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
 
@@ -168,13 +170,16 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param        $contextid
+     * @param $contextid
      * @param string $filearea
-     * @param bool $itemid
+     * @param null $itemid
      *
      * @return stored_file[]
      */
-    public static function get_area_files($contextid, $filearea = UNPLAG_DEFAULT_FILES_AREA, $itemid = false) {
+    public static function get_area_files($contextid, $filearea = UNPLAG_DEFAULT_FILES_AREA, $itemid = null) {
+
+        $itemid = ($itemid !== null) ? $itemid : false;
+
         return get_file_storage()->get_area_files($contextid, UNPLAG_PLAGIN_NAME, $filearea, $itemid, null, false);
     }
 
@@ -182,7 +187,7 @@ class plagiarism_unplag {
      * @return array|bool
      */
     public static function is_plagin_enabled() {
-        return unplag_core::get_settings('use');
+        return unplag_settings::get_settings('use');
     }
 
     /**
@@ -222,14 +227,14 @@ class plagiarism_unplag {
         $resp = null;
         $records = $DB->get_records_list(UNPLAG_FILES_TABLE, 'id', $data->ids);
         if ($records) {
-            $checkstatusforthisids = array();
+            $checkstatusforids = array();
             foreach ($records as $record) {
                 if (empty($record->check_id)) {
                     continue;
                 }
 
                 if ($record->progress != 100) {
-                    array_push($checkstatusforthisids, $record->check_id);
+                    array_push($checkstatusforids, $record->check_id);
                 }
 
                 $resp[$record->check_id] = array(
@@ -240,8 +245,8 @@ class plagiarism_unplag {
             }
 
             try {
-                if (!empty($checkstatusforthisids)) {
-                    unplag_core::check_real_file_progress($data->cid, $checkstatusforthisids, $resp);
+                if (!empty($checkstatusforids)) {
+                    unplag_core::check_real_file_progress($data->cid, $checkstatusforids, $resp);
                 }
             } catch (\Exception $ex) {
                 header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
@@ -255,15 +260,14 @@ class plagiarism_unplag {
     /**
      * @param $cid
      * @param $fileobj
-     *
-     * @return mixed
+     * @return bool|mixed
      */
     public static function gen_row_content_score($cid, $fileobj) {
-        if ($fileobj->progress == 100) {
-            $linkarray['cmid'] = $cid;
-
+        if ($fileobj->progress == 100 && $cid) {
             return require(dirname(__FILE__) . '/view_tmpl_processed.php');
         }
+
+        return false;
     }
 
     /**

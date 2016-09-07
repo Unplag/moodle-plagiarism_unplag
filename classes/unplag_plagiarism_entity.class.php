@@ -25,7 +25,7 @@
 
 namespace plagiarism_unplag\classes;
 
-require_once(dirname(__FILE__) . '/../constants.php');
+use plagiarism_unplag\classes\exception\UnplagException;
 
 /**
  * Class unplag_plagiarism_entity

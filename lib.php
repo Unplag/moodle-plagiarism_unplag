@@ -23,7 +23,9 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\helpers\unplag_linkarray;
 use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -64,75 +66,20 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $file = null;
         $fileobj = null;
 
-        if (!plagiarism_unplag::is_plagin_enabled() || !unplag_core::get_assign_settings($linkarray['cmid'], 'use_unplag')) {
+        if (!plagiarism_unplag::is_plagin_enabled() || !unplag_settings::get_assign_settings($linkarray['cmid'], 'use_unplag')) {
             // Not allowed access to this content.
             return null;
         }
 
         $cm = get_coursemodule_from_id('', $linkarray['cmid'], 0, false, MUST_EXIST);
-        if (isset($linkarray['content'])) {
-            $context = context_module::instance($linkarray['cmid']);
-            switch ($cm->modname) {
-                case 'workshop':
-                    $workshopsubmission = unplag_core::get_user_workshop_submission_by_cm($cm, $linkarray['userid']);
-                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_WORKSHOP_FILES_AREA, $workshopsubmission->id);
-                    $file = array_shift($files);
-                    break;
-                case 'forum':
-                    $file = plagiarism_unplag::get_forum_topic_results($context, $linkarray);
-                    break;
-                case 'assign':
-                    $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA, $submission->id);
-                    $file = array_shift($files);
-                    break;
-                default:
-                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA);
-                    $file = array_shift($files);
-                    break;
-            }
-        } else {
-            if (isset($linkarray['file'])) {
-                $file = $linkarray['file'];
-            }
-        }
 
+        $output = '';
+        $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
         if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
             $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
             $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
-        }
-
-        $output = '';
-        if (empty($fileobj)) {
-            return $output;
-        }
-
-        // This iterator for one-time start-up.
-        static $iterator;
-
-        $statuscode = $fileobj->statuscode;
-        if ($statuscode == UNPLAG_STATUSCODE_PROCESSED) {
-            $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
-        } else {
-            if (isset($fileobj->check_id) && $statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
-                $output = require(dirname(__FILE__) . '/view_tmpl_accepted.php');
-                $iterator++;
-            } else {
-                if ($statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-                    $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
-                } else {
-                    if ($statuscode != UNPLAG_STATUSCODE_PENDING) {
-                        $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
-                    } else {
-                        if ($cm->modname == 'assign' && !$fileobj->check_id) {
-                            $submission = unplag_core::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-                            if ($submission->status == 'submitted') {
-                                $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
-                                $iterator++;
-                            }
-                        }
-                    }
-                }
+            if (!empty($fileobj) && is_object($fileobj)) {
+                $output = unplag_linkarray::get_output_for_linkarray($fileobj, $cm, $linkarray);
             }
         }
 
@@ -184,23 +131,32 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
+     * @param $modulename
+     * @return bool
+     */
+    private function is_enabled_module($modulename) {
+        $plagiarismsettings = unplag_settings::get_settings();
+        $modname = 'unplag_enable_' . $modulename;
+
+        if (!$plagiarismsettings || empty($plagiarismsettings[$modname])) {
+            return false;// Return if unplag is not enabled for the module.
+        }
+
+        return true;
+    }
+
+    /**
      * hook to add plagiarism specific settings to a module settings page
      *
      * @param object $mform - Moodle form
      * @param object $context - current context
      * @param string $modulename
+     *
+     * @return null
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
-        $plagiarismsettings = unplag_core::get_settings();
-        if (!$plagiarismsettings) {
-            return;
-        }
-
-        if (!empty($modulename)) {
-            $modname = 'unplag_enable_' . $modulename;
-            if (empty($plagiarismsettings[$modname])) {
-                return; // Return if unplag is not enabled for the module.
-            }
+        if ($modulename && !$this->is_enabled_module($modulename)) {
+            return null;
         }
 
         $cmid = optional_param('update', 0, PARAM_INT); // Get cm as $this->_cm is not available here.
@@ -208,7 +164,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (has_capability('plagiarism/unplag:enable', $context)) {
             require_once(dirname(__FILE__) . '/unplag_form.php');
             $uform = new unplag_defaults_form($mform, $modulename);
-            $uform->set_data(unplag_core::get_assign_settings($cmid, null, true));
+            $uform->set_data(unplag_settings::get_assign_settings($cmid, null, true));
             $uform->definition();
 
             if ($mform->elementExists('submissiondrafts')) {
@@ -221,21 +177,36 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     $mform->disabledIf('unplag_draft_submit', 'var4', 'eq', 0);
                 }
             }
-
-            // Disable all plagiarism elements if use_plagiarism eg 0.
-            foreach ($plagiarismelements as $element) {
-                if ($element <> 'use_unplag') { // Ignore this var.
-                    $mform->disabledIf($element, 'use_unplag', 'eq', 0);
-                }
-            }
+            $this->disable_elements_if_not_use($plagiarismelements, $mform);
         } else { // Add plagiarism settings as hidden vars.
-            foreach ($plagiarismelements as $element) {
-                $mform->addElement('hidden', $element);
-                $mform->setType('use_unplag', PARAM_INT);
-                $mform->setType('unplag_show_student_score', PARAM_INT);
-                $mform->setType('unplag_show_student_report', PARAM_INT);
-                $mform->setType('unplag_draft_submit', PARAM_INT);
+            $this->add_plagiarism_hidden_vars($plagiarismelements, $mform);
+        }
+    }
+
+    /**
+     * @param array $plagiarismelements
+     * @param object $mform - Moodle form
+     */
+    private function disable_elements_if_not_use($plagiarismelements, $mform) {
+        // Disable all plagiarism elements if use_plagiarism eg 0.
+        foreach ($plagiarismelements as $element) {
+            if ($element <> 'use_unplag') { // Ignore this var.
+                $mform->disabledIf($element, 'use_unplag', 'eq', 0);
             }
+        }
+    }
+
+    /**
+     * @param array $plagiarismelements
+     * @param object $mform - Moodle form
+     */
+    private function add_plagiarism_hidden_vars($plagiarismelements, $mform) {
+        foreach ($plagiarismelements as $element) {
+            $mform->addElement('hidden', $element);
+            $mform->setType('use_unplag', PARAM_INT);
+            $mform->setType('unplag_show_student_score', PARAM_INT);
+            $mform->setType('unplag_show_student_report', PARAM_INT);
+            $mform->setType('unplag_draft_submit', PARAM_INT);
         }
     }
 
@@ -251,9 +222,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         $outputhtml = '';
 
-        $unplaguse = unplag_core::get_assign_settings($cmid);
-        $disclosure = unplag_core::get_settings('student_disclosure');
-        if (!empty($disclosure) && !empty($unplaguse)) {
+        $unplaguse = unplag_settings::get_assign_settings($cmid, 'use_unplag');
+        $disclosure = unplag_settings::get_settings('student_disclosure');
+
+        if (!empty($disclosure) && $unplaguse) {
             $outputhtml .= $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
             $formatoptions = new stdClass;
             $formatoptions->noclean = true;
@@ -262,15 +234,5 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         }
 
         return $outputhtml;
-    }
-
-    /**
-     * hook to allow status of submitted files to be updated - called on grading/report pages.
-     *
-     * @param object $course - full Course object
-     * @param object $cm - full cm object
-     */
-    public function update_status($course, $cm) {
-        // Called at top of submissions/grading pages - allows printing of admin style links or updating status.
     }
 }

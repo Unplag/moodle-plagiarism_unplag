@@ -70,7 +70,7 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
     }
 
     /**
-     * @param $file
+     * @param \stored_file $file
      *
      * @return null
      * @throws \moodle_exception
@@ -85,11 +85,13 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
         }
 
         if (isset($internalfile->check_id)) {
-            print_error('File with uuid' . $file->identifier . ' already sent to Unplag');
+            print_error('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
         } else {
             $checkresp = unplag_api::instance()->run_check($internalfile);
             $plagiarismentity->handle_check_response($checkresp);
-            mtrace('file ' . $file->identifier . 'send to Unplag');
+            mtrace('file ' . $internalfile->identifier . 'send to Unplag');
         }
+
+        return true;
     }
 }
