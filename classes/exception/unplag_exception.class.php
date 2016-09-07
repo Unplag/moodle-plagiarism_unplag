@@ -13,24 +13,29 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+namespace plagiarism_unplag\classes\exception;
+
 /**
- * version.php
+ * Class UnplagException
  *
- * @package     plagiarism_unplag
+ * @package plagiarism_unplag\classes\exception
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @namespace plagiarism_unplag\classes\exception
+ *
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+class UnplagException extends \Exception {
+    /**
+     * UnplagException constructor.
+     *
+     * @param string $errors
+     */
+    public function __construct($errors) {
+        $errors = array_shift($errors);
 
-if (!isset($plugin)) {
-    $plugin = new stdClass();
+        throw new \InvalidArgumentException($errors->message);
+    }
 }
-
-$plugin->version = 2016090500; // YYYYMMDDVV.
-$plugin->requires = 2013051404; // Requires Moodle 2.5.4.
-$plugin->maturity = MATURITY_STABLE;
-
-$plugin->component = 'plagiarism_unplag';
-$plugin->release = '2.0.9';

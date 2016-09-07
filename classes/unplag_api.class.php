@@ -77,7 +77,7 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument $file');
         }
 
-        $checktype = unplag_core::get_assign_settings($file->cm, 'check_type');
+        $checktype = unplag_settings::get_assign_settings($file->cm, 'check_type');
         $postdata = array(
                 'type' => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
                 'file_id' => $file->external_file_id,

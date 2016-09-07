@@ -24,7 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_assign;
 
 global $PAGE, $CFG;
 
@@ -45,7 +45,7 @@ require_login($cm->course, true, $cm);
 $modulecontext = context_module::instance($cmid);
 require_capability('plagiarism/unplag:checkfile', $modulecontext);
 
-unplag_core::check_submitted_assignment($pf);
+unplag_assign::check_submitted_assignment($pf);
 
 if ($cm->modname == 'assignment') {
     $redirect = new moodle_url('/mod/assignment/submissions.php', array('id' => $cmid));
