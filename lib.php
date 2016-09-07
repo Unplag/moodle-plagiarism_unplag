@@ -23,10 +23,9 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use plagiarism_unplag\classes\unplag_assign;
+use plagiarism_unplag\classes\helpers\unplag_linkarray;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
-use plagiarism_unplag\classes\unplag_workshop;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -75,96 +74,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $cm = get_coursemodule_from_id('', $linkarray['cmid'], 0, false, MUST_EXIST);
 
         $output = '';
-        $file = $this->get_file_from_linkarray($cm, $linkarray);
+        $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
         if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
             $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
             $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
             if (!empty($fileobj) && is_object($fileobj)) {
-                $output = $this->get_output_for_linkarray($fileobj, $cm, $linkarray);
+                $output = unplag_linkarray::get_output_for_linkarray($fileobj, $cm, $linkarray);
             }
-        }
-
-        return $output;
-    }
-
-    /**
-     * @param $cm
-     * @param $linkarray
-     *
-     * @return mixed|null|stored_file
-     */
-    private function get_file_from_linkarray($cm, $linkarray) {
-        $file = null;
-        if (isset($linkarray['content'])) {
-            $context = context_module::instance($linkarray['cmid']);
-            switch ($cm->modname) {
-                case 'workshop':
-                    $workshopsubmission = unplag_workshop::get_user_workshop_submission_by_cm($cm, $linkarray['userid']);
-                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_WORKSHOP_FILES_AREA, $workshopsubmission->id);
-                    $file = array_shift($files);
-                    break;
-                case 'forum':
-                    $file = plagiarism_unplag::get_forum_topic_results($context, $linkarray);
-                    break;
-                case 'assign':
-                    $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA, $submission->id);
-                    $file = array_shift($files);
-                    break;
-                default:
-                    $files = plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA);
-                    $file = array_shift($files);
-                    break;
-            }
-        } else {
-            if (isset($linkarray['file'])) {
-                $file = $linkarray['file'];
-            }
-        }
-
-        return $file;
-    }
-
-    /**
-     * @param stdClass $fileobj
-     * @param $cm
-     * @param $linkarray
-     *
-     * @return mixed
-     */
-    private function get_output_for_linkarray(stdClass $fileobj, $cm, $linkarray) {
-        // This iterator for one-time start-up.
-        static $iterator;
-        $statuscode = $fileobj->statuscode;
-        switch ($statuscode) {
-            case UNPLAG_STATUSCODE_PROCESSED:
-                $output = require(dirname(__FILE__) . '/view_tmpl_processed.php');
-                break;
-            case UNPLAG_STATUSCODE_ACCEPTED:
-                if (isset($fileobj->check_id)) {
-                    $output = require(dirname(__FILE__) . '/view_tmpl_accepted.php');
-                    $iterator++;
-                } else {
-                    $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
-                }
-                break;
-            case UNPLAG_STATUSCODE_INVALID_RESPONSE:
-                $output = require(dirname(__FILE__) . '/view_tmpl_invalid_response.php');
-                break;
-            case UNPLAG_STATUSCODE_PENDING:
-                if ($cm->modname == 'assign' && !$fileobj->check_id) {
-                    $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-                    if ($submission->status == 'submitted') {
-                        $output = require(dirname(__FILE__) . '/view_tmpl_can_check.php');
-                        $iterator++;
-                    }
-                } else {
-                    $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
-                }
-                break;
-            default:
-                $output = require(dirname(__FILE__) . '/view_tmpl_unknownwarning.php');
-                break;
         }
 
         return $output;
