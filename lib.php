@@ -184,8 +184,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param $plagiarismelements
-     * @param $mform
+     * @param array $plagiarismelements
+     * @param object $mform - Moodle form
      */
     private function disable_elements_if_not_use($plagiarismelements, $mform) {
         // Disable all plagiarism elements if use_plagiarism eg 0.
@@ -197,8 +197,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param $plagiarismelements
-     * @param $mform
+     * @param array $plagiarismelements
+     * @param object $mform - Moodle form
      */
     private function add_plagiarism_hidden_vars($plagiarismelements, $mform) {
         foreach ($plagiarismelements as $element) {

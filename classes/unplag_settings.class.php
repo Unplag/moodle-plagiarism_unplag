@@ -76,7 +76,7 @@ class unplag_settings {
         if (isset($settings['unplag_use']) && $settings['unplag_use']) {
             // Now check to make sure required settings are set!
             if (empty($settings['unplag_api_secret'])) {
-                error("UNPLAG API Secret not set!");
+                throw new \coding_exception('UNPLAG API Secret not set!');
             }
 
             return self::get_settings_item($settings, $key);
