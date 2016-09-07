@@ -102,8 +102,6 @@ class unplag_linkarray {
                         $output = require($dir . '/view_tmpl_can_check.php');
                         $iterator++;
                     }
-                } else {
-                    $output = require($dir . '/view_tmpl_unknownwarning.php');
                 }
                 break;
             default:
