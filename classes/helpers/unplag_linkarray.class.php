@@ -76,8 +76,7 @@ class unplag_linkarray {
      * @return mixed
      */
     public static function get_output_for_linkarray(\stdClass $fileobj, $cm, $linkarray) {
-        //This iterator for one-time start-up.
-        static $iterator;
+        static $iterator; // This iterator for one-time start-up.
         $output = '';
         $dir = dirname(__FILE__) . '/../..';
         $statuscode = $fileobj->statuscode;
