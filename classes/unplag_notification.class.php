@@ -29,6 +29,7 @@ use plagiarism_unplag;
 
 /**
  * Class unplag_notification
+ *
  * @package plagiarism_unplag\classes
  */
 class unplag_notification {
@@ -41,44 +42,73 @@ class unplag_notification {
 
     /**
      * @param      $message
-     * @param bool $translate
+     * @param      $translate
      */
-    public static function error($message, $translate = true) {
+    public static function error($message, $translate) {
         echo self::notify($message, self::$notifyerror, $translate);
     }
 
     /**
      * @param      $message
      * @param      $level
-     * @param bool $translate
+     * @param      $translate
      *
      * @return string
      */
-    private static function notify($message, $level, $translate = true) {
+    private static function notify($message, $level, $translate) {
         global $OUTPUT;
 
         if (empty($message)) {
             return '';
         }
 
-        $message = $translate ? plagiarism_unplag::trans($message) : $message;
+        $message = (is_bool($translate) && $translate) ? plagiarism_unplag::trans($message) : $message;
 
         return $OUTPUT->notification($message, $level);
     }
 
     /**
      * @param      $message
-     * @param bool $translate
+     * @param      $translate
      */
-    public static function success($message, $translate = true) {
+    public static function success($message, $translate) {
         echo self::notify($message, self::$notifysuccess, $translate);
     }
 
     /**
      * @param      $message
-     * @param bool $translate
+     * @param      $translate
      */
-    public static function message($message, $translate = true) {
+    public static function message($message, $translate) {
         echo self::notify($message, self::$notifymessage, $translate);
+    }
+
+    /**
+     * @param $plagiarismfile
+     *
+     * @return bool|null
+     */
+    public static function send_student_email_notification($plagiarismfile) {
+        global $DB, $CFG;
+
+        if (empty($plagiarismfile->userid)) {
+            // Sanity check.
+            return null;
+        }
+
+        $user = $DB->get_record('user', array('id' => $plagiarismfile->userid));
+        $site = get_site();
+        $a = new \stdClass();
+        $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
+        $a->modulename = format_string($cm->name);
+        $a->modulelink = $CFG->wwwroot . '/mod/' . $cm->modname . '/view.php?id=' . $cm->id;
+        $a->coursename = format_string($DB->get_field('course', 'fullname', array('id' => $cm->course)));
+        $a->optoutlink = $plagiarismfile->optout;
+        $emailsubject = plagiarism_unplag::trans('studentemailsubject');
+        $emailcontent = plagiarism_unplag::trans('studentemailcontent', $a);
+
+        $result = email_to_user($user, $site->shortname, $emailsubject, $emailcontent);
+
+        return $result;
     }
 }

@@ -68,33 +68,37 @@ if (!$table->is_downloading($download, $exportfilename)) {
 
     if ($resetuser == 1 && $id && confirm_sesskey()) {
         if (unplag_core::resubmit_file($id)) {
-            unplag_notification::error('fileresubmitted');
+            unplag_notification::error('fileresubmitted', true);
         }
-    } else if ($resetuser == 2 && $id && confirm_sesskey()) {
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
-        $response = unplag_api::instance()->get_check_data($plagiarismfile->check_id);
-        if ($response->result) {
-            unplag_core::check_complete($plagiarismfile, $response->check);
-        } else {
-            $plagiarismfile->errorresponse = json_encode($response->errors);
-            $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
-        }
+    } else {
+        if ($resetuser == 2 && $id && confirm_sesskey()) {
+            $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
+            $response = unplag_api::instance()->get_check_data($plagiarismfile->check_id);
+            if ($response->result) {
+                unplag_core::check_complete($plagiarismfile, $response->check);
+            } else {
+                $plagiarismfile->errorresponse = json_encode($response->errors);
+                $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+            }
 
-        if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
-            unplag_notification::error('scorenotavailableyet');
-        } else if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_PROCESSED) {
-            unplag_notification::error('scoreavailable');
-        } else {
-            unplag_notification::error('unknownwarning');
+            if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
+                unplag_notification::error('scorenotavailableyet', true);
+            } else {
+                if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_PROCESSED) {
+                    unplag_notification::error('scoreavailable', true);
+                } else {
+                    unplag_notification::error('unknownwarning', true);
+                }
+            }
         }
     }
 
     if (!empty($delete) && confirm_sesskey()) {
-        $DB->delete_records(UNPLAG_FILES_TABLE, ['id' => $id]);
-        unplag_notification::success('filedeleted');
+        $DB->delete_records(UNPLAG_FILES_TABLE, array('id' => $id));
+        unplag_notification::success('filedeleted', true);
     }
 }
-$heldevents = [];
+$heldevents = array();
 
 // Now do sorting if specified.
 $orderby = '';
@@ -123,47 +127,47 @@ $sql = sprintf('SELECT t.*, %1$s, m.name as moduletype, cm.course as courseid, c
     WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id
     AND t.errorresponse is not null
     %2$s',
-    get_all_user_name_fields(true, 'u'), $orderby
+        get_all_user_name_fields(true, 'u'), $orderby
 );
 
 $limit = 20;
 $unplagfiles = $DB->get_records_sql($sql, null, $page * $limit, $limit);
 
-$table->define_columns(['id', 'name', 'module', 'identifier', 'status', 'attempts', 'action']);
-$table->define_headers([
-    plagiarism_unplag::trans('id'),
-    get_string('user'),
-    plagiarism_unplag::trans('module'),
-    plagiarism_unplag::trans('identifier'),
-    plagiarism_unplag::trans('status'),
-    plagiarism_unplag::trans('attempts'), '',
-]);
+$table->define_columns(array('id', 'name', 'module', 'identifier', 'status', 'attempts', 'action'));
+$table->define_headers(array(
+        plagiarism_unplag::trans('id'),
+        get_string('user'),
+        plagiarism_unplag::trans('module'),
+        plagiarism_unplag::trans('identifier'),
+        plagiarism_unplag::trans('status'),
+        plagiarism_unplag::trans('attempts'), '',
+));
 $table->define_baseurl('debugging.php');
 $table->sortable(true);
 $table->no_sorting('file', 'action');
 $table->collapsible(true);
 $table->set_attribute('cellspacing', '0');
 $table->set_attribute('class', 'generaltable generalbox');
-$table->show_download_buttons_at([TABLE_P_BOTTOM]);
+$table->show_download_buttons_at(array(TABLE_P_BOTTOM));
 $table->setup();
 
 $fs = get_file_storage();
 foreach ($unplagfiles as $tf) {
     if ($table->is_downloading()) {
-        $row = [
-            $tf->id,
-            $tf->userid,
-            $tf->cm . ' ' . $tf->moduletype,
-            $tf->identifier,
-            $tf->statuscode,
-            $tf->attempt,
-            $tf->errorresponse,
-        ];
+        $row = array(
+                $tf->id,
+                $tf->userid,
+                $tf->cm . ' ' . $tf->moduletype,
+                $tf->identifier,
+                $tf->statuscode,
+                $tf->attempt,
+                $tf->errorresponse,
+        );
     } else {
 
-        $builddebuglink = function ($tf, $action, $transtext) {
+        $builddebuglink = function($tf, $action, $transtext) {
             return sprintf('<a href="debugging.php?%4$s&id=%1$s&sesskey=%2$s">%3$s</a>',
-                $tf->id, sesskey(), plagiarism_unplag::trans($transtext), $action
+                    $tf->id, sesskey(), plagiarism_unplag::trans($transtext), $action
             );
         };
 
@@ -175,22 +179,22 @@ foreach ($unplagfiles as $tf) {
             $transtext = 'resubmit';
         }
         $user = "<a href='" . $CFG->wwwroot . "/user/profile.php?id=" . $tf->userid . "'>" . fullname($tf) . "</a>";
-        $cmurl = new moodle_url($CFG->wwwroot . '/mod/' . $tf->moduletype . '/view.php', ['id' => $tf->cm]);
+        $cmurl = new moodle_url($CFG->wwwroot . '/mod/' . $tf->moduletype . '/view.php', array('id' => $tf->cm));
         $coursemodule = get_coursemodule_from_id($tf->moduletype, $tf->cm);
-        $cmlink = html_writer::link($cmurl, shorten_text($coursemodule->name, 40, true), ['title' => $coursemodule->name]);
+        $cmlink = html_writer::link($cmurl, shorten_text($coursemodule->name, 40, true), array('title' => $coursemodule->name));
         $reset = $builddebuglink($tf, $action, $transtext);
         $reset .= ' | ';
         $reset .= $builddebuglink($tf, 'delete=1', 'delete');
 
-        $row = [
-            $tf->id,
-            $user,
-            $cmlink,
-            $tf->identifier,
-            $tf->errorresponse,
-            $tf->attempt,
-            $reset,
-        ];
+        $row = array(
+                $tf->id,
+                $user,
+                $cmlink,
+                $tf->identifier,
+                $tf->errorresponse,
+                $tf->attempt,
+                $reset,
+        );
     }
 
     $table->add_data($row);
@@ -199,17 +203,17 @@ foreach ($unplagfiles as $tf) {
 if ($table->is_downloading()) {
     // Include some extra debugging information in the table.
     // Add some extra lines first.
-    $table->add_data([]);
-    $table->add_data([]);
-    $table->add_data([]);
-    $table->add_data([]);
-    $table->add_data([]);
-    $table->add_data([]);
+    $table->add_data(array());
+    $table->add_data(array());
+    $table->add_data(array());
+    $table->add_data(array());
+    $table->add_data(array());
+    $table->add_data(array());
 
     $configrecords = $DB->get_records(UNPLAG_CONFIG_TABLE);
-    $table->add_data(['id', 'cm', 'name', 'value']);
+    $table->add_data(array('id', 'cm', 'name', 'value'));
     foreach ($configrecords as $cf) {
-        $table->add_data([$cf->id, $cf->cm, $cf->name, $cf->value]);
+        $table->add_data(array($cf->id, $cf->cm, $cf->name, $cf->value));
     }
 }
 

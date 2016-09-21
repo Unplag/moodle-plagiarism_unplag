@@ -25,10 +25,11 @@
 
 namespace plagiarism_unplag\classes;
 
-require_once(dirname(__FILE__) . '/../constants.php');
+use plagiarism_unplag\classes\exception\UnplagException;
 
 /**
  * Class unplag_plagiarism_entity
+ *
  * @package plagiarism_unplag\classes
  */
 class unplag_plagiarism_entity {
@@ -40,7 +41,7 @@ class unplag_plagiarism_entity {
     /**
      * unplag_plagiarism_entity constructor.
      *
-     * @param unplag_core  $core
+     * @param unplag_core $core
      * @param \stored_file $file
      *
      * @throws UnplagException
@@ -98,11 +99,11 @@ class unplag_plagiarism_entity {
         $plagiarismfile = null;
         try {
 
-            $filedata = [
-                'cm'         => $this->cmid(),
-                'userid'     => $this->userid(),
-                'identifier' => $this->stored_file()->get_pathnamehash(),
-            ];
+            $filedata = array(
+                    'cm' => $this->cmid(),
+                    'userid' => $this->userid(),
+                    'identifier' => $this->stored_file()->get_pathnamehash(),
+            );
 
             // Now update or insert record into unplag_files.
             $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, $filedata);
@@ -119,7 +120,7 @@ class unplag_plagiarism_entity {
                 $plagiarismfile->timesubmitted = time();
 
                 if (!$pid = $DB->insert_record(UNPLAG_FILES_TABLE, $plagiarismfile)) {
-                    debugging("insert into {UNPLAG_FILES_TABLE}");
+                    debugging("INSERT INTO {UNPLAG_FILES_TABLE}");
                 }
 
                 $plagiarismfile->id = $pid;

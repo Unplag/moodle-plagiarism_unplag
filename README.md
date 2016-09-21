@@ -1,27 +1,23 @@
 # moodle-plagiarism_unplag  
 
-[![Build Status](https://travis-ci.org/JoneDoe/moodle-plagiarism_unplag.svg?branch=2.0)](https://travis-ci.org/JoneDoe/moodle-plagiarism_unplag)
+[![Build Status](https://travis-ci.org/Unplag/moodle-plagiarism_unplag.svg?branch=master)](https://travis-ci.org/Unplag/moodle-plagiarism_unplag)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Unplag/moodle-plagiarism_unplag/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Unplag/moodle-plagiarism_unplag/?branch=master)
 
-UNPLAG Plagiarism plugin for Moodle 2.6 - 3.0  
+UNPLAG Plagiarism plugin for Moodle
 
-Author: Vadim Titov <developer@unplag.com>  
+**Supported Moodle versions:** 2.6 - 3.1 (partial support for 2.5)  
+**Supported PHP versions:** 5.3 - 7.0  
+**Moodle plugins directory:** https://moodle.org/plugins/plagiarism_unplag
+
+Author: Ben Larson <developer@unplag.com>  
 Copyright: UKU Group, LTD, http://www.unplag.com  
 
-UNPLAG is a commercial Plagiarism Prevention product owned by UKU Group, LTD - you must have a paid subscription to be able to use this plugin.  
+ > UNPLAG is a commercial Plagiarism Prevention product owned by UKU Group, LTD - you must have a paid subscription to be able to use this plugin.  
 
 QUICK INSTALL  
 ==============  
 
-1) Place these files in a new folder in your Moodle install under /plagiarism/unplag  
-2) Visit the Notifications page in Moodle to trigger the upgrade scripts  
-3) Enable the Plagiarism API under admin > Advanced Features  
-4) Configure the UNPLAG plugin under admin > plugins > Plagiarism > UNPLAG  
-
-SUPPORTED FORMAT FILES
-=======================
-Extension of file to upload.
-
-doc, docx, html, htm, odt, rtf, txt, pdf
-  
-
-For more information see: http://docs.moodle.org/20/en/Plagiarism_Prevention
+1. Get latest release (zip file) on [GitHub](https://github.com/Unplag/moodle-plagiarism_unplag/releases) or [Moodle plugins directory](https://moodle.org/plugins/plagiarism_unplag)
+2. Follow the instructions described [here](https://docs.moodle.org/31/en/Installing_plugins#Installing_via_uploaded_ZIP_file) to install plugin
+3. Enable the Plagiarism API under admin > Advanced Features  
+4. Configure the UNPLAG plugin under admin > plugins > Plagiarism > UNPLAG  

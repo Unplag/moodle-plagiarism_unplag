@@ -27,6 +27,7 @@ namespace plagiarism_unplag\classes;
 
 /**
  * Class unplag_api
+ *
  * @package plagiarism_unplag\classes
  */
 class unplag_api {
@@ -47,16 +48,19 @@ class unplag_api {
      * @throws \file_exception
      */
     public function upload_file(\stored_file $file) {
+
+        set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
+
         $format = 'html';
         if ($source = $file->get_source()) {
             $format = pathinfo($source, PATHINFO_EXTENSION);
         }
 
-        $postdata = [
-            'format'    => $format,
-            'file_data' => base64_encode($file->get_content()),
-            'name'      => $file->get_filename(),
-        ];
+        $postdata = array(
+                'format' => $format,
+                'file_data' => base64_encode($file->get_content()),
+                'name' => $file->get_filename(),
+        );
 
         return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
     }
@@ -73,12 +77,12 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument $file');
         }
 
-        $checktype = unplag_core::get_assign_settings($file->cm, 'check_type');
-        $postdata = [
-            'type'         => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
-            'file_id'      => $file->external_file_id,
-            'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
-        ];
+        $checktype = unplag_settings::get_assign_settings($file->cm, 'check_type');
+        $postdata = array(
+                'type' => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
+                'file_id' => $file->external_file_id,
+                'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
+        );
 
         return unplag_api_request::instance()->http_post()->request('check/create', $postdata);
     }
@@ -92,9 +96,9 @@ class unplag_api {
         if (empty($checkids)) {
             throw new \InvalidArgumentException('Invalid argument $checkids');
         }
-        $postdata = [
-            'id' => implode(',', $checkids),
-        ];
+        $postdata = array(
+                'id' => implode(',', $checkids),
+        );
 
         return unplag_api_request::instance()->http_get()->request('check/progress', $postdata);
     }
@@ -109,9 +113,9 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument id');
         }
 
-        $postdata = [
-            'id' => $id,
-        ];
+        $postdata = array(
+                'id' => $id,
+        );
 
         return unplag_api_request::instance()->http_get()->request('check/get', $postdata);
     }
@@ -126,9 +130,9 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument check_id');
         }
 
-        $postdata = [
-            'id' => $file->check_id,
-        ];
+        $postdata = array(
+                'id' => $file->check_id,
+        );
 
         return unplag_api_request::instance()->http_post()->request('check/delete', $postdata);
     }

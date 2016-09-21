@@ -23,43 +23,53 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_language;
+use plagiarism_unplag\classes\unplag_settings;
 
 global $OUTPUT, $USER;
 
-require_once(dirname(__FILE__) . '/classes/unplag_core.class.php');
-
 // Normal situation - UNPLAG has successfully analyzed the file.
-$htmlparts = ['<span class="un_report">'];
+$htmlparts = array('<span class="un_report">');
 
-if (!empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
+if (empty($cid) && !empty($linkarray['cmid'])) {
+    $cid = $linkarray['cmid'];
+}
+
+if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similarityscore)) {
     // User is allowed to view the report.
     // Score is contained in report, so they can see the score too.
     $htmlparts[] = sprintf('<img  width="32" height="32" src="%s" title="%s"> ',
-        $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
+            $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
     );
 
-    $modulecontext = context_module::instance($linkarray['cmid']);
+    $modulecontext = context_module::instance($cid);
     // This is a teacher viewing the responses.
     $teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
-    $assigncfg = unplag_core::get_assign_settings($linkarray['cmid'], null, true);
+    $assigncfg = unplag_settings::get_assign_settings($cid, null, true);
 
     if (isset($fileobj->similarityscore)) {
         if ($teacherhere || $assigncfg['unplag_show_student_score']) {
             // User is allowed to view only the score.
             $htmlparts[] = sprintf('%s: <span class="rank1">%s%%</span>',
-                plagiarism_unplag::trans('similarity'),
-                $fileobj->similarityscore
+                    plagiarism_unplag::trans('similarity'),
+                    $fileobj->similarityscore
             );
         }
     }
 
     if (!empty($fileobj->reporturl)) {
+
+        $reporturl = $fileobj->reporturl;
+        $editreporturl = $fileobj->reportediturl;
+
+        unplag_language::inject_language_to_url($reporturl);
+        unplag_language::inject_language_to_url($editreporturl);
+
         if ($teacherhere || $assigncfg['unplag_show_student_report']) {
             // Display opt-out link.
             $htmlparts[] = '&nbsp;<span class"plagiarismoptout">';
             $htmlparts[] = sprintf('<a title="%s" href="%s" target="_blank">',
-                plagiarism_unplag::trans('report'), $teacherhere ? $fileobj->reportediturl : $fileobj->reporturl
+                    plagiarism_unplag::trans('report'), $teacherhere ? $editreporturl : $reporturl
             );
             $htmlparts[] = '<img class="un_tooltip" src="' . $OUTPUT->pix_url('link', 'plagiarism_unplag') . '">';
             $htmlparts[] = '</a></span>';

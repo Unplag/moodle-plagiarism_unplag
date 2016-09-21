@@ -40,7 +40,7 @@ $context = context_system::instance();
 
 $mform = new unplag_defaults_form(null);
 // The cmid(0) is the default list.
-$unplagdefaults = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => 0], '', 'name, value');
+$unplagdefaults = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => 0), '', 'name, value');
 if (!empty($unplagdefaults)) {
     $mform->set_data($unplagdefaults);
 }
@@ -57,7 +57,7 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
             $newelement->name = $element;
             $newelement->value = $data->$element;
             if (isset($unplagdefaults[$element])) {
-                $newelement->id = $DB->get_field(UNPLAG_CONFIG_TABLE, 'id', (['cm' => 0, 'name' => $element]));
+                $newelement->id = $DB->get_field(UNPLAG_CONFIG_TABLE, 'id', (array('cm' => 0, 'name' => $element)));
                 $DB->update_record(UNPLAG_CONFIG_TABLE, $newelement);
             } else {
                 $DB->insert_record(UNPLAG_CONFIG_TABLE, $newelement);
@@ -65,7 +65,7 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
         }
     }
 
-    unplag_notification::success('defaultupdated');
+    unplag_notification::success('defaultupdated', true);
 }
 echo $OUTPUT->box(plagiarism_unplag::trans('defaultsdesc'));
 

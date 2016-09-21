@@ -10,9 +10,9 @@ span.un_report a {
 
 span.un_report img,
 div.un_report img {
-    vertical-align: middle;
-    position: relative;
     margin-right: 5px;
+    position: relative;
+    vertical-align: middle;
 }
 
 div.un_report .un_progress {
@@ -20,9 +20,9 @@ div.un_report .un_progress {
 }
 
 div.un_report img.un_progress {
-    vertical-align: middle;
     margin-left: 5px;
     margin-right: 5px;
+    vertical-align: middle;
     width: 25px;
 }
 

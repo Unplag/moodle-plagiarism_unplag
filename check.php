@@ -19,12 +19,12 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_assign;
 
 global $PAGE, $CFG;
 
@@ -36,16 +36,16 @@ $pf = required_param('pf', PARAM_INT);   // plagiarism file id.
 
 require_sesskey();
 
-$url = new moodle_url(dirname(__FILE__) . '/reset.php');
+$url = new moodle_url(dirname(__FILE__) . '/check.php');
 $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
 
 $PAGE->set_url($url);
 require_login($cm->course, true, $cm);
 
 $modulecontext = context_module::instance($cmid);
-require_capability('plagiarism/unplag:resetfile', $modulecontext);
+require_capability('plagiarism/unplag:checkfile', $modulecontext);
 
-unplag_core::resubmit_file($pf);
+unplag_assign::check_submitted_assignment($pf);
 
 if ($cm->modname == 'assignment') {
     $redirect = new moodle_url('/mod/assignment/submissions.php', array('id' => $cmid));
@@ -58,4 +58,4 @@ if ($cm->modname == 'assignment') {
     }
 }
 
-redirect($redirect, plagiarism_unplag::trans('filereset'));
+redirect($redirect, plagiarism_unplag::trans('check_start'));

@@ -29,10 +29,9 @@ use plagiarism_unplag\library\OAuth\OAuthConsumer;
 use plagiarism_unplag\library\OAuth\OAuthRequest;
 use plagiarism_unplag\library\OAuth\Signature\OAuthSignatureMethod_HMAC_SHA1;
 
-require_once(dirname(__FILE__) . '/../constants.php');
-
 /**
  * Class unplag_api_request
+ *
  * @package plagiarism_unplag\classes
  */
 class unplag_api_request {
@@ -85,10 +84,10 @@ class unplag_api_request {
         $ch = new \curl();
         $ch->setHeader($this->gen_oauth_headers());
         $ch->setHeader('Content-Type: application/json');
-        $ch->setopt([
-            'CURLOPT_RETURNTRANSFER' => true,
-            'CURLOPT_CONNECTTIMEOUT' => 10,
-        ]);
+        $ch->setopt(array(
+                'CURLOPT_RETURNTRANSFER' => true,
+                'CURLOPT_CONNECTTIMEOUT' => 10,
+        ));
         $resp = $ch->{$this->httpmethod}($this->url, $this->get_request_data());
 
         return $this->handle_response($resp);
@@ -120,9 +119,9 @@ class unplag_api_request {
             $oauthdata = $this->get_request_data();
         }
 
-        $oauthconsumer = new OAuthConsumer(unplag_core::get_settings('client_id'), unplag_core::get_settings('api_secret'));
+        $oauthconsumer = new OAuthConsumer(unplag_settings::get_settings('client_id'), unplag_settings::get_settings('api_secret'));
         $oauthreq = OAuthRequest::from_consumer_and_token(
-            $oauthconsumer, $this->get_token_secret(), $this->httpmethod, $this->get_url(), $oauthdata
+                $oauthconsumer, $this->get_token_secret(), $this->httpmethod, $this->get_url(), $oauthdata
         );
         $oauthreq->sign_request(new OAuthSignatureMethod_HMAC_SHA1(), $oauthconsumer, $this->get_token_secret());
 

@@ -24,15 +24,15 @@
  */
 namespace plagiarism_unplag\classes\event;
 
-use assign;
-use context_module;
 use core\event\base;
 use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
 /**
  * Class unplag_abstract_event
+ *
  * @package plagiarism_unplag\classes\event
  */
 abstract class unplag_abstract_event {
@@ -52,7 +52,7 @@ abstract class unplag_abstract_event {
      * @return bool
      */
     public static function is_submition_draft(base $event) {
-        global $CFG, $USER;
+        global $CFG;
 
         if ($event->objecttable != 'assign_submission') {
             return false;
@@ -60,14 +60,9 @@ abstract class unplag_abstract_event {
 
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-        try {
-            $modulecontext = context_module::instance($event->contextinstanceid);
-            $assign = new assign($modulecontext, false, false);
-        } catch (\Exception $ex) {
-            return false;
-        }
+        $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
 
-        return ($assign->get_user_submission($USER->id, false)->status !== 'submitted');
+        return ($submission->status !== 'submitted');
     }
 
     /**
@@ -94,7 +89,7 @@ abstract class unplag_abstract_event {
 
     /**
      * @param unplag_core $unplagcore
-     * @param base        $event
+     * @param base $event
      */
     abstract public function handle_event(unplag_core $unplagcore, base $event);
 }
