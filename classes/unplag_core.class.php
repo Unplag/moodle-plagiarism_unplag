@@ -23,9 +23,9 @@ use plagiarism_unplag\classes\exception\UnplagException;
 /**
  * Class unplag_core
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag\classes
  * @subpackage  plagiarism
- * @namespace plagiarism_unplag\classes
+ * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -195,9 +195,9 @@ class unplag_core {
         global $DB;
 
         $filerecord = $DB->get_record('files', array(
-                'contextid' => $contextid,
-                'component' => UNPLAG_PLAGIN_NAME,
-                'contenthash' => $contenthash,
+            'contextid'   => $contextid,
+            'component'   => UNPLAG_PLAGIN_NAME,
+            'contenthash' => $contenthash,
         ));
 
         if (!$filerecord) {
@@ -209,6 +209,7 @@ class unplag_core {
 
     /**
      * @param base $event
+     *
      * @return bool|\stored_file
      *
      * @throws \file_exception
@@ -222,23 +223,23 @@ class unplag_core {
         }
 
         $filerecord = array(
-                'component' => UNPLAG_PLAGIN_NAME,
-                'filearea' => $event->objecttable,
-                'contextid' => $event->contextid,
-                'itemid' => $event->objectid,
-                'filename' => sprintf("%s-content-%d-%d-%d.html",
-                        str_replace('_', '-', $event->objecttable), $event->contextid, $this->cmid, $event->objectid
-                ),
-                'filepath' => '/',
-                'userid' => $USER->id,
-                'license' => 'allrightsreserved',
-                'author' => $USER->firstname . ' ' . $USER->lastname,
+            'component' => UNPLAG_PLAGIN_NAME,
+            'filearea'  => $event->objecttable,
+            'contextid' => $event->contextid,
+            'itemid'    => $event->objectid,
+            'filename'  => sprintf("%s-content-%d-%d-%d.html",
+                str_replace('_', '-', $event->objecttable), $event->contextid, $this->cmid, $event->objectid
+            ),
+            'filepath'  => '/',
+            'userid'    => $USER->id,
+            'license'   => 'allrightsreserved',
+            'author'    => $USER->firstname . ' ' . $USER->lastname,
         );
 
         /** @var \stored_file $storedfile */
         $storedfile = get_file_storage()->get_file(
-                $filerecord['contextid'], $filerecord['component'], $filerecord['filearea'],
-                $filerecord['itemid'], $filerecord['filepath'], $filerecord['filename']
+            $filerecord['contextid'], $filerecord['component'], $filerecord['filearea'],
+            $filerecord['itemid'], $filerecord['filepath'], $filerecord['filename']
         );
 
         if ($storedfile && $storedfile->get_contenthash() != self::content_hash($event->other['content'])) {
@@ -258,15 +259,25 @@ class unplag_core {
     }
 
     /**
+     * @param $url
+     */
+    public static function inject_comment_token(&$url) {
+        global $USER;
+
+        $resp = unplag_api::instance()->user_create($USER);
+        $url .= '&ctoken=' . $resp->user->token;
+    }
+
+    /**
      * @param \stored_file $storedfile
      */
     private function delete_old_file_from_content(\stored_file $storedfile) {
         global $DB;
 
         $DB->delete_records(UNPLAG_FILES_TABLE, array(
-                'cm' => $this->cmid,
-                'userid' => $storedfile->get_userid(),
-                'identifier' => $storedfile->get_pathnamehash(),
+            'cm'         => $this->cmid,
+            'userid'     => $storedfile->get_userid(),
+            'identifier' => $storedfile->get_pathnamehash(),
         ));
 
         $storedfile->delete();
