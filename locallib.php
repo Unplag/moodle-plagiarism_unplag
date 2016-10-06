@@ -31,6 +31,7 @@ use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
 use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
 use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_settings;
 
 global $CFG;
@@ -44,9 +45,19 @@ require_once($CFG->libdir . '/filelib.php');
  * Class plagiarism_unplag
  */
 class plagiarism_unplag {
-    /** @var array */
+
+    /**
+     * @var array
+     */
     private static $supportedplagiarismmods = array(
             'assign', 'workshop', 'forum',
+    );
+
+    /**
+     * @var array
+     */
+    private static $supportedarchivemimetypes = array(
+            'application/zip', 'application/x-gzip',
     );
 
     /** @var array */
@@ -149,6 +160,20 @@ class plagiarism_unplag {
     }
 
     /**
+     * @param stored_file $file
+     * @return bool
+     */
+    public static function is_archive(stored_file $file) {
+        if ($mimetype = $file->get_mimetype()) {
+            if (in_array($mimetype, self::$supportedarchivemimetypes)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param $obj
      *
      * @return array
@@ -229,20 +254,35 @@ class plagiarism_unplag {
         if ($records) {
             $checkstatusforids = array();
             foreach ($records as $record) {
-                if (empty($record->check_id)) {
+                $childs = array();
+                if ($record->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
+                    $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($record->id));
+                }
+
+                if (empty($record->check_id) && empty($childs)) {
                     continue;
                 }
 
                 if ($record->progress != 100) {
-                    array_push($checkstatusforids, $record->check_id);
+                    if ($childs) {
+                        foreach ($childs as $child) {
+                            if ($child->check_id) {
+                               $checkstatusforids[$record->id][] = $child->check_id;
+                            }
+                        }
+                    } else {
+                        $checkstatusforids[$record->id][] = $record->check_id;
+                    }
+
                 }
 
-                $resp[$record->check_id] = array(
+                $resp[$record->id] = array(
                         'file_id' => $record->id,
                         'progress' => (int) $record->progress,
                         'content' => self::gen_row_content_score($data->cid, $record),
                 );
             }
+
 
             try {
                 if (!empty($checkstatusforids)) {

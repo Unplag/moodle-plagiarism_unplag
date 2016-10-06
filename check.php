@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * reset.php - resets an unplag submission
+ * check.php - resets an unplag submission
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism

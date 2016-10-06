@@ -66,6 +66,29 @@ class unplag_api {
     }
 
     /**
+     * @param $content
+     * @param $filename
+     * @param $format
+     * @return mixed
+     */
+    public function upload_content_as_file($content, $filename, $format) {
+
+        set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
+
+        if (!$format) {
+            $format = 'html';
+        }
+
+        $postdata = array(
+                'format' => $format,
+                'file_data' => base64_encode($content),
+                'name' => $filename,
+        );
+
+        return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
+    }
+
+    /**
      * @param \stdClass $file
      *
      * @return mixed

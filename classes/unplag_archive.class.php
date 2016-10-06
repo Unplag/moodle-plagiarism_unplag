@@ -1,0 +1,138 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+namespace plagiarism_unplag\classes;
+
+use plagiarism_unplag\classes\entities\unplag_content;
+use plagiarism_unplag\classes\exception\UnplagException;
+use plagiarism_unplag\classes\helpers\unplag_stored_file;
+
+/**
+ * Class unplag_archive
+ *
+ * @package plagiarism_unplag\classes
+ * @subpackage  plagiarism
+ * @namespace plagiarism_unplag\classes
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class unplag_archive {
+
+    /**
+     * @var \stored_file
+     */
+    private $file;
+
+    /**
+     * @var unplag_core
+     */
+    private $unplagcore;
+
+    /**
+     * unplag_archive constructor.
+     *
+     * @param \stored_file $file
+     *
+     * @throws UnplagException
+     */
+    public function __construct(\stored_file $file,unplag_core $core)
+    {
+        if(!\plagiarism_unplag::is_archive($file)){
+            throw new UnplagException('File must be archive');
+        }
+
+        $this->file = $file;
+        $this->unplagcore = $core;
+    }
+
+    /**
+     * @return bool
+     */
+    public function run_check(){
+        global $DB;
+
+        $archiveinternalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
+
+        $ziparch = new \zip_archive();
+        $pathname = unplag_stored_file::get_protected_pathname($this->file);
+        if (!$ziparch->open($pathname, \file_archive::OPEN)) {
+            return false;
+        }
+
+        $processed = array();
+        foreach ($ziparch as $file) {
+            $content = '';
+            if ($file->is_directory) {
+                continue;
+            }
+
+            $name = $file->pathname;
+            $format = pathinfo($name, PATHINFO_EXTENSION);
+            if ($name === '' or array_key_exists($name, $processed)) {
+                continue;
+            }
+
+            // Notify progress.
+            if (!$fz = $ziparch->get_stream($file->index)) {
+                $processed[$name] = 'Can not read file from zip archive';
+                continue;
+            }
+            while (!feof($fz)) {
+                $content .= fread($fz, 262143);
+            }
+            fclose($fz);
+
+            $plagiarismentity = new unplag_content($this->unplagcore, $content, $name, $format, $archiveinternalfile->id);
+            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+
+            if (isset($internalfile->check_id)) {
+                print_error('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
+            } else {
+                $checkresp = unplag_api::instance()->run_check($internalfile);
+                $plagiarismentity->handle_check_response($checkresp);
+                mtrace('file ' . $internalfile->identifier . 'send to Unplag');
+            }
+
+            unset($content);
+        }
+
+        $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
+        $archiveinternalfile->errorresponse = null;
+
+        $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
+
+        $ziparch->close();
+    }
+
+    public function restart_check(){
+        global $DB;
+
+        $internalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
+        $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($internalfile->id));
+        if ($childs) {
+            foreach ((object)$childs as $child){
+                if ($child->check_id) {
+                    unplag_api::instance()->delete_check($child);
+                }
+            }
+
+            unplag_notification::success('plagiarism_run_success', true);
+
+            $this->run_check();
+        }
+    }
+}
