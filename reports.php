@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_plagiarism_entity.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
 use plagiarism_unplag\classes\unplag_language;
