@@ -124,7 +124,8 @@ class unplag_file extends unplag_plagiarism_entity {
                 $plagiarismfile->progress = 0;
                 $plagiarismfile->timesubmitted = time();
                 $plagiarismfile->type =
-                        (\plagiarism_unplag::is_archive($this->stored_file())) ? unplag_plagiarism_entity::TYPE_ARCHIVE : unplag_plagiarism_entity::TYPE_DOCUMENT;
+                        (\plagiarism_unplag::is_archive($this->stored_file())) ? unplag_plagiarism_entity::TYPE_ARCHIVE :
+                                unplag_plagiarism_entity::TYPE_DOCUMENT;
 
                 if (!$pid = $DB->insert_record(UNPLAG_FILES_TABLE, $plagiarismfile)) {
                     debugging("INSERT INTO {UNPLAG_FILES_TABLE}");

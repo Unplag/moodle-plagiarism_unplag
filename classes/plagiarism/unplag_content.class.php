@@ -141,7 +141,7 @@ class unplag_content extends unplag_plagiarism_entity {
 
             if (empty($plagiarismfile)) {
                 $plagiarismfile = new \stdClass();
-                if($this->parentid){
+                if ($this->parentid) {
                     $plagiarismfile->parent_id = $this->parentid;
                 }
                 $plagiarismfile->cm = $filedata['cm'];

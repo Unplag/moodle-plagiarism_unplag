@@ -52,27 +52,27 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2016041600, 'plagiarism', 'unplag');
     }
 
-	if ($oldversion < 2016100500) {
-		// Define field external_file_id to be added to plagiarism_unplag_files.
-		$table = new xmldb_table('plagiarism_unplag_files');
+    if ($oldversion < 2016100500) {
+        // Define field external_file_id to be added to plagiarism_unplag_files.
+        $table = new xmldb_table('plagiarism_unplag_files');
 
-		$field = new xmldb_field('parent_id', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'id');
+        $field = new xmldb_field('parent_id', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'id');
 
-		// Conditionally launch add field parent_id.
-		if (!$dbman->field_exists($table, $field)) {
-			$dbman->add_field($table, $field);
-		}
+        // Conditionally launch add field parent_id.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
 
-		$field = new xmldb_field('type', XMLDB_TYPE_CHAR, '63', null, XMLDB_NOTNULL, null, 'document', 'filename');
+        $field = new xmldb_field('type', XMLDB_TYPE_CHAR, '63', null, XMLDB_NOTNULL, null, 'document', 'filename');
 
-		// Conditionally launch add field type.
-		if (!$dbman->field_exists($table, $field)) {
-			$dbman->add_field($table, $field);
-		}
+        // Conditionally launch add field type.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
 
-		// Unplag savepoint reached.
-		upgrade_plugin_savepoint(true, 2016100500, 'plagiarism', 'unplag');
-	}
+        // Unplag savepoint reached.
+        upgrade_plugin_savepoint(true, 2016100500, 'plagiarism', 'unplag');
+    }
 
     return true;
 }

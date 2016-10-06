@@ -192,7 +192,7 @@ class unplag_core {
                     )
             );
 
-            $parentcheck = json_decode(json_encode($parentcheck)); //convert array to object recursive
+            $parentcheck = json_decode(json_encode($parentcheck));
             self::check_complete($parentrecord, $parentcheck, $parentprogress);
         }
     }

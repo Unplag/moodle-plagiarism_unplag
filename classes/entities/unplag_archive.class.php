@@ -85,7 +85,6 @@ class unplag_archive {
             }
 
             $name = $file->pathname;
-            $size = $file->size;
             $format = pathinfo($name, PATHINFO_EXTENSION);
 
             $content = '';

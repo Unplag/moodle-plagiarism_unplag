@@ -47,11 +47,10 @@ class unplag_stored_file extends \stored_file {
      *
      * @return array
      */
-    public static function get_childs($id)
-    {
+    public static function get_childs($id) {
         global $DB;
 
-        return  $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($id));
+        return $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($id));
     }
 
     /**
@@ -59,7 +58,7 @@ class unplag_stored_file extends \stored_file {
      *
      * @return mixed
      */
-    public static function get_unplag_file($id){
+    public static function get_unplag_file($id) {
         global $DB;
 
         return $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);

@@ -54,7 +54,7 @@ class unplag_upload_and_check_task extends adhoc_task {
             mtrace('file ' . $internalfile->identifier . 'send to Unplag');
         }
 
-        unset($internalfile,$plagiarismentity, $checkresp);
+        unset($internalfile, $plagiarismentity, $checkresp);
 
         sleep(2);
     }
