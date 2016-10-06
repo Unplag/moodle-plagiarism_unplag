@@ -40,23 +40,25 @@ class unplag_upload_and_check_task extends adhoc_task {
 
     public function execute() {
         $data = $this->get_custom_data();
-        $content = file_get_contents($data->tmpfile);
-        $ucore = new unplag_core($data->unplagcore->cmid, $data->unplagcore->userid);
-        $plagiarismentity = new unplag_content($ucore, $content, $data->filename, $data->format, $data->parent_id);
-        unset($content, $ucore);
-        @unlink($data->tmpfile);
-        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+        if ((file_exists($data->tmpfile))) {
+            $content = file_get_contents($data->tmpfile);
+            $ucore = new unplag_core($data->unplagcore->cmid, $data->unplagcore->userid);
+            $plagiarismentity = new unplag_content($ucore, $content, $data->filename, $data->format, $data->parent_id);
+            unset($content, $ucore);
+            @unlink($data->tmpfile);
+            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
 
-        if (isset($internalfile->check_id)) {
-            mtrace('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
+            if (isset($internalfile->check_id)) {
+                mtrace('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
+            } else {
+                $checkresp = unplag_api::instance()->run_check($internalfile);
+                $plagiarismentity->handle_check_response($checkresp);
+                mtrace('file ' . $internalfile->identifier . 'send to Unplag');
+            }
+
+            unset($internalfile, $plagiarismentity, $checkresp);
         } else {
-            $checkresp = unplag_api::instance()->run_check($internalfile);
-            $plagiarismentity->handle_check_response($checkresp);
-            mtrace('file ' . $internalfile->identifier . 'send to Unplag');
+            mtrace('file ' . $data->tmpfile . 'not exist');
         }
-
-        unset($internalfile, $plagiarismentity, $checkresp);
-
-        sleep(2);
     }
 }

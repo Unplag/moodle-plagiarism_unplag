@@ -19,7 +19,7 @@ namespace plagiarism_unplag\classes;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\exception\UnplagException;
+use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
 
 /**
@@ -52,7 +52,7 @@ class unplag_core {
      * @param $checkstatusforids
      * @param $resp
      *
-     * @throws UnplagException
+     * @throws unplag_exception
      */
     public static function check_real_file_progress($cid, $checkstatusforids, &$resp) {
 
@@ -96,7 +96,7 @@ class unplag_core {
      * @param $progress
      *
      * @return mixed
-     * @throws UnplagException
+     * @throws unplag_exception
      */
     private static function update_file_progress($id, $progress) {
         global $DB;
@@ -108,7 +108,7 @@ class unplag_core {
             if ($record->progress === 100) {
                 $resp = unplag_api::instance()->get_check_data($id);
                 if (!$resp->result) {
-                    throw new UnplagException($resp->errors);
+                    throw new unplag_exception($resp->errors);
                 }
 
                 self::check_complete($record, $resp->check);

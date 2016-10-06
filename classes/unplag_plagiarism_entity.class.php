@@ -77,7 +77,7 @@ abstract class unplag_plagiarism_entity {
         $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
         $plagiarismfile->errorresponse = json_encode($response->errors);
 
-        if($plagiarismfile->parent_id){
+        if ($plagiarismfile->parent_id) {
             $parentplagiarismfile = unplag_stored_file::get_unplag_file($plagiarismfile->parent_id);
             $parentplagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
             $parentplagiarismfile->errorresponse = json_encode($response->errors);

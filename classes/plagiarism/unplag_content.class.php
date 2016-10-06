@@ -25,7 +25,7 @@
 
 namespace plagiarism_unplag\classes\plagiarism;
 
-use plagiarism_unplag\classes\exception\UnplagException;
+use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
@@ -67,11 +67,11 @@ class unplag_content extends unplag_plagiarism_entity {
      * @param $name
      * @param null $ext
      * @param null $parentid
-     * @throws UnplagException
+     * @throws unplag_exception
      */
     public function __construct(unplag_core $core, $content, $name, $ext = null, $parentid = null) {
         if (!$content) {
-            throw new UnplagException('Invalid argument content');
+            throw new unplag_exception('Invalid argument content');
         }
 
         if ($ext) {

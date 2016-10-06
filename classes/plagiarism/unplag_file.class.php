@@ -25,7 +25,7 @@
 
 namespace plagiarism_unplag\classes\plagiarism;
 
-use plagiarism_unplag\classes\exception\UnplagException;
+use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
@@ -49,11 +49,11 @@ class unplag_file extends unplag_plagiarism_entity {
      *
      * @param unplag_core $core
      * @param \stored_file $file
-     * @throws UnplagException
+     * @throws unplag_exception
      */
     public function __construct(unplag_core $core, \stored_file $file) {
         if (!$file) {
-            throw new UnplagException('Invalid argument file');
+            throw new unplag_exception('Invalid argument file');
         }
 
         $this->core = $core;

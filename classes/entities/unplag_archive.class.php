@@ -26,7 +26,7 @@
 namespace plagiarism_unplag\classes\entities;
 
 use core\task\manager;
-use plagiarism_unplag\classes\exception\UnplagException;
+use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
 use plagiarism_unplag\classes\task\unplag_upload_and_check_task;
@@ -58,11 +58,11 @@ class unplag_archive {
      *
      * @param \stored_file $file
      * @param unplag_core $core
-     * @throws UnplagException
+     * @throws unplag_exception
      */
     public function __construct(\stored_file $file, unplag_core $core) {
         if (!\plagiarism_unplag::is_archive($file)) {
-            throw new UnplagException('File must be archive');
+            throw new unplag_exception('File must be archive');
         }
 
         $this->file = $file;
