@@ -81,6 +81,29 @@ class unplag_archive {
         $ziparch = new \zip_archive();
         $pathname = unplag_stored_file::get_protected_pathname($this->file);
         if (!$ziparch->open($pathname, \file_archive::OPEN)) {
+            $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
+            $archiveinternalfile->errorresponse = json_encode(array(
+                    array("message" => "Can't open zip archive")
+            ));
+
+            $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
+            return false;
+        }
+
+        $fileexist = false;
+        foreach ($ziparch as $file) {
+            if (!$file->is_directory) {
+                $fileexist = true;
+                break;
+            }
+        }
+
+        if (!$fileexist) {
+            $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
+            $archiveinternalfile->errorresponse = json_encode(array(
+                    array("message" => "Empty archive")
+            ));
+            $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
             return false;
         }
 

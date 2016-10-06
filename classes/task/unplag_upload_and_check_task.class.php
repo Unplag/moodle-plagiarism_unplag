@@ -44,6 +44,7 @@ class unplag_upload_and_check_task extends adhoc_task {
         $ucore = new unplag_core($data->unplagcore->cmid, $data->unplagcore->userid);
         $plagiarismentity = new unplag_content($ucore, $content, $data->filename, $data->format, $data->parent_id);
         unset($content, $ucore);
+        @unlink($data->tmpfile);
         $internalfile = $plagiarismentity->upload_file_on_unplag_server();
 
         if (isset($internalfile->check_id)) {
