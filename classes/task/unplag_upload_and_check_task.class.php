@@ -40,7 +40,7 @@ class unplag_upload_and_check_task extends adhoc_task {
 
     public function execute() {
         $data = $this->get_custom_data();
-        if ((file_exists($data->tmpfile))) {
+        if (file_exists($data->tmpfile)) {
             $content = file_get_contents($data->tmpfile);
             $ucore = new unplag_core($data->unplagcore->cmid, $data->unplagcore->userid);
             $plagiarismentity = new unplag_content($ucore, $content, $data->filename, $data->format, $data->parent_id);

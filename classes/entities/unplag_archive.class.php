@@ -117,7 +117,7 @@ class unplag_archive {
             $format = pathinfo($name, PATHINFO_EXTENSION);
 
             $content = '';
-            $tmpfile = tempnam($CFG->tempdir . '/zip', 'unzip');
+            $tmpfile = tempnam($CFG->tempdir, 'unplag_unzip');
 
             if (!$fp = fopen($tmpfile, 'wb')) {
                 @unlink($tmpfile);
