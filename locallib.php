@@ -57,7 +57,7 @@ class plagiarism_unplag {
      * @var array
      */
     private static $supportedarchivemimetypes = array(
-            'application/zip', 'application/x-gzip',
+            'application/zip'
     );
 
     /** @var array */
@@ -267,13 +267,12 @@ class plagiarism_unplag {
                     if ($childs) {
                         foreach ($childs as $child) {
                             if ($child->check_id) {
-                               $checkstatusforids[$record->id][] = $child->check_id;
+                                $checkstatusforids[$record->id][] = $child->check_id;
                             }
                         }
                     } else {
                         $checkstatusforids[$record->id][] = $record->check_id;
                     }
-
                 }
 
                 $resp[$record->id] = array(
@@ -282,7 +281,6 @@ class plagiarism_unplag {
                         'content' => self::gen_row_content_score($data->cid, $record),
                 );
             }
-
 
             try {
                 if (!empty($checkstatusforids)) {
@@ -304,7 +302,7 @@ class plagiarism_unplag {
      */
     public static function gen_row_content_score($cid, $fileobj) {
         if ($fileobj->progress == 100 && $cid) {
-            return require(dirname(__FILE__) . '/view_tmpl_processed.php');
+            return require(dirname(__FILE__) . '/views/view_tmpl_processed.php');
         }
 
         return false;

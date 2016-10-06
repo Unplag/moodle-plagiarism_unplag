@@ -27,12 +27,10 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag;
-use plagiarism_unplag\classes\entities\unplag_content;
-use plagiarism_unplag\classes\helpers\unplag_stored_file;
+use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
-use plagiarism_unplag\classes\unplag_archive;
 
 require_once(dirname(__FILE__) . '/../../locallib.php');
 
@@ -78,7 +76,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
     private function handle_file_plagiarism(\stored_file $file) {
         if (\plagiarism_unplag::is_archive($file)) {
             $unplagarchive = new unplag_archive($file, $this->unplagcore);
-            $unplagarchive->run_check();
+            $unplagarchive->run_checks();
 
             return true;
         }
@@ -96,5 +94,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
             $plagiarismentity->handle_check_response($checkresp);
             mtrace('file ' . $internalfile->identifier . 'send to Unplag');
         }
+
+        return true;
     }
 }

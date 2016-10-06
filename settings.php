@@ -48,7 +48,7 @@ if ($mform->is_cancelled()) {
 
 echo $OUTPUT->header();
 $currenttab = 'unplagsettings';
-require_once(dirname(__FILE__) . '/view_tabs.php');
+require_once(dirname(__FILE__) . '/views/view_tabs.php');
 
 if (($data = $mform->get_data()) && confirm_sesskey()) {
     foreach (plagiarism_plugin_unplag::default_plagin_options() as $option) {

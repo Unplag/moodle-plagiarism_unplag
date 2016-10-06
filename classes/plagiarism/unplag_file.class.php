@@ -23,7 +23,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace plagiarism_unplag\classes\entities;
+namespace plagiarism_unplag\classes\plagiarism;
 
 use plagiarism_unplag\classes\exception\UnplagException;
 use plagiarism_unplag\classes\unplag_api;
@@ -31,58 +31,33 @@ use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
 /**
- * Class unplag_content
+ * Class unplag_file
  *
- * @package plagiarism_unplag\classes\entities
- * @namespace plagiarism_unplag\classes\entities
+ * @package plagiarism_unplag\classes\plagiarism
+ * @namespace plagiarism_unplag\classes\plagiarism
  *
  */
-class unplag_content extends unplag_plagiarism_entity {
+class unplag_file extends unplag_plagiarism_entity {
 
     /**
-     * @var string
+     * @var \stored_file
      */
-    private $content;
+    private $file;
 
     /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @var string
-     */
-    private $ext;
-
-    /**
-     * @var int
-     */
-    private $parentid;
-
-    /**
-     * unplag_content constructor.
+     * unplag_file constructor.
      *
      * @param unplag_core $core
-     * @param $content
-     * @param $name
-     * @param null $ext
-     * @param null $parentid
+     * @param \stored_file $file
      * @throws UnplagException
      */
-    public function __construct(unplag_core $core, $content, $name, $ext = null, $parentid = null) {
-        if (!$content) {
-            throw new UnplagException('Invalid argument content');
-        }
-
-        if ($ext) {
-            $ext = 'html';
+    public function __construct(unplag_core $core, \stored_file $file) {
+        if (!$file) {
+            throw new UnplagException('Invalid argument file');
         }
 
         $this->core = $core;
-        $this->content = $content;
-        $this->name = $name;
-        $this->ext = $ext;
-        $this->parentid = $parentid;
+        $this->file = $file;
     }
 
     /**
@@ -105,7 +80,7 @@ class unplag_content extends unplag_plagiarism_entity {
         // Increment attempt number.
         $internalfile->attempt++;
 
-        $uploadedfileresponse = unplag_api::instance()->upload_content_as_file($this->content, $this->name, $this->ext);
+        $uploadedfileresponse = $this->upload();
         if ($uploadedfileresponse->result) {
             $internalfile->external_file_id = $uploadedfileresponse->file->id;
             $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
@@ -129,11 +104,10 @@ class unplag_content extends unplag_plagiarism_entity {
         $plagiarismfile = null;
         try {
 
-            $identifier = md5($this->name);
             $filedata = array(
                     'cm' => $this->cmid(),
                     'userid' => $this->userid(),
-                    'identifier' => $identifier,
+                    'identifier' => $this->stored_file()->get_pathnamehash(),
             );
 
             // Now update or insert record into unplag_files.
@@ -141,17 +115,16 @@ class unplag_content extends unplag_plagiarism_entity {
 
             if (empty($plagiarismfile)) {
                 $plagiarismfile = new \stdClass();
-                if($this->parentid){
-                    $plagiarismfile->parent_id = $this->parentid;
-                }
                 $plagiarismfile->cm = $filedata['cm'];
                 $plagiarismfile->userid = $filedata['userid'];
                 $plagiarismfile->identifier = $filedata['identifier'];
-                $plagiarismfile->filename = $this->name;
+                $plagiarismfile->filename = $this->stored_file()->get_filename();
                 $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
                 $plagiarismfile->attempt = 0;
                 $plagiarismfile->progress = 0;
                 $plagiarismfile->timesubmitted = time();
+                $plagiarismfile->type =
+                        (\plagiarism_unplag::is_archive($this->stored_file())) ? unplag_plagiarism_entity::TYPE_ARCHIVE : unplag_plagiarism_entity::TYPE_DOCUMENT;
 
                 if (!$pid = $DB->insert_record(UNPLAG_FILES_TABLE, $plagiarismfile)) {
                     debugging("INSERT INTO {UNPLAG_FILES_TABLE}");
@@ -166,5 +139,22 @@ class unplag_content extends unplag_plagiarism_entity {
         $this->plagiarismfile = $plagiarismfile;
 
         return $this->plagiarismfile;
+    }
+
+    /**
+     * @return \stored_file
+     */
+    public function stored_file() {
+        return $this->file;
+    }
+
+    private function upload() {
+        $format = 'html';
+        if ($source = $this->stored_file()->get_source()) {
+            $format = pathinfo($source, PATHINFO_EXTENSION);
+        }
+
+        $filename = $this->stored_file()->get_filename();
+        return unplag_api::instance()->upload_file($this->stored_file()->get_content(), $filename, $format);
     }
 }

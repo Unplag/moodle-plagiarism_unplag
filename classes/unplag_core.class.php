@@ -18,8 +18,9 @@ namespace plagiarism_unplag\classes;
 
 use core\event\base;
 use plagiarism_unplag;
-use plagiarism_unplag\classes\entities\unplag_file;
+use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\exception\UnplagException;
+use plagiarism_unplag\classes\plagiarism\unplag_file;
 
 /**
  * Class unplag_core
@@ -54,53 +55,55 @@ class unplag_core {
      * @throws UnplagException
      */
     public static function check_real_file_progress($cid, $checkstatusforids, &$resp) {
+
+        global $DB;
         $progressids = array();
         foreach ($checkstatusforids as $recordid => $checkids) {
             $progressids = array_merge($progressids, $checkids);
         }
         $progressids = array_unique($progressids);
         $progresses = unplag_api::instance()->get_check_progress($progressids);
-
-        $prog = array();
         if ($progresses->result) {
             foreach ($progresses->progress as $id => $val) {
                 $val *= 100;
                 $fileobj = self::update_file_progress($id, $val);
-                $prog[$id] = $val;
                 $resp[$fileobj->id]['progress'] = $val;
                 $resp[$fileobj->id]['content'] = plagiarism_unplag::gen_row_content_score($cid, $fileobj);
             }
-        }
 
-        foreach ($checkstatusforids as $recordid => $checkids) {
-            if(count($checkids) > 1){
-                $progress = 0;
-                foreach ($checkids as $id) {
-                    $progress += $prog[$id];
+            foreach ($checkstatusforids as $recordid => $checkids) {
+                if (count($checkids) > 1) {
+
+                    $childscount = $DB->count_records(UNPLAG_FILES_TABLE, array('parent_id' => $recordid));
+                    $progress = 0;
+                    foreach ($checkids as $id) {
+                        $progress += ($progresses->progress->{$id} * 100);
+                    }
+
+                    $progress = round($progress / $childscount);
+
+                    $fileobj = self::update_parent_progress($recordid, $progress);
+
+                    $resp[$recordid]['progress'] = $progress;
+                    $resp[$recordid]['content'] = plagiarism_unplag::gen_row_content_score($cid, $fileobj);
                 }
-                $progress = round($progress / count($checkids));
-
-                $fileobj = self::update_parent_progress($recordid, $progress);
-
-                $resp[$recordid]['progress'] = $progress;
-                $resp[$recordid]['content'] = plagiarism_unplag::gen_row_content_score($cid, $fileobj);
             }
         }
     }
 
     /**
      * @param $id
-     * @param $progres
+     * @param $progress
      *
      * @return mixed
      * @throws UnplagException
      */
-    private static function update_file_progress($id, $progres) {
+    private static function update_file_progress($id, $progress) {
         global $DB;
 
         $record = $DB->get_record(UNPLAG_FILES_TABLE, array('check_id' => $id));
-        if ($record->progress <= $progres) {
-            $record->progress = $progres;
+        if ($record->progress <= $progress) {
+            $record->progress = $progress;
 
             if ($record->progress === 100) {
                 $resp = unplag_api::instance()->get_check_data($id);
@@ -119,49 +122,16 @@ class unplag_core {
 
     /**
      * @param $fileid
-     * @param $progres
+     * @param $progress
      * @return mixed
      */
-    private static function update_parent_progress($fileid, $progres) {
+    private static function update_parent_progress($fileid, $progress) {
         global $DB;
 
         $record = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $fileid));
-        if ($record->progress <= $progres) {
-            $record->progress = $progres;
-            if ($record->progress == 100) {
-                $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($record->id));
-                $similarity = 0;
-                $cpf = null;
-                foreach ($childs as $child){
-                    if($cpf === null){
-                        $cpf = $child->id;
-                    }
-                    $resp = unplag_api::instance()->get_check_data($child->check_id);
-                    if($resp->result){
-                        $similarity += $resp->check->report->similarity;
-                    }
-                }
-
-                $record->similarityscore = round($similarity/ count($childs));
-                $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
-                $record->progress = 100;
-
-                $reporturl = new \moodle_url('/plagiarism/unplag/reports.php', array(
-                    'cmid' => $record->cm,
-                    'pf' => $record->id,
-                    'cpf' => $cpf
-                ));
-
-                $record->reporturl = (string)$reporturl->out_as_local_url();
-                $record->reportediturl = (string)$reporturl->out_as_local_url();
-
-                $updated = $DB->update_record(UNPLAG_FILES_TABLE, $record);
-
-                $emailstudents = unplag_settings::get_assign_settings($record->cm, 'unplag_studentemail');
-                if ($updated && !empty($emailstudents)) {
-                    unplag_notification::send_student_email_notification($record);
-                }
-            } else {
+        if ($record->progress <= $progress) {
+            $record->progress = $progress;
+            if ($record->progress != 100) {
                 $DB->update_record(UNPLAG_FILES_TABLE, $record);
             }
         }
@@ -172,21 +142,58 @@ class unplag_core {
     /**
      * @param \stdClass $record
      * @param \stdClass $check
+     * @param int $progress
      */
-    public static function check_complete(\stdClass &$record, \stdClass $check) {
+    public static function check_complete(\stdClass &$record, \stdClass $check, $progress = 100) {
         global $DB;
 
-        $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
+        if ($progress == 100) {
+            $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
+        }
+
         $record->similarityscore = $check->report->similarity;
         $record->reporturl = $check->report->view_url;
         $record->reportediturl = $check->report->view_edit_url;
-        $record->progress = 100;
+        $record->progress = $progress;
 
         $updated = $DB->update_record(UNPLAG_FILES_TABLE, $record);
 
         $emailstudents = unplag_settings::get_assign_settings($record->cm, 'unplag_studentemail');
         if ($updated && !empty($emailstudents)) {
             unplag_notification::send_student_email_notification($record);
+        }
+
+        if ($record->parent_id !== null) {
+            $parentrecord = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $record->parent_id));
+            $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($parentrecord->id));
+            $similarity = 0;
+            $cpf = null;
+            $parentprogress = 0;
+            foreach ($childs as $child) {
+                if ($cpf === null) {
+                    $cpf = $child->id;
+                }
+                $parentprogress += $child->progress;
+                $similarity += $child->similarityscore;
+            }
+
+            $parentprogress = round($parentprogress / count($childs));
+            $reporturl = new \moodle_url('/plagiarism/unplag/reports.php', array(
+                    'cmid' => $parentrecord->cm,
+                    'pf' => $parentrecord->id,
+                    'cpf' => $cpf
+            ));
+
+            $parentcheck = array(
+                    'report' => array(
+                            'similarity' => round($similarity / count($childs)),
+                            'view_url' => (string) $reporturl->out_as_local_url(),
+                            'view_edit_url' => (string) $reporturl->out_as_local_url()
+                    )
+            );
+
+            $parentcheck = json_decode(json_encode($parentcheck)); //convert array to object recursive
+            self::check_complete($parentrecord, $parentcheck, $parentprogress);
         }
     }
 
@@ -220,7 +227,7 @@ class unplag_core {
             $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
             $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
 
-            if(plagiarism_unplag::is_archive($file)){
+            if (plagiarism_unplag::is_archive($file)) {
                 $unplagarchive = new unplag_archive($file, $ucore);
                 $unplagarchive->restart_check();
 

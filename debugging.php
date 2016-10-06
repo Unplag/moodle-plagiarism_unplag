@@ -54,7 +54,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
     echo $OUTPUT->header();
     $currenttab = 'unplagdebug';
 
-    require_once(dirname(__FILE__) . '/view_tabs.php');
+    require_once(dirname(__FILE__) . '/views/view_tabs.php');
 
     // Get list of Events in queue.
     $a = new stdClass();

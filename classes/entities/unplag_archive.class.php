@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace plagiarism_unplag\classes;
+namespace plagiarism_unplag\classes\entities;
 
-use plagiarism_unplag\classes\entities\unplag_content;
+use core\task\manager;
 use plagiarism_unplag\classes\exception\UnplagException;
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
+use plagiarism_unplag\classes\plagiarism\unplag_content;
+use plagiarism_unplag\classes\task\unplag_upload_and_check_task;
+use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_notification;
 
 /**
  * Class unplag_archive
  *
- * @package plagiarism_unplag\classes
+ * @package plagiarism_unplag\classes\entities
  * @subpackage  plagiarism
  * @namespace plagiarism_unplag\classes
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
@@ -46,12 +51,11 @@ class unplag_archive {
      * unplag_archive constructor.
      *
      * @param \stored_file $file
-     *
+     * @param unplag_core $core
      * @throws UnplagException
      */
-    public function __construct(\stored_file $file,unplag_core $core)
-    {
-        if(!\plagiarism_unplag::is_archive($file)){
+    public function __construct(\stored_file $file, unplag_core $core) {
+        if (!\plagiarism_unplag::is_archive($file)) {
             throw new UnplagException('File must be archive');
         }
 
@@ -61,9 +65,10 @@ class unplag_archive {
 
     /**
      * @return bool
+     * @todo recursive file extractor
      */
-    public function run_check(){
-        global $DB;
+    public function run_checks() {
+        global $DB, $CFG;
 
         $archiveinternalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
 
@@ -75,37 +80,55 @@ class unplag_archive {
 
         $processed = array();
         foreach ($ziparch as $file) {
-            $content = '';
             if ($file->is_directory) {
                 continue;
             }
 
             $name = $file->pathname;
+            $size = $file->size;
             $format = pathinfo($name, PATHINFO_EXTENSION);
-            if ($name === '' or array_key_exists($name, $processed)) {
+
+            $content = '';
+            $tmpfile = tempnam($CFG->tempdir . '/zip', 'unzip');
+
+            if (!$fp = fopen($tmpfile, 'wb')) {
+                @unlink($tmpfile);
+                $processed[$name] = 'Can not write temp file';
                 continue;
             }
 
-            // Notify progress.
+            if ($name === '' or array_key_exists($name, $processed)) {
+                @unlink($tmpfile);
+                continue;
+            }
+
             if (!$fz = $ziparch->get_stream($file->index)) {
+                @unlink($tmpfile);
                 $processed[$name] = 'Can not read file from zip archive';
                 continue;
             }
+
             while (!feof($fz)) {
                 $content .= fread($fz, 262143);
+                fwrite($fp, $content);
             }
             fclose($fz);
+            fclose($fp);
 
             $plagiarismentity = new unplag_content($this->unplagcore, $content, $name, $format, $archiveinternalfile->id);
-            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+            $plagiarismentity->get_internal_file();
 
-            if (isset($internalfile->check_id)) {
-                print_error('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
-            } else {
-                $checkresp = unplag_api::instance()->run_check($internalfile);
-                $plagiarismentity->handle_check_response($checkresp);
-                mtrace('file ' . $internalfile->identifier . 'send to Unplag');
-            }
+            $task = new unplag_upload_and_check_task();
+            $task->set_custom_data(array(
+                    'tmpfile' => $tmpfile,
+                    'filename' => $name,
+                    'unplagcore' => $this->unplagcore,
+                    'format' => $format,
+                    'parent_id' => $archiveinternalfile->id
+            ));
+            $task->set_component('unplag');
+
+            manager::queue_adhoc_task($task);
 
             unset($content);
         }
@@ -116,15 +139,17 @@ class unplag_archive {
         $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
 
         $ziparch->close();
+
+        return true;
     }
 
-    public function restart_check(){
+    public function restart_check() {
         global $DB;
 
         $internalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
         $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($internalfile->id));
         if ($childs) {
-            foreach ((object)$childs as $child){
+            foreach ((object) $childs as $child) {
                 if ($child->check_id) {
                     unplag_api::instance()->delete_check($child);
                 }
@@ -132,7 +157,7 @@ class unplag_archive {
 
             unplag_notification::success('plagiarism_run_success', true);
 
-            $this->run_check();
+            $this->run_checks();
         }
     }
 }

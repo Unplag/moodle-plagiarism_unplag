@@ -42,36 +42,12 @@ class unplag_api {
     }
 
     /**
-     * @param \stored_file $file
-     *
-     * @return mixed
-     * @throws \file_exception
-     */
-    public function upload_file(\stored_file $file) {
-
-        set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
-
-        $format = 'html';
-        if ($source = $file->get_source()) {
-            $format = pathinfo($source, PATHINFO_EXTENSION);
-        }
-
-        $postdata = array(
-                'format' => $format,
-                'file_data' => base64_encode($file->get_content()),
-                'name' => $file->get_filename(),
-        );
-
-        return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
-    }
-
-    /**
      * @param $content
      * @param $filename
      * @param $format
      * @return mixed
      */
-    public function upload_content_as_file($content, $filename, $format) {
+    public function upload_file($content, $filename, $format) {
 
         set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
 

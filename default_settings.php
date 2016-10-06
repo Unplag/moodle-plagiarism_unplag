@@ -46,7 +46,7 @@ if (!empty($unplagdefaults)) {
 }
 echo $OUTPUT->header();
 $currenttab = 'unplagdefaults';
-require_once(dirname(__FILE__) . '/view_tabs.php');
+require_once(dirname(__FILE__) . '/views/view_tabs.php');
 
 if (($data = $mform->get_data()) && confirm_sesskey()) {
     $plagiarismelements = plagiarism_plugin_unplag::config_options();
