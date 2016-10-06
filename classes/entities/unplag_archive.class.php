@@ -38,11 +38,8 @@ use plagiarism_unplag\classes\unplag_notification;
  * Class unplag_archive
  *
  * @package plagiarism_unplag\classes\entities
- * @subpackage  plagiarism
- * @namespace plagiarism_unplag\classes
- * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @namespace plagiarism_unplag\classes\entities
+ *
  */
 class unplag_archive {
 
