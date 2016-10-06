@@ -80,7 +80,7 @@ class unplag_core {
                         $progress += ($progresses->progress->{$id} * 100);
                     }
 
-                    $progress = round($progress / $childscount);
+                    $progress = floor($progress / $childscount);
 
                     $fileobj = self::update_parent_progress($recordid, $progress);
 
@@ -163,7 +163,7 @@ class unplag_core {
             unplag_notification::send_student_email_notification($record);
         }
 
-        if ($record->parent_id !== null) {
+        if ($updated && $record->parent_id !== null) {
             $parentrecord = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $record->parent_id));
             $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($parentrecord->id));
             $similarity = 0;
@@ -177,7 +177,7 @@ class unplag_core {
                 $similarity += $child->similarityscore;
             }
 
-            $parentprogress = round($parentprogress / count($childs));
+            $parentprogress = floor($parentprogress / count($childs));
             $reporturl = new \moodle_url('/plagiarism/unplag/reports.php', array(
                     'cmid' => $parentrecord->cm,
                     'pf' => $parentrecord->id,
@@ -186,7 +186,7 @@ class unplag_core {
 
             $parentcheck = array(
                     'report' => array(
-                            'similarity' => round($similarity / count($childs)),
+                            'similarity' => floor($similarity / count($childs)),
                             'view_url' => (string) $reporturl->out_as_local_url(),
                             'view_edit_url' => (string) $reporturl->out_as_local_url()
                     )
