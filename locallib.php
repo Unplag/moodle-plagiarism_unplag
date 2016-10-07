@@ -34,11 +34,12 @@ use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_settings;
 
-global $CFG;
-
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/constants.php');
 require_once(dirname(__FILE__) . '/autoloader.php');
+
+global $CFG;
+
 require_once($CFG->libdir . '/filelib.php');
 
 /**

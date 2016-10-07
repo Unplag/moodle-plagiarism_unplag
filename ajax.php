@@ -26,9 +26,6 @@
 
 define('AJAX_SCRIPT', true);
 
-error_reporting(-1);
-ini_set("display_errors", 1);
-
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 

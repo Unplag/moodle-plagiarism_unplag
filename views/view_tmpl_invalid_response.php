@@ -23,11 +23,11 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $OUTPUT;
-
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
+
+global $OUTPUT;
 
 $errors = isset($fileobj->errorresponse) ? json_decode($fileobj->errorresponse, true) : null;
 if (is_array($errors)) {

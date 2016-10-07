@@ -23,11 +23,11 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $PAGE, $OUTPUT;
-
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
+
+global $PAGE, $OUTPUT;
 
 if (!$iterator) {
     // Now add JS to validate receiver indicator using Ajax.

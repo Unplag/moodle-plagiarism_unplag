@@ -26,10 +26,10 @@
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
 use plagiarism_unplag\classes\unplag_language;
 
-global $PAGE, $CFG, $OUTPUT, $USER;
-
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
 require_once(dirname(__FILE__) . '/lib.php');
+
+global $PAGE, $CFG, $OUTPUT, $USER;
 
 $PAGE->set_pagelayout('report');
 
