@@ -51,13 +51,15 @@ $tabs = array();
 
 foreach ($childs as $child) {
 
-    $url = new \moodle_url('/plagiarism/unplag/reports.php', array(
-            'cmid' => $cmid,
-            'pf' => $pf,
-            'cpf' => $child->id
-    ));
+    if ($child->check_id !== null && $child->progress == 100) {
+        $url = new \moodle_url('/plagiarism/unplag/reports.php', array(
+                'cmid' => $cmid,
+                'pf' => $pf,
+                'cpf' => $child->id
+        ));
 
-    $tabs[] = new tabobject('unplag_file_id_' . $child->id, $url->out_as_local_url(), $child->filename, '', false);
+        $tabs[] = new tabobject('unplag_file_id_' . $child->id, $url->out_as_local_url(), $child->filename, '', false);
+    }
 };
 print_tabs(array($tabs), $currenttab);
 

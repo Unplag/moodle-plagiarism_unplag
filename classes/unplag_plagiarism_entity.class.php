@@ -24,6 +24,7 @@
  */
 
 namespace plagiarism_unplag\classes;
+
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
 
 /**
@@ -77,15 +78,21 @@ abstract class unplag_plagiarism_entity {
         $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
         $plagiarismfile->errorresponse = json_encode($response->errors);
 
-        if ($plagiarismfile->parent_id) {
-            $parentplagiarismfile = unplag_stored_file::get_unplag_file($plagiarismfile->parent_id);
-            $parentplagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-            $parentplagiarismfile->errorresponse = json_encode($response->errors);
+        $result = $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
 
-            $DB->update_record(UNPLAG_FILES_TABLE, $parentplagiarismfile);
+        if ($result && $plagiarismfile->parent_id) {
+            $hasgoodchild = $DB->count_records(UNPLAG_FILES_TABLE,
+                    array('parent_id' => $plagiarismfile->parent_id, 'errorresponse' => null));
+            if (!$hasgoodchild) {
+                $parentplagiarismfile = unplag_stored_file::get_unplag_file($plagiarismfile->parent_id);
+                $parentplagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
+                $parentplagiarismfile->errorresponse = json_encode($response->errors);
+
+                $DB->update_record(UNPLAG_FILES_TABLE, $parentplagiarismfile);
+            }
         }
 
-        return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+        return $result;
     }
 
     /**

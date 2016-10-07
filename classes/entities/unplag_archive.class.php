@@ -113,7 +113,7 @@ class unplag_archive {
                 continue;
             }
 
-            $name = $file->pathname;
+            $name = fix_utf8($file->pathname);
             $format = pathinfo($name, PATHINFO_EXTENSION);
 
             $content = '';

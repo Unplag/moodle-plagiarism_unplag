@@ -270,13 +270,14 @@ class plagiarism_unplag {
                                 $checkstatusforids[$record->id][] = $child->check_id;
                             }
                         }
-                    } else {
+                    } elseif ($record->check_id) {
                         $checkstatusforids[$record->id][] = $record->check_id;
                     }
                 }
 
                 $resp[$record->id] = array(
                         'file_id' => $record->id,
+                        'statuscode' => $record->statuscode,
                         'progress' => (int) $record->progress,
                         'content' => self::gen_row_content_score($data->cid, $record),
                 );
@@ -303,6 +304,8 @@ class plagiarism_unplag {
     public static function gen_row_content_score($cid, $fileobj) {
         if ($fileobj->progress == 100 && $cid) {
             return require(dirname(__FILE__) . '/views/view_tmpl_processed.php');
+        } elseif ($fileobj->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
+            return require(dirname(__FILE__) . '/views/view_tmpl_invalid_response.php');
         }
 
         return false;

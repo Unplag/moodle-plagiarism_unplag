@@ -74,7 +74,7 @@ class unplag_core {
             foreach ($checkstatusforids as $recordid => $checkids) {
                 if (count($checkids) > 1) {
 
-                    $childscount = $DB->count_records(UNPLAG_FILES_TABLE, array('parent_id' => $recordid));
+                    $childscount = $DB->count_records(UNPLAG_FILES_TABLE, array('parent_id' => $recordid, 'errorresponse' => null));
                     $progress = 0;
                     foreach ($checkids as $id) {
                         $progress += ($progresses->progress->{$id} * 100);
@@ -165,7 +165,7 @@ class unplag_core {
 
         if ($updated && $record->parent_id !== null) {
             $parentrecord = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $record->parent_id));
-            $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($parentrecord->id));
+            $childs = $DB->get_records(UNPLAG_FILES_TABLE, array('parent_id' => $parentrecord->id, 'errorresponse' => null));
             $similarity = 0;
             $cpf = null;
             $parentprogress = 0;
