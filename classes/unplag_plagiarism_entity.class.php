@@ -25,134 +25,49 @@
 
 namespace plagiarism_unplag\classes;
 
-use plagiarism_unplag\classes\exception\UnplagException;
+use plagiarism_unplag\classes\helpers\unplag_stored_file;
+
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
 
 /**
  * Class unplag_plagiarism_entity
  *
  * @package plagiarism_unplag\classes
  */
-class unplag_plagiarism_entity {
+abstract class unplag_plagiarism_entity {
+
+    const TYPE_ARCHIVE = 'archive';
+    const TYPE_DOCUMENT = 'document';
+
     /** @var unplag_core */
-    private $core;
+    protected $core;
     /** @var \stdClass */
-    private $plagiarismfile;
-
-    /**
-     * unplag_plagiarism_entity constructor.
-     *
-     * @param unplag_core $core
-     * @param \stored_file $file
-     *
-     * @throws UnplagException
-     */
-    public function __construct(unplag_core $core, \stored_file $file) {
-        if (!$file) {
-            throw new UnplagException('Invalid argument file');
-        }
-
-        $this->core = $core;
-        $this->file = $file;
-    }
+    protected $plagiarismfile;
 
     /**
      * @return object
      */
-    public function upload_file_on_unplag_server() {
-        global $DB;
-
-        $internalfile = $this->get_internal_file();
-
-        if (isset($internalfile->external_file_id)) {
-            return $internalfile;
-        }
-
-        // Check if $internalfile actually needs to be submitted.
-        if ($internalfile->statuscode !== UNPLAG_STATUSCODE_PENDING) {
-            return $internalfile;
-        }
-
-        // Increment attempt number.
-        $internalfile->attempt++;
-
-        $uploadedfileresponse = unplag_api::instance()->upload_file($this->stored_file());
-        if ($uploadedfileresponse->result) {
-            $internalfile->external_file_id = $uploadedfileresponse->file->id;
-            $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
-        } else {
-            $this->store_file_errors($uploadedfileresponse);
-        }
-
-        return $internalfile;
-    }
+    abstract public function upload_file_on_unplag_server();
 
     /**
      * @return object
      */
-    public function get_internal_file() {
-        global $DB;
-
-        if ($this->plagiarismfile) {
-            return $this->plagiarismfile;
-        }
-
-        $plagiarismfile = null;
-        try {
-
-            $filedata = array(
-                    'cm' => $this->cmid(),
-                    'userid' => $this->userid(),
-                    'identifier' => $this->stored_file()->get_pathnamehash(),
-            );
-
-            // Now update or insert record into unplag_files.
-            $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, $filedata);
-
-            if (empty($plagiarismfile)) {
-                $plagiarismfile = new \stdClass();
-                $plagiarismfile->cm = $filedata['cm'];
-                $plagiarismfile->userid = $filedata['userid'];
-                $plagiarismfile->identifier = $filedata['identifier'];
-                $plagiarismfile->filename = $this->stored_file()->get_filename();
-                $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
-                $plagiarismfile->attempt = 0;
-                $plagiarismfile->progress = 0;
-                $plagiarismfile->timesubmitted = time();
-
-                if (!$pid = $DB->insert_record(UNPLAG_FILES_TABLE, $plagiarismfile)) {
-                    debugging("INSERT INTO {UNPLAG_FILES_TABLE}");
-                }
-
-                $plagiarismfile->id = $pid;
-            }
-        } catch (\Exception $ex) {
-            print_error($ex->getMessage());
-        }
-
-        $this->plagiarismfile = $plagiarismfile;
-
-        return $this->plagiarismfile;
-    }
+    abstract public function get_internal_file();
 
     /**
      * @return integer
      */
-    private function cmid() {
+    protected function cmid() {
         return $this->core->cmid;
     }
 
     /**
      * @return integer
      */
-    private function userid() {
+    protected function userid() {
         return $this->core->userid;
-    }
-
-    /**
-     * @return \stored_file
-     */
-    public function stored_file() {
-        return $this->file;
     }
 
     /**
@@ -160,14 +75,28 @@ class unplag_plagiarism_entity {
      *
      * @return bool
      */
-    private function store_file_errors(\stdClass $response) {
+    protected function store_file_errors(\stdClass $response) {
         global $DB;
 
         $plagiarismfile = $this->get_internal_file();
         $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
         $plagiarismfile->errorresponse = json_encode($response->errors);
 
-        return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+        $result = $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+
+        if ($result && $plagiarismfile->parent_id) {
+            $hasgoodchild = $DB->count_records(UNPLAG_FILES_TABLE,
+                    array('parent_id' => $plagiarismfile->parent_id, 'errorresponse' => null));
+            if (!$hasgoodchild) {
+                $parentplagiarismfile = unplag_stored_file::get_unplag_file($plagiarismfile->parent_id);
+                $parentplagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
+                $parentplagiarismfile->errorresponse = json_encode($response->errors);
+
+                $DB->update_record(UNPLAG_FILES_TABLE, $parentplagiarismfile);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -186,7 +115,7 @@ class unplag_plagiarism_entity {
      *
      * @return bool
      */
-    private function update_file_accepted($check) {
+    protected function update_file_accepted($check) {
         global $DB;
 
         $plagiarismfile = $this->get_internal_file();

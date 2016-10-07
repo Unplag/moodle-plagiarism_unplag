@@ -23,6 +23,10 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 define('UNPLAG_PLAGIN_NAME', 'plagiarism_unplag');
 define('UNPLAG_DOMAIN', 'https://unplag.com/');
 define('UNPLAG_API_URL', UNPLAG_DOMAIN . 'api/v2/');

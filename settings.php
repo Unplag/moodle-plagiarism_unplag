@@ -25,13 +25,14 @@
  */
 use plagiarism_unplag\classes\unplag_notification;
 
-global $CFG, $OUTPUT, $USER;
-
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
-require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->libdir . '/plagiarismlib.php');
 require_once(dirname(__FILE__) . '/lib.php');
 require_once(dirname(__FILE__) . '/unplag_form.php');
+
+global $CFG, $OUTPUT, $USER;
+
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/plagiarismlib.php');
 
 require_login();
 admin_externalpage_setup('plagiarismunplag');
@@ -48,7 +49,7 @@ if ($mform->is_cancelled()) {
 
 echo $OUTPUT->header();
 $currenttab = 'unplagsettings';
-require_once(dirname(__FILE__) . '/view_tabs.php');
+require_once(dirname(__FILE__) . '/views/view_tabs.php');
 
 if (($data = $mform->get_data()) && confirm_sesskey()) {
     foreach (plagiarism_plugin_unplag::default_plagin_options() as $option) {

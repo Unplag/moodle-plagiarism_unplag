@@ -26,6 +26,7 @@
 
 define('AJAX_SCRIPT', true);
 
+require_once(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 
 $action = required_param('action', PARAM_ALPHAEXT);

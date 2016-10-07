@@ -17,10 +17,15 @@
 namespace plagiarism_unplag\classes\helpers;
 
 use plagiarism_unplag\classes\unplag_assign;
+use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_workshop;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
- * Class unplag_core
+ * Class unplag_linkarray
  *
  * @package plagiarism_unplag\classes
  * @subpackage  plagiarism
@@ -82,33 +87,49 @@ class unplag_linkarray {
         $statuscode = $fileobj->statuscode;
         switch ($statuscode) {
             case UNPLAG_STATUSCODE_PROCESSED:
-                $output = require($dir . '/view_tmpl_processed.php');
+                $output = require($dir . '/views/view_tmpl_processed.php');
                 break;
             case UNPLAG_STATUSCODE_ACCEPTED:
-                if (isset($fileobj->check_id)) {
-                    $output = require($dir . '/view_tmpl_accepted.php');
+                if (isset($fileobj->check_id) || $fileobj->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
+                    $output = require($dir . '/views/view_tmpl_accepted.php');
                     $iterator++;
                 } else {
-                    $output = require($dir . '/view_tmpl_unknownwarning.php');
+                    $output = require($dir . '/views/view_tmpl_unknownwarning.php');
                 }
                 break;
             case UNPLAG_STATUSCODE_INVALID_RESPONSE:
-                $output = require($dir . '/view_tmpl_invalid_response.php');
+                $output = require($dir . '/views/view_tmpl_invalid_response.php');
                 break;
             case UNPLAG_STATUSCODE_PENDING:
-                if ($cm->modname == 'assign' && !$fileobj->check_id) {
-                    $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-                    if ($submission->status == 'submitted') {
-                        $output = require($dir . '/view_tmpl_can_check.php');
-                        $iterator++;
-                    }
+                if (self::is_pending($cm, $fileobj) && self::is_submission_submitted($linkarray)) {
+                    $output = require($dir . '/views/view_tmpl_can_check.php');
+                    $iterator++;
                 }
                 break;
             default:
-                $output = require($dir . '/view_tmpl_unknownwarning.php');
+                $output = require($dir . '/views/view_tmpl_unknownwarning.php');
                 break;
         }
 
         return $output;
+    }
+
+    /**
+     * @param $cm
+     * @param $fileobj
+     * @return bool
+     */
+    private static function is_pending($cm, $fileobj) {
+        return $cm->modname == 'assign' && empty($fileobj->check_id) && $fileobj->type == unplag_plagiarism_entity::TYPE_DOCUMENT;
+    }
+
+    /**
+     * @param $linkarray
+     * @return bool
+     */
+    private static function is_submission_submitted($linkarray) {
+        $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+
+        return $submission->status == 'submitted';
     }
 }

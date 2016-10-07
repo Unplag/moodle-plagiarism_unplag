@@ -24,18 +24,21 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
+use plagiarism_unplag\classes\unplag_plagiarism_entity;
+
+require_once(dirname(__FILE__) . '/../../config.php');
+require_once(dirname(__FILE__) . '/lib.php');
 
 global $CFG, $DB, $OUTPUT;
 
-require_once(dirname(dirname(__FILE__)) . '/../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/tablelib.php');
 require_once($CFG->libdir . '/plagiarismlib.php');
 require_once($CFG->libdir . '/datalib.php');
-require_once(dirname(__FILE__) . '/lib.php');
 
 require_login();
 admin_externalpage_setup('plagiarismunplag');
@@ -54,7 +57,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
     echo $OUTPUT->header();
     $currenttab = 'unplagdebug';
 
-    require_once(dirname(__FILE__) . '/view_tabs.php');
+    require_once(dirname(__FILE__) . '/views/view_tabs.php');
 
     // Get list of Events in queue.
     $a = new stdClass();
@@ -75,7 +78,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
             $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
             $response = unplag_api::instance()->get_check_data($plagiarismfile->check_id);
             if ($response->result) {
-                unplag_core::check_complete($plagiarismfile, $response->check);
+                unplag_check_helper::check_complete($plagiarismfile, $response->check);
             } else {
                 $plagiarismfile->errorresponse = json_encode($response->errors);
                 $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
@@ -124,10 +127,10 @@ if (!empty($orderby) && ($dir == 'asc' || $dir == 'desc')) {
 // Now show files in an error state.
 $sql = sprintf('SELECT t.*, %1$s, m.name as moduletype, cm.course as courseid, cm.instance as cminstance
     FROM {plagiarism_unplag_files} t, {user} u, {modules} m, {course_modules} cm
-    WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id
+    WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id AND t.parent_id iS NULL AND t.type = "%3$s"
     AND t.errorresponse is not null
     %2$s',
-        get_all_user_name_fields(true, 'u'), $orderby
+        get_all_user_name_fields(true, 'u'), $orderby, unplag_plagiarism_entity::TYPE_DOCUMENT
 );
 
 $limit = 20;

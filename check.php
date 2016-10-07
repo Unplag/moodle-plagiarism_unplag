@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * reset.php - resets an unplag submission
+ * check.php - resets an unplag submission
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -26,10 +26,10 @@
 
 use plagiarism_unplag\classes\unplag_assign;
 
-global $PAGE, $CFG;
-
-require_once(dirname(dirname(__FILE__)) . '/../config.php');
+require_once(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/lib.php');
+
+global $PAGE, $CFG;
 
 $cmid = required_param('cmid', PARAM_INT);  // Course Module ID
 $pf = required_param('pf', PARAM_INT);   // plagiarism file id.

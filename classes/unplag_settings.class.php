@@ -16,6 +16,10 @@
 
 namespace plagiarism_unplag\classes;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_settings
  *
@@ -51,7 +55,15 @@ class unplag_settings {
             return $item->value;
         }, $data);
 
-        return (is_bool($assoc) && $assoc) ? $data : $data[$name];
+        if (is_bool($assoc) && $assoc) {
+            return $data;
+        }
+
+        if (isset($data[$name])) {
+            return $data[$name];
+        }
+
+        return [];
     }
 
     /**

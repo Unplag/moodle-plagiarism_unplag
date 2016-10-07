@@ -25,6 +25,10 @@
 
 namespace plagiarism_unplag\classes;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_api
  *
@@ -42,24 +46,23 @@ class unplag_api {
     }
 
     /**
-     * @param \stored_file $file
-     *
+     * @param $content
+     * @param $filename
+     * @param $format
      * @return mixed
-     * @throws \file_exception
      */
-    public function upload_file(\stored_file $file) {
+    public function upload_file($content, $filename, $format) {
 
         set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
 
-        $format = 'html';
-        if ($source = $file->get_source()) {
-            $format = pathinfo($source, PATHINFO_EXTENSION);
+        if (!$format) {
+            $format = 'html';
         }
 
         $postdata = array(
                 'format' => $format,
-                'file_data' => base64_encode($file->get_content()),
-                'name' => $file->get_filename(),
+                'file_data' => base64_encode($content),
+                'name' => $filename,
         );
 
         return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);

@@ -14,41 +14,57 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * autoloader.php
+ * unplag_plagiarism_entity.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace plagiarism_unplag\library;
+namespace plagiarism_unplag\classes\helpers;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
 /**
- * Class unplag_autoloader
+ * Class unplag_stored_file
  *
- * @package plagiarism_unplag\library
+ * @package plagiarism_unplag\classes\helpers
+ * @namespace plagiarism_unplag\classes\helpers
+ *
  */
-class unplag_autoloader {
+class unplag_stored_file extends \stored_file {
+
     /**
-     * @param $class
+     * @param \stored_file $file
+     * @return string
      */
-    public static function init($class) {
-        if (strpos($class, 'plagiarism_unplag') === false) {
-            return;
-        }
+    public static function get_protected_pathname(\stored_file $file) {
+        return $file->get_pathname_by_contenthash();
+    }
 
-        $class = str_replace('plagiarism_unplag', '', $class);
-        $class = str_replace('\\', '/', $class);
+    /**
+     * @param $id
+     *
+     * @return array
+     */
+    public static function get_childs($id) {
+        global $DB;
 
-        $autoload = sprintf('%s%s.class.php', __DIR__, str_replace('plagiarism_unplag', '', $class));
-        require_once($autoload);
+        return $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($id));
+    }
+
+    /**
+     * @param $id
+     *
+     * @return mixed
+     */
+    public static function get_unplag_file($id) {
+        global $DB;
+
+        return $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
     }
 }
-
-spl_autoload_register(array('plagiarism_unplag\library\unplag_autoloader', 'init'));
