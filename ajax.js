@@ -34,7 +34,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
             return;
         }
 
-        if (record.progress === 100 || record.statuscode === 613) {
+        if (record.progress === 100 || record.statuscode === 613 || record.statuscode === "613") {
             var items = M.plagiarism_unplag.items;
             items.splice(items.indexOf(record.file_id), 1);
 
