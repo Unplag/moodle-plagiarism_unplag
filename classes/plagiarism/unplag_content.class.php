@@ -69,20 +69,17 @@ class unplag_content extends unplag_plagiarism_entity {
      * @param null $parentid
      * @throws unplag_exception
      */
-    public function __construct(unplag_core $core, $content, $name, $ext = null, $parentid = null) {
-        if (!$content) {
-            throw new unplag_exception('Invalid argument content');
-        }
-
-        if ($ext) {
+    public function __construct(unplag_core $core, $content = null, $name, $ext = null, $parentid = null) {
+        if (!$ext) {
             $ext = 'html';
         }
 
         $this->core = $core;
-        $this->content = $content;
         $this->name = $name;
         $this->ext = $ext;
         $this->parentid = $parentid;
+
+        $this->set_content($content);
     }
 
     /**
@@ -166,5 +163,19 @@ class unplag_content extends unplag_plagiarism_entity {
         $this->plagiarismfile = $plagiarismfile;
 
         return $this->plagiarismfile;
+    }
+
+    /**
+     * @return string
+     */
+    public function get_content() {
+        return $this->content;
+    }
+
+    /**
+     * @param string $content
+     */
+    public function set_content($content) {
+        $this->content = $content;
     }
 }

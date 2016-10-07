@@ -113,6 +113,7 @@ class unplag_archive {
                 continue;
             }
 
+            $size = $file->size;
             $name = fix_utf8($file->pathname);
             $format = pathinfo($name, PATHINFO_EXTENSION);
 
@@ -136,14 +137,18 @@ class unplag_archive {
                 continue;
             }
 
-            while (!feof($fz)) {
-                $content .= fread($fz, 262143);
-                fwrite($fp, $content);
-            }
+            $bytesCopied = stream_copy_to_stream($fz, $fp);
+
             fclose($fz);
             fclose($fp);
 
-            $plagiarismentity = new unplag_content($this->unplagcore, $content, $name, $format, $archiveinternalfile->id);
+            if ($bytesCopied != $size) {
+                @unlink($tmpfile);
+                $processed[$name] = 'Can not read file from zip archive';
+                continue;
+            }
+
+            $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $archiveinternalfile->id);
             $plagiarismentity->get_internal_file();
 
             $task = new unplag_upload_and_check_task();
