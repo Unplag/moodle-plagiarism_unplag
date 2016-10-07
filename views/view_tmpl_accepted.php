@@ -25,6 +25,10 @@
 
 global $PAGE, $OUTPUT;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 if (!$iterator) {
     // Now add JS to validate receiver indicator using Ajax.
     $jsmodule = array(

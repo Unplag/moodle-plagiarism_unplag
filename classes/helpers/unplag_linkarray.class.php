@@ -20,6 +20,10 @@ use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_workshop;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_core
  *

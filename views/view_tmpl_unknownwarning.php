@@ -25,6 +25,10 @@
 
 global $OUTPUT;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 $title = plagiarism_unplag::trans('unknownwarning');
 $reset = '';
 $modulecontext = context_module::instance($linkarray['cmid']);

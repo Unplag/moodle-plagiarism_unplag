@@ -25,6 +25,10 @@
 
 namespace plagiarism_unplag\classes;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_api
  *

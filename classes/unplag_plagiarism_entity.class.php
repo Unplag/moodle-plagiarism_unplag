@@ -27,6 +27,10 @@ namespace plagiarism_unplag\classes;
 
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_plagiarism_entity
  *

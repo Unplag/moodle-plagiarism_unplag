@@ -34,6 +34,10 @@ use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_archive
  *
@@ -137,12 +141,12 @@ class unplag_archive {
                 continue;
             }
 
-            $bytesCopied = stream_copy_to_stream($fz, $fp);
+            $bytescopied = stream_copy_to_stream($fz, $fp);
 
             fclose($fz);
             fclose($fp);
 
-            if ($bytesCopied != $size) {
+            if ($bytescopied != $size) {
                 @unlink($tmpfile);
                 $processed[$name] = 'Can not read file from zip archive';
                 continue;

@@ -21,6 +21,10 @@ use coding_exception;
 use context_module;
 use plagiarism_unplag;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_assign
  *

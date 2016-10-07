@@ -25,6 +25,10 @@
 
 global $OUTPUT;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 $errors = isset($fileobj->errorresponse) ? json_decode($fileobj->errorresponse, true) : null;
 if (is_array($errors)) {
     $erroresponse = 'Error: ' . $errors[0]['message'];
