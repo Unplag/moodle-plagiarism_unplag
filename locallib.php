@@ -24,14 +24,17 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
 use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
 use plagiarism_unplag\classes\event\unplag_event_file_submited;
 use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
 use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
+use plagiarism_unplag\classes\helpers\unplag_progress;
 use plagiarism_unplag\classes\unplag_core;
-use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_settings;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
@@ -255,35 +258,10 @@ class plagiarism_unplag {
         if ($records) {
             $checkstatusforids = array();
             foreach ($records as $record) {
-                $childs = array();
-                if ($record->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
-                    $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($record->id));
+                $progressinfo = unplag_progress::get_file_progress_info($record, $data->cid, $checkstatusforids);
+                if ($progressinfo) {
+                    $resp[$record->id] = $progressinfo;
                 }
-
-                if (empty($record->check_id) && empty($childs)) {
-                    continue;
-                }
-
-                if ($record->progress != 100) {
-                    if ($childs) {
-                        foreach ($childs as $child) {
-                            if ($child->check_id) {
-                                $checkstatusforids[$record->id][] = $child->check_id;
-                            }
-                        }
-                    } else {
-                        if ($record->check_id) {
-                            $checkstatusforids[$record->id][] = $record->check_id;
-                        }
-                    }
-                }
-
-                $resp[$record->id] = array(
-                        'file_id' => $record->id,
-                        'statuscode' => $record->statuscode,
-                        'progress' => (int) $record->progress,
-                        'content' => self::gen_row_content_score($data->cid, $record),
-                );
             }
 
             try {
@@ -297,23 +275,6 @@ class plagiarism_unplag {
         }
 
         return unplag_core::json_response($resp);
-    }
-
-    /**
-     * @param $cid
-     * @param $fileobj
-     * @return bool|mixed
-     */
-    public static function gen_row_content_score($cid, $fileobj) {
-        if ($fileobj->progress == 100 && $cid) {
-            return require(dirname(__FILE__) . '/views/view_tmpl_processed.php');
-        } else {
-            if ($fileobj->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-                return require(dirname(__FILE__) . '/views/view_tmpl_invalid_response.php');
-            }
-        }
-
-        return false;
     }
 
     /**

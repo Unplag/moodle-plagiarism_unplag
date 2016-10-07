@@ -78,7 +78,7 @@ class unplag_archive {
      * @todo recursive file extractor
      */
     public function run_checks() {
-        global $DB, $CFG;
+        global $DB;
 
         $archiveinternalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
 
@@ -110,6 +110,25 @@ class unplag_archive {
             $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
             return false;
         }
+
+        $this->process_archive_files($ziparch, $archiveinternalfile->id);
+
+        $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
+        $archiveinternalfile->errorresponse = null;
+
+        $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
+
+        $ziparch->close();
+
+        return true;
+    }
+
+    /**
+     * @param \zip_archive $ziparch
+     * @param null $parentid
+     */
+    private function process_archive_files(\zip_archive &$ziparch, $parentid = null) {
+        global $CFG;
 
         $processed = array();
         foreach ($ziparch as $file) {
@@ -152,7 +171,7 @@ class unplag_archive {
                 continue;
             }
 
-            $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $archiveinternalfile->id);
+            $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $parentid);
             $plagiarismentity->get_internal_file();
 
             $task = new unplag_upload_and_check_task();
@@ -161,7 +180,7 @@ class unplag_archive {
                     'filename' => $name,
                     'unplagcore' => $this->unplagcore,
                     'format' => $format,
-                    'parent_id' => $archiveinternalfile->id
+                    'parent_id' => $parentid
             ));
             $task->set_component('unplag');
 
@@ -169,15 +188,6 @@ class unplag_archive {
 
             unset($content);
         }
-
-        $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
-        $archiveinternalfile->errorresponse = null;
-
-        $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
-
-        $ziparch->close();
-
-        return true;
     }
 
     public function restart_check() {

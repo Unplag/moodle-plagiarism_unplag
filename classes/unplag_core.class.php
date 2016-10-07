@@ -20,6 +20,7 @@ use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\exception\unplag_exception;
+use plagiarism_unplag\classes\helpers\unplag_progress;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -72,7 +73,7 @@ class unplag_core {
                 $val *= 100;
                 $fileobj = self::update_file_progress($id, $val);
                 $resp[$fileobj->id]['progress'] = $val;
-                $resp[$fileobj->id]['content'] = plagiarism_unplag::gen_row_content_score($cid, $fileobj);
+                $resp[$fileobj->id]['content'] = unplag_progress::gen_row_content_score($cid, $fileobj);
             }
 
             foreach ($checkstatusforids as $recordid => $checkids) {
@@ -89,7 +90,7 @@ class unplag_core {
                     $fileobj = self::update_parent_progress($recordid, $progress);
 
                     $resp[$recordid]['progress'] = $progress;
-                    $resp[$recordid]['content'] = plagiarism_unplag::gen_row_content_score($cid, $fileobj);
+                    $resp[$recordid]['content'] = unplag_progress::gen_row_content_score($cid, $fileobj);
                 }
             }
         }

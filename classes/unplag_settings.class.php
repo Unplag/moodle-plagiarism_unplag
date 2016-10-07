@@ -55,7 +55,15 @@ class unplag_settings {
             return $item->value;
         }, $data);
 
-        return (is_bool($assoc) && $assoc) ? $data : $data[$name];
+        if (is_bool($assoc) && $assoc) {
+            return $data;
+        }
+
+        if (isset($data[$name])) {
+            return $data[$name];
+        }
+
+        return [];
     }
 
     /**

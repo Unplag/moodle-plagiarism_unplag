@@ -25,7 +25,7 @@ if (!defined('MOODLE_INTERNAL')) {
 }
 
 /**
- * Class unplag_core
+ * Class unplag_linkarray
  *
  * @package plagiarism_unplag\classes
  * @subpackage  plagiarism
@@ -101,7 +101,9 @@ class unplag_linkarray {
                 $output = require($dir . '/views/view_tmpl_invalid_response.php');
                 break;
             case UNPLAG_STATUSCODE_PENDING:
-                if ($cm->modname == 'assign' && !$fileobj->check_id && $fileobj->type == unplag_plagiarism_entity::TYPE_DOCUMENT) {
+                if ($cm->modname == 'assign' && empty($fileobj->check_id) &&
+                        $fileobj->type == unplag_plagiarism_entity::TYPE_DOCUMENT
+                ) {
                     $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
                     if ($submission->status == 'submitted') {
                         $output = require($dir . '/views/view_tmpl_can_check.php');
