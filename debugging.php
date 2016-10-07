@@ -30,18 +30,15 @@ use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
-if (!defined('MOODLE_INTERNAL')) {
-    die('Direct access to this script is forbidden.');
-}
+require_once(dirname(__FILE__) . '/../../config.php');
+require_once(dirname(__FILE__) . '/lib.php');
 
 global $CFG, $DB, $OUTPUT;
 
-require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/tablelib.php');
 require_once($CFG->libdir . '/plagiarismlib.php');
 require_once($CFG->libdir . '/datalib.php');
-require_once(dirname(__FILE__) . '/lib.php');
 
 require_login();
 admin_externalpage_setup('plagiarismunplag');

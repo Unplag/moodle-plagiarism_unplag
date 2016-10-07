@@ -16,6 +16,8 @@
 
 namespace plagiarism_unplag\classes\helpers;
 
+use plagiarism_unplag\classes\exception\unplag_exception;
+use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -33,6 +35,50 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_progress {
+
+    /**
+     * @param $cid
+     * @param $checkstatusforids
+     * @param $resp
+     *
+     * @throws unplag_exception
+     */
+    public static function check_real_file_progress($cid, $checkstatusforids, &$resp) {
+
+        global $DB;
+        $progressids = array();
+        foreach ($checkstatusforids as $recordid => $checkids) {
+            $progressids = array_merge($progressids, $checkids);
+        }
+        $progressids = array_unique($progressids);
+        $progresses = unplag_api::instance()->get_check_progress($progressids);
+        if ($progresses->result) {
+            foreach ($progresses->progress as $id => $val) {
+                $val *= 100;
+                $fileobj = self::update_file_progress($id, $val);
+                $resp[$fileobj->id]['progress'] = $val;
+                $resp[$fileobj->id]['content'] = unplag_progress::gen_row_content_score($cid, $fileobj);
+            }
+
+            foreach ($checkstatusforids as $recordid => $checkids) {
+                if (count($checkids) > 1) {
+
+                    $childscount = $DB->count_records(UNPLAG_FILES_TABLE, array('parent_id' => $recordid, 'errorresponse' => null));
+                    $progress = 0;
+                    foreach ($checkids as $id) {
+                        $progress += ($progresses->progress->{$id} * 100);
+                    }
+
+                    $progress = floor($progress / $childscount);
+
+                    $fileobj = self::update_parent_progress($recordid, $progress);
+
+                    $resp[$recordid]['progress'] = $progress;
+                    $resp[$recordid]['content'] = unplag_progress::gen_row_content_score($cid, $fileobj);
+                }
+            }
+        }
+    }
 
     /**
      * @param $record
@@ -89,5 +135,53 @@ class unplag_progress {
         }
 
         return false;
+    }
+
+    /**
+     * @param $id
+     * @param $progress
+     *
+     * @return mixed
+     * @throws unplag_exception
+     */
+    private static function update_file_progress($id, $progress) {
+        global $DB;
+
+        $record = $DB->get_record(UNPLAG_FILES_TABLE, array('check_id' => $id));
+        if ($record->progress <= $progress) {
+            $record->progress = $progress;
+
+            if ($record->progress === 100) {
+                $resp = unplag_api::instance()->get_check_data($id);
+                if (!$resp->result) {
+                    throw new unplag_exception($resp->errors);
+                }
+
+                unplag_check_helper::check_complete($record, $resp->check);
+            } else {
+                $DB->update_record(UNPLAG_FILES_TABLE, $record);
+            }
+        }
+
+        return $record;
+    }
+
+    /**
+     * @param $fileid
+     * @param $progress
+     * @return mixed
+     */
+    private static function update_parent_progress($fileid, $progress) {
+        global $DB;
+
+        $record = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $fileid));
+        if ($record->progress <= $progress) {
+            $record->progress = $progress;
+            if ($record->progress != 100) {
+                $DB->update_record(UNPLAG_FILES_TABLE, $record);
+            }
+        }
+
+        return $record;
     }
 }

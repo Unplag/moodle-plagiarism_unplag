@@ -196,7 +196,7 @@ class plagiarism_unplag {
 
             try {
                 if (!empty($checkstatusforids)) {
-                    unplag_core::check_real_file_progress($data->cid, $checkstatusforids, $resp);
+                    unplag_progress::check_real_file_progress($data->cid, $checkstatusforids, $resp);
                 }
             } catch (\Exception $ex) {
                 header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
