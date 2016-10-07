@@ -75,7 +75,7 @@ class unplag_event_file_submited extends unplag_abstract_event {
             return null;
         }
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
-        $plagiarismentity->upload_on_unplag_server();
+        $plagiarismentity->upload_file_on_unplag_server();
 
         return $plagiarismentity;
     }
