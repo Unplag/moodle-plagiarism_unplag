@@ -50,10 +50,12 @@ class unplag_upload_and_check_task extends adhoc_task {
 
             if (isset($internalfile->check_id)) {
                 mtrace('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
-            } elseif ($internalfile->external_file_id) {
-                $checkresp = unplag_api::instance()->run_check($internalfile);
-                $plagiarismentity->handle_check_response($checkresp);
-                mtrace('file ' . $internalfile->identifier . 'send to Unplag');
+            } else {
+                if ($internalfile->external_file_id) {
+                    $checkresp = unplag_api::instance()->run_check($internalfile);
+                    $plagiarismentity->handle_check_response($checkresp);
+                    mtrace('file ' . $internalfile->identifier . 'send to Unplag');
+                }
             }
 
             unset($internalfile, $plagiarismentity, $checkresp);

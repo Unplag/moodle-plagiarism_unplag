@@ -270,8 +270,10 @@ class plagiarism_unplag {
                                 $checkstatusforids[$record->id][] = $child->check_id;
                             }
                         }
-                    } elseif ($record->check_id) {
-                        $checkstatusforids[$record->id][] = $record->check_id;
+                    } else {
+                        if ($record->check_id) {
+                            $checkstatusforids[$record->id][] = $record->check_id;
+                        }
                     }
                 }
 
@@ -304,8 +306,10 @@ class plagiarism_unplag {
     public static function gen_row_content_score($cid, $fileobj) {
         if ($fileobj->progress == 100 && $cid) {
             return require(dirname(__FILE__) . '/views/view_tmpl_processed.php');
-        } elseif ($fileobj->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-            return require(dirname(__FILE__) . '/views/view_tmpl_invalid_response.php');
+        } else {
+            if ($fileobj->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
+                return require(dirname(__FILE__) . '/views/view_tmpl_invalid_response.php');
+            }
         }
 
         return false;
