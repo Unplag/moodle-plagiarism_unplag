@@ -24,15 +24,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-error_reporting(E_ALL);
-ini_set("display_errors", 1);
-
 use core\event\base;
-use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
-use plagiarism_unplag\classes\event\unplag_event_file_submited;
-use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
-use plagiarism_unplag\classes\event\unplag_event_validator;
-use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\helpers\unplag_progress;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
@@ -78,71 +71,8 @@ class plagiarism_unplag {
      * @param base $event
      */
     public static function event_handler(base $event) {
-
-        unplag_event_validator::validate_event($event);
-        if (self::is_allowed_events($event)) {
-            $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-
-            switch ($event->component) {
-                case 'assignsubmission_onlinetext':
-                    unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
-                    break;
-                case 'assignsubmission_file':
-                    unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
-                    break;
-                case 'mod_workshop':
-                    $unplagcore->create_file_from_content($event);
-                    break;
-                case 'mod_forum':
-                    unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
-                    unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
-                    break;
-            }
-        } else {
-            if (self::is_assign_submitted($event)) {
-                $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-                unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
-            } else {
-                if (self::is_workshop_swiched($event)) {
-                    $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-                    unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
-                }
-            }
-        }
-    }
-
-    /**
-     * @param base $event
-     *
-     * @return bool
-     */
-    private static function is_allowed_events(base $event) {
-        $eventdata = $event->get_data();
-        return in_array($eventdata['eventname'], array(
-                '\assignsubmission_file\event\submission_updated',
-                '\assignsubmission_file\event\assessable_uploaded',
-                '\assignsubmission_onlinetext\event\assessable_uploaded',
-                '\mod_forum\event\assessable_uploaded',
-                '\mod_workshop\event\assessable_uploaded'
-        ));
-    }
-
-    /**
-     * @param base $event
-     *
-     * @return bool
-     */
-    private static function is_assign_submitted(base $event) {
-        return $event->target == 'assessable' && $event->action == 'submitted';
-    }
-
-    /**
-     * @param base $event
-     *
-     * @return bool
-     */
-    private static function is_workshop_swiched(base $event) {
-        return $event->target == 'phase' && $event->action == 'switched' && $event->component == 'mod_workshop';
+        $unplagevent = new \plagiarism_unplag\classes\entities\unplag_event();
+        $unplagevent->process($event);
     }
 
     /**
@@ -290,7 +220,7 @@ class plagiarism_unplag {
             $rawjson = file_get_contents('php://input');
             $respcheck = unplag_core::parse_json($rawjson);
             if ($record && isset($respcheck->check)) {
-                unplag_core::check_complete($record, $respcheck->check);
+                unplag_check_helper::check_complete($record, $respcheck->check);
             }
         } else {
             print_error('error');

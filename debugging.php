@@ -24,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
@@ -80,7 +81,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
             $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
             $response = unplag_api::instance()->get_check_data($plagiarismfile->check_id);
             if ($response->result) {
-                unplag_core::check_complete($plagiarismfile, $response->check);
+                unplag_check_helper::check_complete($plagiarismfile, $response->check);
             } else {
                 $plagiarismfile->errorresponse = json_encode($response->errors);
                 $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);

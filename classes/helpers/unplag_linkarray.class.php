@@ -101,14 +101,9 @@ class unplag_linkarray {
                 $output = require($dir . '/views/view_tmpl_invalid_response.php');
                 break;
             case UNPLAG_STATUSCODE_PENDING:
-                if ($cm->modname == 'assign' && empty($fileobj->check_id) &&
-                        $fileobj->type == unplag_plagiarism_entity::TYPE_DOCUMENT
-                ) {
-                    $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-                    if ($submission->status == 'submitted') {
-                        $output = require($dir . '/views/view_tmpl_can_check.php');
-                        $iterator++;
-                    }
+                if (self::is_pending($cm, $fileobj) && self::is_submission_submitted($linkarray)) {
+                    $output = require($dir . '/views/view_tmpl_can_check.php');
+                    $iterator++;
                 }
                 break;
             default:
@@ -117,5 +112,24 @@ class unplag_linkarray {
         }
 
         return $output;
+    }
+
+    /**
+     * @param $cm
+     * @param $fileobj
+     * @return bool
+     */
+    private static function is_pending($cm, $fileobj) {
+        return $cm->modname == 'assign' && empty($fileobj->check_id) && $fileobj->type == unplag_plagiarism_entity::TYPE_DOCUMENT;
+    }
+
+    /**
+     * @param $linkarray
+     * @return bool
+     */
+    private static function is_submission_submitted($linkarray) {
+        $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
+
+        return $submission->status == 'submitted';
     }
 }
