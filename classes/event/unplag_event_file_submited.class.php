@@ -28,6 +28,10 @@ namespace plagiarism_unplag\classes\event;
 use core\event\base;
 use plagiarism_unplag\classes\unplag_core;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_event_file_submited
  *

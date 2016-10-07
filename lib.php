@@ -235,4 +235,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         return $outputhtml;
     }
+
+    public function cron() {
+        // Do nothing.
+        // Workaround MDL-52702 before version 3.1.
+        // Affected branches moodle 2.7 - 3.0.
+    }
 }

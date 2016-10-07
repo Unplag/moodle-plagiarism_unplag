@@ -29,6 +29,10 @@ use plagiarism_unplag\library\OAuth\OAuthConsumer;
 use plagiarism_unplag\library\OAuth\OAuthRequest;
 use plagiarism_unplag\library\OAuth\Signature\OAuthSignatureMethod_HMAC_SHA1;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class unplag_api_request
  *

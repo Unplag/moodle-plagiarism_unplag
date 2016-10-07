@@ -18,7 +18,12 @@ namespace plagiarism_unplag\classes;
 
 use core\event\base;
 use plagiarism_unplag;
-use plagiarism_unplag\classes\exception\UnplagException;
+use plagiarism_unplag\classes\entities\unplag_archive;
+use plagiarism_unplag\classes\plagiarism\unplag_file;
+
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
 
 /**
  * Class unplag_core
@@ -43,75 +48,6 @@ class unplag_core {
     public function __construct($cmid, $userid) {
         $this->cmid = $cmid;
         $this->userid = $userid;
-    }
-
-    /**
-     * @param $cid
-     * @param $checkstatusforids
-     * @param $resp
-     *
-     * @throws UnplagException
-     */
-    public static function check_real_file_progress($cid, $checkstatusforids, &$resp) {
-        $progresses = unplag_api::instance()->get_check_progress($checkstatusforids);
-        if ($progresses->result) {
-            foreach ($progresses->progress as $id => $val) {
-                $val *= 100;
-                $fileobj = self::update_file_progress($id, $val);
-                $resp[$id]['progress'] = $val;
-                $resp[$id]['content'] = plagiarism_unplag::gen_row_content_score($cid, $fileobj);
-            }
-        }
-    }
-
-    /**
-     * @param $id
-     * @param $progres
-     *
-     * @return mixed
-     * @throws UnplagException
-     */
-    private static function update_file_progress($id, $progres) {
-        global $DB;
-
-        $record = $DB->get_record(UNPLAG_FILES_TABLE, array('check_id' => $id));
-        if ($record->progress <= $progres) {
-            $record->progress = $progres;
-
-            if ($record->progress === 100) {
-                $resp = unplag_api::instance()->get_check_data($id);
-                if (!$resp->result) {
-                    throw new UnplagException($resp->errors);
-                }
-
-                self::check_complete($record, $resp->check);
-            } else {
-                $DB->update_record(UNPLAG_FILES_TABLE, $record);
-            }
-        }
-
-        return $record;
-    }
-
-    /**
-     * @param \stdClass $record
-     * @param \stdClass $check
-     */
-    public static function check_complete(\stdClass &$record, \stdClass $check) {
-        global $DB;
-
-        $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
-        $record->similarityscore = $check->report->similarity;
-        $record->reporturl = $check->report->view_url;
-        $record->reportediturl = $check->report->view_edit_url;
-        $record->progress = 100;
-
-        $updated = $DB->update_record(UNPLAG_FILES_TABLE, $record);
-
-        $emailstudents = unplag_settings::get_assign_settings($record->cm, 'unplag_studentemail');
-        if ($updated && !empty($emailstudents)) {
-            unplag_notification::send_student_email_notification($record);
-        }
     }
 
     /**
@@ -143,6 +79,14 @@ class unplag_core {
         if (plagiarism_unplag::is_support_mod($cm->modname)) {
             $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
             $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
+
+            if (plagiarism_unplag::is_archive($file)) {
+                $unplagarchive = new unplag_archive($file, $ucore);
+                $unplagarchive->restart_check();
+
+                return;
+            }
+
             $plagiarismentity = $ucore->get_plagiarism_entity($file);
             $internalfile = $plagiarismentity->get_internal_file();
             if (isset($internalfile->external_file_id)) {
@@ -171,7 +115,7 @@ class unplag_core {
             return null;
         }
 
-        $this->unplagplagiarismentity = new unplag_plagiarism_entity($this, $file);
+        $this->unplagplagiarismentity = new unplag_file($this, $file);
 
         return $this->unplagplagiarismentity;
     }

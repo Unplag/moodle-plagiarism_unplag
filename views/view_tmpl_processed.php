@@ -26,6 +26,10 @@
 use plagiarism_unplag\classes\unplag_language;
 use plagiarism_unplag\classes\unplag_settings;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 global $OUTPUT, $USER;
 
 // Normal situation - UNPLAG has successfully analyzed the file.

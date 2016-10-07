@@ -30,6 +30,10 @@ use plagiarism_unplag;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 require_once(dirname(__FILE__) . '/../../locallib.php');
 
 /**

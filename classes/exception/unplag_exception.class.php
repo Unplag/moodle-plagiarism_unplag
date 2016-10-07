@@ -16,6 +16,10 @@
 
 namespace plagiarism_unplag\classes\exception;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class UnplagException
  *
@@ -27,7 +31,7 @@ namespace plagiarism_unplag\classes\exception;
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class UnplagException extends \Exception {
+class unplag_exception extends \Exception {
     /**
      * UnplagException constructor.
      *
