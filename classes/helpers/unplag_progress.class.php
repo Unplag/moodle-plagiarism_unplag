@@ -57,7 +57,7 @@ class unplag_progress {
                 $val *= 100;
                 $fileobj = self::update_file_progress($id, $val);
                 $resp[$fileobj->id]['progress'] = $val;
-                $resp[$fileobj->id]['content'] = unplag_progress::gen_row_content_score($cid, $fileobj);
+                $resp[$fileobj->id]['content'] = self::gen_row_content_score($cid, $fileobj);
             }
 
             foreach ($checkstatusforids as $recordid => $checkids) {
@@ -74,7 +74,7 @@ class unplag_progress {
                     $fileobj = self::update_parent_progress($recordid, $progress);
 
                     $resp[$recordid]['progress'] = $progress;
-                    $resp[$recordid]['content'] = unplag_progress::gen_row_content_score($cid, $fileobj);
+                    $resp[$recordid]['content'] = self::gen_row_content_score($cid, $fileobj);
                 }
             }
         }
@@ -83,6 +83,7 @@ class unplag_progress {
     /**
      * @param $record
      * @param $cid
+     * @param $checkstatusforids
      * @return array|bool
      */
     public static function get_file_progress_info($record, $cid, &$checkstatusforids) {
