@@ -68,7 +68,7 @@ $reporturl = $current->reporturl;
 if ($teacherhere) {
     $reporturl = $current->reportediturl;
 }
-unplag_language::inject_language_to_url($reporturl);
+unplag_language::inject_language_to_url($reporturl, 0);
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 echo '<iframe src="' . $reporturl .
