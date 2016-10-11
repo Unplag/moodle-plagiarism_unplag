@@ -60,8 +60,9 @@ class unplag_language {
 
     /**
      * @param $url
+     * @param int $showlangpicker
      */
-    public static function inject_language_to_url(&$url) {
+    public static function inject_language_to_url(&$url, $showlangpicker = 1) {
         if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
             $language = self::get_unplag_language();
             $parsedurl = parse_url($url);
@@ -73,6 +74,7 @@ class unplag_language {
                     parse_str($parsedurl['query'], $slugs);
                 }
                 $slugs['lang'] = $language;
+                $slugs['show_lang_picker'] = $showlangpicker;
                 $query = http_build_query($slugs);
                 $url .= '?' . $query;
             }
