@@ -43,6 +43,14 @@ class unplag_setup_form extends moodleform {
         $mform =& $this->_form;
         $mform->addElement('checkbox', 'unplag_use', plagiarism_unplag::trans('useunplag'));
 
+        $settingstext = '<div id="fitem_id_unplag_settings_link" class="fitem fitem_ftext ">
+                            <div class="felement ftext">
+                                <a href="' . UNPLAG_DOMAIN . 'profile/apisettings" target="_blank"> ' .
+                plagiarism_unplag::trans('unplag_settings_url_text') . '</a>
+                            </div>
+                        </div>';
+        $mform->addElement('html', $settingstext);
+
         $mform->addElement('text', 'unplag_client_id', plagiarism_unplag::trans('unplag_client_id'));
         $mform->addHelpButton('unplag_client_id', 'unplag_client_id', 'plagiarism_unplag');
         $mform->addRule('unplag_client_id', null, 'required', null, 'client');
