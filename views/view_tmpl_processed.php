@@ -23,6 +23,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_language;
 use plagiarism_unplag\classes\unplag_settings;
 
@@ -43,7 +44,7 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
     // User is allowed to view the report.
     // Score is contained in report, so they can see the score too.
     $htmlparts[] = sprintf('<img  width="32" height="32" src="%s" title="%s"> ',
-            $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
+        $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
     );
 
     $modulecontext = context_module::instance($cid);
@@ -55,8 +56,8 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
         if ($teacherhere || $assigncfg['unplag_show_student_score']) {
             // User is allowed to view only the score.
             $htmlparts[] = sprintf('%s: <span class="rank1">%s%%</span>',
-                    plagiarism_unplag::trans('similarity'),
-                    $fileobj->similarityscore
+                plagiarism_unplag::trans('similarity'),
+                $fileobj->similarityscore
             );
         }
     }
@@ -68,12 +69,15 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
 
         unplag_language::inject_language_to_url($reporturl);
         unplag_language::inject_language_to_url($editreporturl);
+        if ($teacherhere) {
+            unplag_core::inject_comment_token($editreporturl);
+        }
 
         if ($teacherhere || $assigncfg['unplag_show_student_report']) {
             // Display opt-out link.
             $htmlparts[] = '&nbsp;<span class"plagiarismoptout">';
             $htmlparts[] = sprintf('<a title="%s" href="%s" target="_blank">',
-                    plagiarism_unplag::trans('report'), $teacherhere ? $editreporturl : $reporturl
+                plagiarism_unplag::trans('report'), $teacherhere ? $editreporturl : $reporturl
             );
             $htmlparts[] = '<img class="un_tooltip" src="' . $OUTPUT->pix_url('link', 'plagiarism_unplag') . '">';
             $htmlparts[] = '</a></span>';

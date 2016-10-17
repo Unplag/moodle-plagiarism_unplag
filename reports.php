@@ -24,6 +24,7 @@
  */
 
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
+use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_language;
 
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
@@ -67,8 +68,9 @@ $teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
 $reporturl = $current->reporturl;
 if ($teacherhere) {
     $reporturl = $current->reportediturl;
+    unplag_core::inject_comment_token($reporturl);
 }
-unplag_language::inject_language_to_url($reporturl, 0);
+unplag_language::inject_language_to_url($reporturl);
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 echo '<iframe src="' . $reporturl .
