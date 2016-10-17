@@ -41,7 +41,8 @@ class unplag_language {
             'uk' => 'uk_UA',
             'nl' => 'nl_BE',
             'tr' => 'tr_TR',
-            'fr' => 'fr_FR'
+            'fr' => 'fr_FR',
+            'fr_ca' => 'fr_FR'
     );
 
     /**
