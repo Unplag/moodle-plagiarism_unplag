@@ -41,7 +41,8 @@ class unplag_language {
             'uk' => 'uk_UA',
             'nl' => 'nl_BE',
             'tr' => 'tr_TR',
-            'fr' => 'fr_FR'
+            'fr' => 'fr_FR',
+            'fr_ca' => 'fr_FR'
     );
 
     /**
@@ -62,7 +63,7 @@ class unplag_language {
      * @param $url
      * @param int $showlangpicker
      */
-    public static function inject_language_to_url(&$url, $showlangpicker = 1) {
+    public static function inject_language_to_url(&$url, $showlangpicker = 0) {
         if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
             $language = self::get_unplag_language();
             $parsedurl = parse_url($url);

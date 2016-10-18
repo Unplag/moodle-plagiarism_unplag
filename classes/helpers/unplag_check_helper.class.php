@@ -72,7 +72,7 @@ class unplag_check_helper {
                 $similarity += $child->similarityscore;
             }
 
-            $parentprogress = floor($parentprogress / count($childs));
+            $parentprogress = round($parentprogress / count($childs), 2, PHP_ROUND_HALF_DOWN);
             $reporturl = new \moodle_url('/plagiarism/unplag/reports.php', array(
                     'cmid' => $parentrecord->cm,
                     'pf' => $parentrecord->id,
@@ -81,7 +81,7 @@ class unplag_check_helper {
 
             $parentcheck = array(
                     'report' => array(
-                            'similarity' => floor($similarity / count($childs)),
+                            'similarity' => round($similarity / count($childs), 2, PHP_ROUND_HALF_DOWN),
                             'view_url' => (string) $reporturl->out_as_local_url(),
                             'view_edit_url' => (string) $reporturl->out_as_local_url()
                     )

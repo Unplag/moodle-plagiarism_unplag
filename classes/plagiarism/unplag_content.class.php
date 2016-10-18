@@ -129,8 +129,8 @@ class unplag_content extends unplag_plagiarism_entity {
 
         $plagiarismfile = null;
         try {
+            $identifier = sha1($this->name . $this->cmid() . $this->userid() . $this->parentid);
 
-            $identifier = md5($this->name);
             $filedata = array(
                     'cm' => $this->cmid(),
                     'userid' => $this->userid(),
