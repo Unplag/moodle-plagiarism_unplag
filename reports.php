@@ -115,8 +115,7 @@ if ($cpf !== null) {
     }
     unplag_language::inject_language_to_url($reporturl);
 
-    echo '<iframe src="' . $reporturl .
-            '" frameborder="0" allowfullscreen align="center" id="_unplag_report_frame" style="width: 100%; height: 750px;"></iframe>';
+    echo '<iframe src="' . $reporturl . '" frameborder="0" id="_unplag_report_frame" style="width: 100%; height: 750px;"></iframe>';
 } else {
     $table = new html_table();
     $table->head = array('Filename', 'Status');
