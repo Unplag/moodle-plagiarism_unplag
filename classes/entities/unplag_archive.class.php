@@ -111,7 +111,11 @@ class unplag_archive {
             return false;
         }
 
-        $this->process_archive_files($ziparch, $archiveinternalfile->id);
+        try {
+            $this->process_archive_files($ziparch, $archiveinternalfile->id);
+        } catch (\Exception $e) {
+            mtrace('Archive error ' . $e->getMessage());
+        }
 
         $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
         $archiveinternalfile->errorresponse = null;
