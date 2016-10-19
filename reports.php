@@ -39,42 +39,96 @@ $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
 require_login($cm->course, true, $cm);
 
 $pf = required_param('pf', PARAM_INT);   // Plagiarism file id.
-$cpf = required_param('cpf', PARAM_INT);   // Plagiarism child file id.
 $childs = unplag_stored_file::get_childs($pf);
-$current = unplag_stored_file::get_unplag_file($cpf);
 
 $modulecontext = context_module::instance($cmid);
 
+$cpf = optional_param('cpf', null, PARAM_INT);   // Plagiarism child file id.
+if ($cpf !== null) {
+    $current = unplag_stored_file::get_unplag_file($cpf);
+    $currenttab = 'unplag_file_id_' . $current->id;
+} else {
+    $currenttab = 'unplag_files_info';
+}
+
 echo $OUTPUT->header();
 
-$currenttab = 'unplag_file_id_' . $current->id;
 $tabs = array();
-
+$fileinfos = array();
 foreach ($childs as $child) {
 
-    if ($child->check_id !== null && $child->progress == 100) {
-        $url = new \moodle_url('/plagiarism/unplag/reports.php', array(
-                'cmid' => $cmid,
-                'pf' => $pf,
-                'cpf' => $child->id
-        ));
+    switch ($child->statuscode) {
+        case UNPLAG_STATUSCODE_PROCESSED :
 
-        $tabs[] = new tabobject('unplag_file_id_' . $child->id, $url->out_as_local_url(), $child->filename, '', false);
+            $url = new \moodle_url('/plagiarism/unplag/reports.php', array(
+                    'cmid' => $cmid,
+                    'pf' => $pf,
+                    'cpf' => $child->id
+            ));
+
+            if ($child->check_id !== null && $child->progress == 100) {
+
+                $tabs[] = new tabobject('unplag_file_id_' . $child->id, $url->out_as_local_url(), $child->filename, '', false);
+
+                $link = html_writer::link($url, $child->filename);
+                $fileinfos[] = array(
+                        'filename' => html_writer::tag('div', $link, array('class' => 'edit-link')),
+                        'status' => $OUTPUT->pix_icon('i/valid', plagiarism_unplag::trans('reportready')) .
+                                plagiarism_unplag::trans('reportready')
+                );
+            }
+            break;
+        case UNPLAG_STATUSCODE_INVALID_RESPONSE :
+            $errors = json_decode($child->errorresponse, true);
+            if (is_array($errors)) {
+                $erroresponse = $errors[0]['message'];
+            } else {
+                $erroresponse = plagiarism_unplag::trans('unknownwarning');
+            }
+            $fileinfos[] = array(
+                    'filename' => $child->filename,
+                    'status' => $OUTPUT->pix_icon('i/invalid', $erroresponse) . $erroresponse
+            );
+            break;
     }
 };
+
+$generalinfourl = new \moodle_url('/plagiarism/unplag/reports.php', array(
+        'cmid' => $cmid,
+        'pf' => $pf
+));
+
+array_unshift($tabs,
+        new tabobject('unplag_files_info', $generalinfourl->out_as_local_url(), plagiarism_unplag::trans('generalinfo'), '',
+                false));
+
 print_tabs(array($tabs), $currenttab);
 
-$teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
-$reporturl = $current->reporturl;
-if ($teacherhere) {
-    $reporturl = $current->reportediturl;
-    unplag_core::inject_comment_token($reporturl);
-}
-unplag_language::inject_language_to_url($reporturl);
-
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-echo '<iframe src="' . $reporturl .
-        '" frameborder="0" allowfullscreen align="center" id="_unplag_report_frame" style="width: 100%; height: 750px;"></iframe>';
+
+if ($cpf !== null) {
+    $teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
+    $reporturl = $current->reporturl;
+    if ($teacherhere) {
+        $reporturl = $current->reportediturl;
+        unplag_core::inject_comment_token($reporturl);
+    }
+    unplag_language::inject_language_to_url($reporturl);
+
+    echo '<iframe src="' . $reporturl .
+            '" frameborder="0" allowfullscreen align="center" id="_unplag_report_frame" style="width: 100%; height: 750px;"></iframe>';
+} else {
+    $table = new html_table();
+    $table->head = array('Filename', 'Status');
+    $table->align = array('left', 'left');
+
+    foreach ($fileinfos as $fileinfo) {
+        $linedata = array($fileinfo['filename'], $fileinfo['status']);
+        $table->data[] = $linedata;
+    }
+
+    echo html_writer::table($table);
+}
 echo $OUTPUT->box_end();
 
 echo $OUTPUT->footer();

@@ -38,6 +38,8 @@ class unplag_language {
     private static $supportedlanguage = array(
             'en' => 'en_EN',
             'es' => 'es_ES',
+            'es_mx' => 'es_ES',
+            'es_ve' => 'es_ES',
             'uk' => 'uk_UA',
             'nl' => 'nl_BE',
             'tr' => 'tr_TR',
