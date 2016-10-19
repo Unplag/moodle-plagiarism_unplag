@@ -62,12 +62,8 @@ class unplag_check_helper {
             $parentrecord = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $record->parent_id));
             $childs = $DB->get_records(UNPLAG_FILES_TABLE, array('parent_id' => $parentrecord->id, 'errorresponse' => null));
             $similarity = 0;
-            $cpf = null;
             $parentprogress = 0;
             foreach ($childs as $child) {
-                if ($cpf === null) {
-                    $cpf = $child->id;
-                }
                 $parentprogress += $child->progress;
                 $similarity += $child->similarityscore;
             }
@@ -75,8 +71,7 @@ class unplag_check_helper {
             $parentprogress = round($parentprogress / count($childs), 2, PHP_ROUND_HALF_DOWN);
             $reporturl = new \moodle_url('/plagiarism/unplag/reports.php', array(
                     'cmid' => $parentrecord->cm,
-                    'pf' => $parentrecord->id,
-                    'cpf' => $cpf
+                    'pf' => $parentrecord->id
             ));
 
             $parentcheck = array(

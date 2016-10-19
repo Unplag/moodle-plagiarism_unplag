@@ -108,3 +108,6 @@ $string['check_file'] = 'Start a scan';
 $string['web'] = 'Doc vs Internet';
 $string['my_library'] = 'Doc vs Library';
 $string['web_and_my_library'] = 'Doc vs Internet + Library';
+
+$string['reportready'] = 'Report ready';
+$string['generalinfo'] = 'General information';
