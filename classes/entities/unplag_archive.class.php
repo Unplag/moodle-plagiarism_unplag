@@ -65,17 +65,12 @@ class unplag_archive {
      * @throws unplag_exception
      */
     public function __construct(\stored_file $file, unplag_core $core) {
-        if (!\plagiarism_unplag::is_archive($file)) {
-            throw new unplag_exception('File must be archive');
-        }
-
         $this->file = $file;
         $this->unplagcore = $core;
     }
 
     /**
      * @return bool
-     * @todo recursive file extractor
      */
     public function run_checks() {
         global $DB;
