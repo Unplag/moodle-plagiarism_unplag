@@ -66,13 +66,11 @@ class unplag_event_validator {
             $plagiarismvalues = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $cmid), '', 'name, value');
             if (empty($plagiarismvalues['use_unplag'])) {
                 // Unplag not in use for this cm - return.
-                mtrace('Unplag not in use for this cm');
                 return false;
             }
 
             // Check if the module associated with this event still exists.
             if (!$DB->record_exists('course_modules', array('id' => $cmid))) {
-                mtrace('Module not associated with this event');
                 return false;
             }
 
