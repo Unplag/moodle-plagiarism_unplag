@@ -50,7 +50,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @return array
      */
     public static function default_plagin_options() {
-        return array('unplag_use', 'unplag_enable_mod_assign');
+        return array('unplag_use', 'unplag_enable_mod_assign', 'unplag_enable_mod_forum', 'unplag_enable_mod_workshop');
     }
 
     /**
@@ -74,15 +74,16 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $cm = get_coursemodule_from_id('', $linkarray['cmid'], 0, false, MUST_EXIST);
 
         $output = '';
-        $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
-        if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
-            $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
-            $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
-            if (!empty($fileobj) && is_object($fileobj)) {
-                $output = unplag_linkarray::get_output_for_linkarray($fileobj, $cm, $linkarray);
+        if (plagiarism_plugin_unplag::is_enabled_module('mod_' . $cm->modname)) {
+            $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
+            if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
+                $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
+                $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
+                if (!empty($fileobj) && is_object($fileobj)) {
+                    $output = unplag_linkarray::get_output_for_linkarray($fileobj, $cm, $linkarray);
+                }
             }
         }
-
         return $output;
     }
 
@@ -134,7 +135,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @param $modulename
      * @return bool
      */
-    private function is_enabled_module($modulename) {
+    public static function is_enabled_module($modulename) {
         $plagiarismsettings = unplag_settings::get_settings();
         $modname = 'unplag_enable_' . $modulename;
 
@@ -155,7 +156,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @return null
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
-        if ($modulename && !$this->is_enabled_module($modulename)) {
+        if ($modulename && !self::is_enabled_module($modulename)) {
             return null;
         }
 
