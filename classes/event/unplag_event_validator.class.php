@@ -16,14 +16,14 @@
 
 namespace plagiarism_unplag\classes\event;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 require_once(dirname(__FILE__) . '/../../lib.php');
 
 use core\event\base;
 use plagiarism_plugin_unplag;
-
-if (!defined('MOODLE_INTERNAL')) {
-    die('Direct access to this script is forbidden.');
-}
 
 /**
  * Class unplag_event_validator

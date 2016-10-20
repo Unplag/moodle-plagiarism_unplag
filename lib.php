@@ -74,7 +74,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $cm = get_coursemodule_from_id('', $linkarray['cmid'], 0, false, MUST_EXIST);
 
         $output = '';
-        if (plagiarism_plugin_unplag::is_enabled_module('mod_' . $cm->modname)) {
+        if (self::is_enabled_module('mod_' . $cm->modname)) {
             $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
             if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
                 $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
