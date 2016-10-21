@@ -25,6 +25,7 @@
  */
 
 use core\event\base;
+use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\helpers\unplag_progress;
 use plagiarism_unplag\classes\unplag_core;
@@ -71,8 +72,10 @@ class plagiarism_unplag {
      * @param base $event
      */
     public static function event_handler(base $event) {
-        $unplagevent = new \plagiarism_unplag\classes\entities\unplag_event();
-        $unplagevent->process($event);
+        if (unplag_event_validator::validate_event($event)) {
+            $unplagevent = new \plagiarism_unplag\classes\entities\unplag_event();
+            $unplagevent->process($event);
+        }
     }
 
     /**

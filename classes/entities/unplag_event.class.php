@@ -29,7 +29,6 @@ use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
 use plagiarism_unplag\classes\event\unplag_event_file_submited;
 use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
-use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -47,7 +46,6 @@ if (!defined('MOODLE_INTERNAL')) {
 class unplag_event {
 
     public function process(base $event) {
-        unplag_event_validator::validate_event($event);
         if (self::is_allowed_events($event)) {
             $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
 

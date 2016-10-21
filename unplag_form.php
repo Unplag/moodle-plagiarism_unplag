@@ -109,7 +109,7 @@ class unplag_defaults_form extends moodleform {
             $this->internalusage = true;
         }
 
-        if (!is_null($modname) && is_string($modname)) {
+        if (!is_null($modname) && is_string($modname) && plagiarism_plugin_unplag::is_enabled_module($modname)) {
             $modname = str_replace('mod_', '', $modname);
             if (plagiarism_unplag::is_support_mod($modname)) {
                 $this->modname = $modname;
