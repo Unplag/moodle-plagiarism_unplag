@@ -46,10 +46,10 @@ class unplag_check_helper {
             $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
         }
 
-        $record->similarityscore = $check->report->similarity;
+        $record->similarityscore = (float) $check->report->similarity;
         $record->reporturl = $check->report->view_url;
         $record->reportediturl = $check->report->view_edit_url;
-        $record->progress = $progress;
+        $record->progress = round($progress, 0, PHP_ROUND_HALF_DOWN);
 
         $updated = $DB->update_record(UNPLAG_FILES_TABLE, $record);
 
@@ -60,7 +60,9 @@ class unplag_check_helper {
 
         if ($updated && $record->parent_id !== null) {
             $parentrecord = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $record->parent_id));
-            $childs = $DB->get_records(UNPLAG_FILES_TABLE, array('parent_id' => $parentrecord->id, 'errorresponse' => null));
+            $childs = $DB->get_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
+                    array($record->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED, UNPLAG_STATUSCODE_PENDING));
+
             $similarity = 0;
             $parentprogress = 0;
             foreach ($childs as $child) {

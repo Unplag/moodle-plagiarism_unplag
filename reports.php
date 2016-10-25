@@ -33,6 +33,7 @@ require_once(dirname(__FILE__) . '/lib.php');
 global $PAGE, $CFG, $OUTPUT, $USER;
 
 $PAGE->set_pagelayout('report');
+$PAGE->set_url($CFG->wwwroot . $SCRIPT);
 
 $cmid = required_param('cmid', PARAM_INT);  // Course Module ID.
 $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);

@@ -29,6 +29,10 @@ if (!defined('MOODLE_INTERNAL')) {
 
 global $PAGE, $OUTPUT;
 
+if (AJAX_SCRIPT) {
+    $PAGE->set_context(null);
+}
+
 if (!$iterator) {
     // Now add JS to validate receiver indicator using Ajax.
     $jsmodule = array(

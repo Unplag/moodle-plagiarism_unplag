@@ -127,7 +127,7 @@ if (!empty($orderby) && ($dir == 'asc' || $dir == 'desc')) {
 // Now show files in an error state.
 $sql = sprintf('SELECT t.*, %1$s, m.name as moduletype, cm.course as courseid, cm.instance as cminstance
     FROM {plagiarism_unplag_files} t, {user} u, {modules} m, {course_modules} cm
-    WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id AND t.parent_id iS NULL AND t.type = "%3$s"
+    WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id AND t.parent_id iS NULL AND t.type = \'%3$s\'
     AND t.errorresponse is not null
     %2$s',
         get_all_user_name_fields(true, 'u'), $orderby, unplag_plagiarism_entity::TYPE_DOCUMENT

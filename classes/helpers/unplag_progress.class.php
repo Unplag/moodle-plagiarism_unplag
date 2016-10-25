@@ -62,8 +62,8 @@ class unplag_progress {
 
             foreach ($checkstatusforids as $recordid => $checkids) {
                 if (count($checkids) > 1) {
-
-                    $childscount = $DB->count_records(UNPLAG_FILES_TABLE, array('parent_id' => $recordid, 'errorresponse' => null));
+                    $childscount = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
+                            array($recordid, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED, UNPLAG_STATUSCODE_PENDING));
                     $progress = 0;
                     foreach ($checkids as $id) {
                         $progress += ($progresses->progress->{$id} * 100);
