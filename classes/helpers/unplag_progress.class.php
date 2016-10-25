@@ -59,24 +59,24 @@ class unplag_progress {
                 $resp[$fileobj->id]['progress'] = $val;
                 $resp[$fileobj->id]['content'] = self::gen_row_content_score($cid, $fileobj);
             }
-        //
-        //    foreach ($checkstatusforids as $recordid => $checkids) {
-        //        if (count($checkids) > 1) {
-        //            $childscount = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND (statuscode in (?,?,?)",
-        //                    array($recordid, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED, UNPLAG_STATUSCODE_PENDING));
-        //            $progress = 0;
-        //            foreach ($checkids as $id) {
-        //                $progress += ($progresses->progress->{$id} * 100);
-        //            }
-        //
-        //            $progress = floor($progress / $childscount);
-        //
-        //            $fileobj = self::update_parent_progress($recordid, $progress);
-        //
-        //            $resp[$recordid]['progress'] = $progress;
-        //            $resp[$recordid]['content'] = self::gen_row_content_score($cid, $fileobj);
-        //        }
-        //    }
+
+            foreach ($checkstatusforids as $recordid => $checkids) {
+                if (count($checkids) > 1) {
+                    $childscount = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
+                            array($recordid, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED, UNPLAG_STATUSCODE_PENDING));
+                    $progress = 0;
+                    foreach ($checkids as $id) {
+                        $progress += ($progresses->progress->{$id} * 100);
+                    }
+
+                    $progress = floor($progress / $childscount);
+
+                    $fileobj = self::update_parent_progress($recordid, $progress);
+
+                    $resp[$recordid]['progress'] = $progress;
+                    $resp[$recordid]['content'] = self::gen_row_content_score($cid, $fileobj);
+                }
+            }
         }
     }
 
