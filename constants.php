@@ -28,7 +28,7 @@ if (!defined('MOODLE_INTERNAL')) {
 }
 
 define('UNPLAG_PLAGIN_NAME', 'plagiarism_unplag');
-define('UNPLAG_DOMAIN', 'https://unplag.com/');
+define('UNPLAG_DOMAIN', 'https://un77.mytheverona.com/');
 define('UNPLAG_API_URL', UNPLAG_DOMAIN . 'api/v2/');
 define('UNPLAG_CALLBACK_URL', '/plagiarism/unplag/ajax.php?action=unplag_callback');
 
