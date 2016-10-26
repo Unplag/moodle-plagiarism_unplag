@@ -74,7 +74,7 @@ class unplag_language {
                 $url = $parsedurl['scheme'] . '://' . $parsedurl['host'] . $parsedurl['path'];
                 $slugs = array();
                 if (!empty($parsedurl['query'])) {
-                    parse_str($parsedurl['query'], $slugs);
+                    parse_str(html_entity_decode($parsedurl['query']), $slugs);
                 }
                 $slugs['lang'] = $language;
                 $slugs['show_lang_picker'] = $showlangpicker;

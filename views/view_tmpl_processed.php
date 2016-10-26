@@ -25,6 +25,7 @@
 
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_language;
+use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -68,13 +69,18 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
 
     if (!empty($fileobj->reporturl)) {
 
-        $reporturl = $fileobj->reporturl;
-        $editreporturl = $fileobj->reportediturl;
+        if ($fileobj->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
+            $reporturl = new \moodle_url($fileobj->reporturl);
+            $editreporturl = new \moodle_url($fileobj->reportediturl);
+        } else {
+            $reporturl = $fileobj->reporturl;
+            $editreporturl = $fileobj->reportediturl;
 
-        unplag_language::inject_language_to_url($reporturl);
-        unplag_language::inject_language_to_url($editreporturl);
-        if ($teacherhere) {
-            unplag_core::inject_comment_token($editreporturl);
+            unplag_language::inject_language_to_url($reporturl);
+            unplag_language::inject_language_to_url($editreporturl);
+            if ($teacherhere) {
+                unplag_core::inject_comment_token($editreporturl);
+            }
         }
 
         if ($teacherhere || $assigncfg['unplag_show_student_report']) {
