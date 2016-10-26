@@ -69,7 +69,7 @@ foreach ($childs as $child) {
 
             if ($child->check_id !== null && $child->progress == 100) {
 
-                $tabs[] = new tabobject('unplag_file_id_' . $child->id, $url->out_as_local_url(), $child->filename, '', false);
+                $tabs[] = new tabobject('unplag_file_id_' . $child->id, $url->out(), $child->filename, '', false);
 
                 $link = html_writer::link($url, $child->filename);
                 $fileinfos[] = array(
@@ -100,8 +100,7 @@ $generalinfourl = new \moodle_url('/plagiarism/unplag/reports.php', array(
 ));
 
 array_unshift($tabs,
-        new tabobject('unplag_files_info', $generalinfourl->out_as_local_url(), plagiarism_unplag::trans('generalinfo'), '',
-                false));
+        new tabobject('unplag_files_info', $generalinfourl->out(), plagiarism_unplag::trans('generalinfo'), '', false));
 
 print_tabs(array($tabs), $currenttab);
 
