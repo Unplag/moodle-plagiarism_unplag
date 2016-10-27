@@ -32,9 +32,6 @@ require_once(dirname(__FILE__) . '/lib.php');
 
 global $PAGE, $CFG, $OUTPUT, $USER;
 
-$PAGE->set_pagelayout('report');
-$PAGE->set_url($CFG->wwwroot . $SCRIPT);
-
 $cmid = required_param('cmid', PARAM_INT);  // Course Module ID.
 $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
 require_login($cm->course, true, $cm);
@@ -44,13 +41,19 @@ $childs = unplag_stored_file::get_childs($pf);
 
 $modulecontext = context_module::instance($cmid);
 
+$pageparams = array('cmid' => $cmid, 'pf' => $pf);
 $cpf = optional_param('cpf', null, PARAM_INT);   // Plagiarism child file id.
 if ($cpf !== null) {
     $current = unplag_stored_file::get_unplag_file($cpf);
     $currenttab = 'unplag_file_id_' . $current->id;
+    $pageparams['cpf'] = $cpf;
 } else {
     $currenttab = 'unplag_files_info';
 }
+
+$PAGE->set_pagelayout('report');
+$pageurl = new \moodle_url('/plagiarism/unplag/reports.php', $pageparams);
+$PAGE->set_url($pageurl);
 
 echo $OUTPUT->header();
 
@@ -69,7 +72,7 @@ foreach ($childs as $child) {
 
             if ($child->check_id !== null && $child->progress == 100) {
 
-                $tabs[] = new tabobject('unplag_file_id_' . $child->id, $url->out_as_local_url(), $child->filename, '', false);
+                $tabs[] = new tabobject('unplag_file_id_' . $child->id, $url->out(), $child->filename, '', false);
 
                 $link = html_writer::link($url, $child->filename);
                 $fileinfos[] = array(
@@ -100,8 +103,7 @@ $generalinfourl = new \moodle_url('/plagiarism/unplag/reports.php', array(
 ));
 
 array_unshift($tabs,
-        new tabobject('unplag_files_info', $generalinfourl->out_as_local_url(), plagiarism_unplag::trans('generalinfo'), '',
-                false));
+        new tabobject('unplag_files_info', $generalinfourl->out(), plagiarism_unplag::trans('generalinfo'), '', false));
 
 print_tabs(array($tabs), $currenttab);
 
