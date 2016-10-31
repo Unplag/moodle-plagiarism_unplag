@@ -16,6 +16,7 @@
 
 namespace plagiarism_unplag\classes;
 
+use context_module;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
@@ -203,13 +204,25 @@ class unplag_core {
     }
 
     /**
-     * @param $url
+     * @param      $url
+     * @param bool $cancomment
      */
-    public static function inject_comment_token(&$url) {
+    public static function inject_comment_token(&$url, $cancomment) {
         global $USER;
 
-        $resp = unplag_api::instance()->user_create($USER);
+        $resp = unplag_api::instance()->user_create($USER, $cancomment);
         $url .= '&ctoken=' . $resp->user->token;
+    }
+
+    /**
+     * @param $cmid
+     *
+     * @return bool
+     */
+    public static function is_teacher($cmid) {
+        global $USER;
+
+        return has_capability('moodle/grade:edit', context_module::instance($cmid), $USER->id);
     }
 
     /**

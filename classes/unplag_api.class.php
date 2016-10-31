@@ -35,6 +35,8 @@ if (!defined('MOODLE_INTERNAL')) {
  * @package plagiarism_unplag\classes
  */
 class unplag_api {
+    const ACCESS_SCOPE_WRITE = 'w';
+    const ACCESS_SCOPE_READ = 'r';
     /** @var null */
     private static $instance = null;
 
@@ -142,16 +144,18 @@ class unplag_api {
     }
 
     /**
-     * @param $user
+     * @param      $user
+     * @param bool $cancomment
      *
      * @return mixed
      */
-    public function user_create($user) {
+    public function user_create($user, $cancomment = false) {
         $postdata = array(
             'sys_id'    => $user->id,
             'email'     => $user->email,
             'firstname' => $user->firstname,
             'lastname'  => $user->lastname,
+            'scope'     => $cancomment ? self::ACCESS_SCOPE_WRITE : self::ACCESS_SCOPE_READ,
         );
 
         return unplag_api_request::instance()->http_post()->request('user/create', $postdata);
