@@ -27,7 +27,11 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
-global $OUTPUT;
+global $OUTPUT, $PAGE;
+
+if (AJAX_SCRIPT) {
+    $PAGE->set_context(null);
+}
 
 $title = plagiarism_unplag::trans('unknownwarning');
 $reset = '';

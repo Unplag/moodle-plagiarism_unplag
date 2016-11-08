@@ -85,8 +85,10 @@ abstract class unplag_plagiarism_entity {
         $result = $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
 
         if ($result && $plagiarismfile->parent_id) {
-            $hasgoodchild = $DB->count_records(UNPLAG_FILES_TABLE,
-                    array('parent_id' => $plagiarismfile->parent_id, 'errorresponse' => null));
+            $hasgoodchild = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
+                    array($plagiarismfile->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED,
+                            UNPLAG_STATUSCODE_PENDING));
+
             if (!$hasgoodchild) {
                 $parentplagiarismfile = unplag_stored_file::get_unplag_file($plagiarismfile->parent_id);
                 $parentplagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;

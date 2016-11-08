@@ -25,13 +25,18 @@
 
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_language;
+use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
-global $OUTPUT, $USER;
+global $OUTPUT, $USER, $PAGE;
+
+if (AJAX_SCRIPT) {
+    $PAGE->set_context(null);
+}
 
 // Normal situation - UNPLAG has successfully analyzed the file.
 $htmlparts = array('<span class="un_report">');
@@ -47,9 +52,8 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
         $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
     );
 
-    $modulecontext = context_module::instance($cid);
     // This is a teacher viewing the responses.
-    $teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
+    $teacherhere = unplag_core::is_teacher($cid);
     $assigncfg = unplag_settings::get_assign_settings($cid, null, true);
 
     if (isset($fileobj->similarityscore)) {
@@ -64,13 +68,18 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
 
     if (!empty($fileobj->reporturl)) {
 
-        $reporturl = $fileobj->reporturl;
-        $editreporturl = $fileobj->reportediturl;
+        if ($fileobj->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
+            $reporturl = new \moodle_url($fileobj->reporturl);
+            $editreporturl = new \moodle_url($fileobj->reportediturl);
+        } else {
+            $reporturl = $fileobj->reporturl;
+            $editreporturl = $fileobj->reportediturl;
 
-        unplag_language::inject_language_to_url($reporturl);
-        unplag_language::inject_language_to_url($editreporturl);
-        if ($teacherhere) {
-            unplag_core::inject_comment_token($editreporturl);
+            unplag_language::inject_language_to_url($reporturl);
+            unplag_core::inject_comment_token($reporturl, $teacherhere);
+
+            unplag_language::inject_language_to_url($editreporturl);
+            unplag_core::inject_comment_token($editreporturl, $teacherhere);
         }
 
         if ($teacherhere || $assigncfg['unplag_show_student_report']) {

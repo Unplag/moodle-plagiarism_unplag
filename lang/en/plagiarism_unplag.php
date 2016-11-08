@@ -23,10 +23,11 @@
  */
 
 $string['pluginname'] = 'UNPLAG plagiarism plugin';
-$string['studentdisclosuredefault']  = 'All  uploaded files will be submitted to the plagiarism detection system UNPLAG.';
+$string['studentdisclosuredefault'] = 'All  uploaded files will be submitted to the plagiarism detection system UNPLAG.';
 $string['studentdisclosure'] = 'Familiarize students with the UNPLAG Privacy Policy';
 $string['studentdisclosure_help'] = 'This text will be displayed to all students on the file upload page.';
 $string['unplag'] = 'UNPLAG plagiarism plugin';
+$string['unplag_settings_url_text'] = 'Open Unplag.com admin account to view/copy Client ID/API Secret';
 $string['unplag_client_id'] = 'Client ID';
 $string['unplag_client_id_help'] = 'ID of Client provided by UNPLAG to access the API you can find it on <a href="https://unplag.com/profile/apisettings">https://unplag.com/profile/apisettings</a>';
 $string['unplag_lang'] = 'Language';
@@ -107,3 +108,6 @@ $string['check_file'] = 'Start a scan';
 $string['web'] = 'Doc vs Internet';
 $string['my_library'] = 'Doc vs Library';
 $string['web_and_my_library'] = 'Doc vs Internet + Library';
+
+$string['reportready'] = 'Report ready';
+$string['generalinfo'] = 'General information';

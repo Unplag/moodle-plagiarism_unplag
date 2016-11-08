@@ -29,6 +29,10 @@ if (!defined('MOODLE_INTERNAL')) {
 
 global $PAGE, $OUTPUT;
 
+if (AJAX_SCRIPT) {
+    $PAGE->set_context(null);
+}
+
 $check = '';
 $modulecontext = context_module::instance($linkarray['cmid']);
 // This is a teacher viewing the responses.

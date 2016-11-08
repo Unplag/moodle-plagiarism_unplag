@@ -16,11 +16,14 @@
 
 namespace plagiarism_unplag\classes\event;
 
-use core\event\base;
-
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
+
+require_once(dirname(__FILE__) . '/../../lib.php');
+
+use core\event\base;
+use plagiarism_plugin_unplag;
 
 /**
  * Class unplag_event_validator
@@ -35,24 +38,66 @@ if (!defined('MOODLE_INTERNAL')) {
 class unplag_event_validator {
 
     /**
+     * @var array
+     */
+    private static $allowedcomponents = array(
+            'mod_assign',
+            'mod_forum',
+            'mod_workshop',
+            'assignsubmission_file',
+            'assignsubmission_onlinetext'
+    );
+
+    /**
      * @param base $event
-     *
-     * @throws \Exception
+     * @return bool
      */
     public static function validate_event(base $event) {
         global $DB;
 
-        $cmid = $event->contextinstanceid;
+        if (self::is_allowed_component($event->component)) {
+            $cmid = $event->contextinstanceid;
 
-        $plagiarismvalues = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $cmid), '', 'name, value');
-        if (empty($plagiarismvalues['use_unplag'])) {
-            // Unplag not in use for this cm - return.
-            throw new \Exception('Unplag not in use for this cm');
+            if (!self::is_mod_enabled($cmid)) {
+                // Moodle mod inactive - return.
+                return false;
+            }
+
+            $plagiarismvalues = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $cmid), '', 'name, value');
+            if (empty($plagiarismvalues['use_unplag'])) {
+                // Unplag not in use for this cm - return.
+                return false;
+            }
+
+            // Check if the module associated with this event still exists.
+            if (!$DB->record_exists('course_modules', array('id' => $cmid))) {
+                return false;
+            }
+
+            return true;
         }
 
-        // Check if the module associated with this event still exists.
-        if (!$DB->record_exists('course_modules', array('id' => $cmid))) {
-            throw new \Exception('Module not associated with this event');
+        return false;
+    }
+
+    /**
+     * @param $component
+     * @return bool
+     */
+    private static function is_allowed_component($component) {
+        return in_array($component, self::$allowedcomponents);
+    }
+
+    /**
+     * @param $cmid
+     * @return bool
+     */
+    private static function is_mod_enabled($cmid) {
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
+        if (plagiarism_plugin_unplag::is_enabled_module('mod_' . $cm->modname)) {
+            return true;
         }
+
+        return false;
     }
 }

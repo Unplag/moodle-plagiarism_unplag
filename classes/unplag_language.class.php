@@ -38,10 +38,13 @@ class unplag_language {
     private static $supportedlanguage = array(
             'en' => 'en_EN',
             'es' => 'es_ES',
+            'es_mx' => 'es_ES',
+            'es_ve' => 'es_ES',
             'uk' => 'uk_UA',
             'nl' => 'nl_BE',
             'tr' => 'tr_TR',
-            'fr' => 'fr_FR'
+            'fr' => 'fr_FR',
+            'fr_ca' => 'fr_FR'
     );
 
     /**
@@ -60,8 +63,9 @@ class unplag_language {
 
     /**
      * @param $url
+     * @param int $showlangpicker
      */
-    public static function inject_language_to_url(&$url) {
+    public static function inject_language_to_url(&$url, $showlangpicker = 0) {
         if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
             $language = self::get_unplag_language();
             $parsedurl = parse_url($url);
@@ -70,9 +74,10 @@ class unplag_language {
                 $url = $parsedurl['scheme'] . '://' . $parsedurl['host'] . $parsedurl['path'];
                 $slugs = array();
                 if (!empty($parsedurl['query'])) {
-                    parse_str($parsedurl['query'], $slugs);
+                    parse_str(html_entity_decode($parsedurl['query']), $slugs);
                 }
                 $slugs['lang'] = $language;
+                $slugs['show_lang_picker'] = $showlangpicker;
                 $query = http_build_query($slugs);
                 $url .= '?' . $query;
             }
