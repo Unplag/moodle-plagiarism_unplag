@@ -127,7 +127,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     public static function config_options() {
         return array(
                 'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
-                'unplag_draft_submit', 'check_type',
+                'unplag_draft_submit', 'check_type', 'similarity_sensitivity'
         );
     }
 

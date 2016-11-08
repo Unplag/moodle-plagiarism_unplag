@@ -111,3 +111,4 @@ $string['web_and_my_library'] = 'Doc vs Internet + Library';
 
 $string['reportready'] = 'Report ready';
 $string['generalinfo'] = 'General information';
+$string['similarity_sensitivity'] = 'Hide sources with a match less then (%)';

@@ -84,10 +84,15 @@ class unplag_api {
         }
 
         $checktype = unplag_settings::get_assign_settings($file->cm, 'check_type');
+
+        $options = array();
+        $this->advanced_check_options($file->cm, $options);
+
         $postdata = array(
             'type'         => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
             'file_id'      => $file->external_file_id,
             'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
+            'options'      => $options,
         );
 
         return unplag_api_request::instance()->http_post()->request('check/create', $postdata);
@@ -159,5 +164,15 @@ class unplag_api {
         );
 
         return unplag_api_request::instance()->http_post()->request('user/create', $postdata);
+    }
+
+    /**
+     * @param $cmid
+     * @param $options
+     */
+    private function advanced_check_options($cmid, &$options) {
+        if ($sensitivity = unplag_settings::get_assign_settings($cmid, 'similarity_sensitivity')) {
+            $options['sensitivity'] = $sensitivity;
+        }
     }
 }
