@@ -84,6 +84,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 }
             }
         }
+
         return $output;
     }
 
@@ -126,13 +127,15 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      */
     public static function config_options() {
         return array(
-                'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
-                'unplag_draft_submit', 'check_type', 'similarity_sensitivity'
+            'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
+            'unplag_draft_submit', 'check_type', 'similarity_sensitivity', 'exclude_citations',
+            'exclude_self_plagiarism',
         );
     }
 
     /**
      * @param $modulename
+     *
      * @return bool
      */
     public static function is_enabled_module($modulename) {
@@ -149,7 +152,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     /**
      * hook to add plagiarism specific settings to a module settings page
      *
-     * @param object $mform - Moodle form
+     * @param object $mform   - Moodle form
      * @param object $context - current context
      * @param string $modulename
      *
@@ -185,7 +188,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param array $plagiarismelements
+     * @param array  $plagiarismelements
      * @param object $mform - Moodle form
      */
     private function disable_elements_if_not_use($plagiarismelements, $mform) {
@@ -198,7 +201,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param array $plagiarismelements
+     * @param array  $plagiarismelements
      * @param object $mform - Moodle form
      */
     private function add_plagiarism_hidden_vars($plagiarismelements, $mform) {

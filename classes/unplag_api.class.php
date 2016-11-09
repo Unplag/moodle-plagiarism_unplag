@@ -95,6 +95,10 @@ class unplag_api {
             'options'      => $options,
         );
 
+        if (unplag_settings::get_assign_settings($file->cm, 'exclude_citations')) {
+            $postdata = array_merge($postdata, array('exclude_citations' => 1, 'exclude_references' => 1));
+        }
+
         return unplag_api_request::instance()->http_post()->request('check/create', $postdata);
     }
 
@@ -173,6 +177,10 @@ class unplag_api {
     private function advanced_check_options($cmid, &$options) {
         if ($sensitivity = unplag_settings::get_assign_settings($cmid, 'similarity_sensitivity')) {
             $options['sensitivity'] = $sensitivity;
+        }
+
+        if ($excludeselfplagiarism = unplag_settings::get_assign_settings($cmid, 'exclude_self_plagiarism')) {
+            $options['exclude_self_plagiarism'] = $excludeselfplagiarism;
         }
     }
 }

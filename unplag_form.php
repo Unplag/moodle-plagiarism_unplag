@@ -121,6 +121,7 @@ class unplag_defaults_form extends moodleform {
      * @throws coding_exception
      */
     public function definition() {
+        /** @var MoodleQuickForm $mform */
         $mform = &$this->_form;
 
         $ynoptions = array(get_string('no'), get_string('yes'));
@@ -155,6 +156,14 @@ class unplag_defaults_form extends moodleform {
         }
         $mform->setType('similarity_sensitivity', PARAM_TEXT);
 
+        $mform->addElement('select', 'exclude_citations', plagiarism_unplag::trans("exclude_citations"), $ynoptions);
+        if (is_null($mform->exportValues()['exclude_citations'])) {
+            $mform->setDefault('exclude_citations', 1);
+        }
+        $mform->addElement('select', 'exclude_self_plagiarism', plagiarism_unplag::trans("exclude_self_plagiarism"), $ynoptions);
+        if (is_null($mform->exportValues()['exclude_self_plagiarism'])) {
+            $mform->setDefault('exclude_self_plagiarism', 1);
+        }
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
         }
