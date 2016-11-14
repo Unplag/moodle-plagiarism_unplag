@@ -68,9 +68,9 @@ class unplag_event {
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
             }
-        } elseif (self::is_assign_submitted($event)) {
+        } else if (self::is_assign_submitted($event)) {
             unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
-        } elseif (self::is_workshop_swiched($event)) {
+        } else if (self::is_workshop_swiched($event)) {
             unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
         } else {
             switch ($event->eventname) {
