@@ -72,7 +72,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                         return false;
                     }
 
-                    Y.each(jsondata, function (item, index) {
+                    Y.each(jsondata, function (item) {
                         handle_record(item);
                     });
                 },
