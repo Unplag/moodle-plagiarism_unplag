@@ -39,21 +39,36 @@ if (!defined('MOODLE_INTERNAL')) {
  * @package plagiarism_unplag\classes
  */
 class unplag_api_request {
+    /**
+     * @var null|unplag_api_request
+     */
     private static $instance = null;
-    /** @var  string */
+
+    /**
+     * @var  string
+     */
     private $requestdata;
-    /** @var string */
+
+    /**
+     * @var string
+     */
     private $tokensecret = '';
-    /** @var  string */
+
+    /**
+     * @var  string
+     */
     private $url;
-    /** @var  string */
+
+    /**
+     * @var  string
+     */
     private $httpmethod = 'get';
 
     /**
      * @return null|static
      */
     final public static function instance() {
-        return isset(static::$instance) ? static::$instance : static::$instance = new static;
+        return isset(self::$instance) ? self::$instance : self::$instance = new unplag_api_request();
     }
 
     /**
@@ -117,6 +132,7 @@ class unplag_api_request {
      * @return string
      */
     private function gen_oauth_headers() {
+        $oauthdata = array();
         if ($this->httpmethod == 'post') {
             $oauthdata['oauth_body_hash'] = $this->gen_oauth_body_hash();
         } else {

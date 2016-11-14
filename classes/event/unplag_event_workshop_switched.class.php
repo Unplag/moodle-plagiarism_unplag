@@ -65,7 +65,7 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
 
             $files = array_merge($unplagfiles, $assignfiles);
 
-            if ($files) {
+            if (!empty($files)) {
                 foreach ($files as $file) {
                     $this->handle_file_plagiarism($file);
                 }
