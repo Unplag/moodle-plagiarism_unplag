@@ -29,6 +29,7 @@ use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
 use plagiarism_unplag\classes\event\unplag_event_file_submited;
 use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
+use plagiarism_unplag\classes\event\unplag_event_submission_updated;
 use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -45,9 +46,12 @@ if (!defined('MOODLE_INTERNAL')) {
  */
 class unplag_event {
 
+    /**
+     * @param base $event
+     */
     public function process(base $event) {
-        if (self::is_allowed_events($event)) {
-            $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+        $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+        if (self::is_upload_event($event)) {
 
             switch ($event->component) {
                 case 'assignsubmission_onlinetext':
@@ -64,15 +68,15 @@ class unplag_event {
                     unplag_event_file_submited::instance()->handle_event($unplagcore, $event);
                     break;
             }
+        } elseif (self::is_assign_submitted($event)) {
+            unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
+        } elseif (self::is_workshop_swiched($event)) {
+            unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
         } else {
-            if (self::is_assign_submitted($event)) {
-                $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-                unplag_event_assessable_submited::instance()->handle_event($unplagcore, $event);
-            } else {
-                if (self::is_workshop_swiched($event)) {
-                    $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-                    unplag_event_workshop_switched::instance()->handle_event($unplagcore, $event);
-                }
+            switch ($event->eventname) {
+                case '\mod_assign\event\submission_status_updated':
+                    unplag_event_submission_updated::instance()->handle_event($unplagcore, $event);
+                    break;
             }
         }
     }
@@ -82,7 +86,7 @@ class unplag_event {
      *
      * @return bool
      */
-    private static function is_allowed_events(base $event) {
+    private static function is_upload_event(base $event) {
         $eventdata = $event->get_data();
         return in_array($eventdata['eventname'], array(
                 '\assignsubmission_file\event\submission_updated',
