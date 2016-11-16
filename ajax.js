@@ -21,7 +21,7 @@
  * @copyright Mikhail Grinenko <m.grinenko@p1k.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+/** global: M */
 M.plagiarism_unplag = {
     interval: null,
     items: []
@@ -72,8 +72,8 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                         return false;
                     }
 
-                    Y.each(jsondata, function (item, index) {
-                        handle_record(item, index);
+                    Y.each(jsondata, function (item) {
+                        handle_record(item);
                     });
                 },
                 failure: function () {
