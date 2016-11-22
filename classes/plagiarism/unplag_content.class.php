@@ -91,6 +91,7 @@ class unplag_content extends unplag_plagiarism_entity {
      */
     public function upload_file_on_unplag_server() {
         global $DB;
+	    global $USER;
 
         $internalfile = $this->get_internal_file();
 
@@ -106,7 +107,13 @@ class unplag_content extends unplag_plagiarism_entity {
         // Increment attempt number.
         $internalfile->attempt++;
 
-        $uploadedfileresponse = unplag_api::instance()->upload_file($this->content, $this->name, $this->ext);
+        $uploadedfileresponse = unplag_api::instance()->upload_file(
+        	$this->content,
+	        $this->name,
+	        $this->ext,
+	        $this->cmid(),
+	        unplag_core::get_external_token($USER)
+        );
         if ($uploadedfileresponse->result) {
             $internalfile->external_file_id = $uploadedfileresponse->file->id;
             $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);

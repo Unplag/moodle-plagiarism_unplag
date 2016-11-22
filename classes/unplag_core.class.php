@@ -220,7 +220,7 @@ class unplag_core {
      */
     public static function inject_comment_token(&$url) {
         global $USER;
-var_dump('test');
+
         $url .= '&ctoken=' . self::get_external_token($USER);
     }
 
