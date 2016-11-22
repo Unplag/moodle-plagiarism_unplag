@@ -48,14 +48,16 @@ class unplag_api {
         return isset(self::$instance) ? self::$instance : self::$instance = new unplag_api();
     }
 
-    /**
-     * @param $content
-     * @param $filename
-     * @param $format
-     *
-     * @return mixed
-     */
-    public function upload_file($content, $filename, $format) {
+	/**
+	 * @param      $content
+	 * @param      $filename
+	 * @param      $format
+	 * @param null $cmid
+	 * @param null $token
+	 *
+	 * @return mixed
+	 */
+    public function upload_file($content, $filename, $format, $cmid = null, $token = null) {
 
         set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
 
@@ -68,6 +70,14 @@ class unplag_api {
                 'file_data' => base64_encode($content),
                 'name' => $filename,
         );
+
+	    if (!is_null($cmid)) {
+		    $postdata['options']['submission_id'] = $cmid;
+	    }
+
+	    if (!is_null($token)) {
+		    $postdata['options']['utoken'] = $token;
+	    }
 
         return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
     }

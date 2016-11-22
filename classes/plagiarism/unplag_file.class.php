@@ -157,12 +157,21 @@ class unplag_file extends unplag_plagiarism_entity {
     }
 
     private function upload() {
+	    global $USER;
+
         $format = 'html';
         if ($source = $this->stored_file()->get_source()) {
             $format = pathinfo($source, PATHINFO_EXTENSION);
         }
 
         $filename = $this->stored_file()->get_filename();
-        return unplag_api::instance()->upload_file($this->stored_file()->get_content(), $filename, $format);
+
+        return unplag_api::instance()->upload_file(
+        	$this->stored_file()->get_content(),
+	        $filename,
+	        $format,
+	        $this->cmid(),
+	        unplag_core::get_external_token($USER)
+        );
     }
 }

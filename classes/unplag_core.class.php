@@ -220,9 +220,35 @@ class unplag_core {
      */
     public static function inject_comment_token(&$url) {
         global $USER;
+var_dump('test');
+        $url .= '&ctoken=' . self::get_external_token($USER);
+    }
 
-        $resp = unplag_api::instance()->user_create($USER);
-        $url .= '&ctoken=' . $resp->user->token;
+	/**
+	 * @param $user
+	 */
+	public static function get_external_token($user)
+	{
+		global $DB;
+
+		$storeduser = $DB->get_record('plagiarism_unplag_user_data', array('user_id' => $user->id));
+
+		if ($storeduser) {
+			return $storeduser->external_token;
+		} else {
+			$resp = unplag_api::instance()->user_create($user);
+
+			if ($resp->result) {
+				$externaluserdata = new \stdClass;
+				$externaluserdata->user_id = $user->id;
+				$externaluserdata->external_user_id = $resp->user->id;
+				$externaluserdata->external_token = $resp->user->token;
+
+				$DB->insert_record('plagiarism_unplag_user_data', $externaluserdata);
+
+				return $externaluserdata->external_token;
+			}
+		}
     }
 
     /**
