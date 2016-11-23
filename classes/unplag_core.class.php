@@ -16,6 +16,7 @@
 
 namespace plagiarism_unplag\classes;
 
+use context_module;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
@@ -216,13 +217,50 @@ class unplag_core {
     }
 
     /**
-     * @param $url
+     * @param      $url
+     * @param bool $cancomment
      */
-    public static function inject_comment_token(&$url) {
+    public static function inject_comment_token(&$url, $cancomment) {
         global $USER;
 
-        $resp = unplag_api::instance()->user_create($USER);
-        $url .= '&ctoken=' . $resp->user->token;
+        $url .= '&ctoken=' . self::get_external_token($USER, $cancomment);
+    }
+
+    /**
+     * @param $user
+     */
+    public static function get_external_token($user, $cancomment = false) {
+        global $DB;
+
+        $storeduser = $DB->get_record('plagiarism_unplag_user_data', array('user_id' => $user->id));
+
+        if ($storeduser) {
+            return $storeduser->external_token;
+        } else {
+            $resp = unplag_api::instance()->user_create($user, $cancomment);
+
+            if ($resp->result) {
+                $externaluserdata = new \stdClass;
+                $externaluserdata->user_id = $user->id;
+                $externaluserdata->external_user_id = $resp->user->id;
+                $externaluserdata->external_token = $resp->user->token;
+
+                $DB->insert_record('plagiarism_unplag_user_data', $externaluserdata);
+
+                return $externaluserdata->external_token;
+            }
+        }
+    }
+
+    /**
+     * @param $cmid
+     *
+     * @return bool
+     */
+    public static function is_teacher($cmid) {
+        global $USER;
+
+        return has_capability('moodle/grade:edit', context_module::instance($cmid), $USER->id);
     }
 
     /**
