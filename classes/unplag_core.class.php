@@ -229,7 +229,7 @@ class unplag_core {
     /**
      * @param $user
      */
-    public static function get_external_token($user, $cancomment) {
+    public static function get_external_token($user, $cancomment = false) {
         global $DB;
 
         $storeduser = $DB->get_record('plagiarism_unplag_user_data', array('user_id' => $user->id));
