@@ -157,7 +157,7 @@ class unplag_file extends unplag_plagiarism_entity {
     }
 
     private function upload() {
-	    global $USER;
+        global $USER;
 
         $format = 'html';
         if ($source = $this->stored_file()->get_source()) {
@@ -167,11 +167,11 @@ class unplag_file extends unplag_plagiarism_entity {
         $filename = $this->stored_file()->get_filename();
 
         return unplag_api::instance()->upload_file(
-        	$this->stored_file()->get_content(),
-	        $filename,
-	        $format,
-	        $this->cmid(),
-	        unplag_core::get_external_token($USER)
+            $this->stored_file()->get_content(),
+            $filename,
+            $format,
+            $this->cmid(),
+            unplag_core::get_external_token($USER)
         );
     }
 }
