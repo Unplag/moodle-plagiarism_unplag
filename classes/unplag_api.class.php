@@ -35,10 +35,9 @@ if (!defined('MOODLE_INTERNAL')) {
  * @package plagiarism_unplag\classes
  */
 class unplag_api {
-
-    /**
-     * @var null|unplag_api
-     */
+    const ACCESS_SCOPE_WRITE = 'w';
+    const ACCESS_SCOPE_READ = 'r';
+    /** @var null|unplag_api */
     private static $instance = null;
 
     /**
@@ -95,11 +94,20 @@ class unplag_api {
         }
 
         $checktype = unplag_settings::get_assign_settings($file->cm, 'check_type');
+
+        $options = array();
+        $this->advanced_check_options($file->cm, $options);
+
         $postdata = array(
-                'type' => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
-                'file_id' => $file->external_file_id,
-                'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
+            'type'         => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
+            'file_id'      => $file->external_file_id,
+            'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
+            'options'      => $options,
         );
+
+        if (unplag_settings::get_assign_settings($file->cm, 'exclude_citations')) {
+            $postdata = array_merge($postdata, array('exclude_citations' => 1, 'exclude_references' => 1));
+        }
 
         return unplag_api_request::instance()->http_post()->request('check/create', $postdata);
     }
@@ -155,18 +163,34 @@ class unplag_api {
     }
 
     /**
-     * @param $user
+     * @param      $user
+     * @param bool $cancomment
      *
      * @return mixed
      */
-    public function user_create($user) {
+    public function user_create($user, $cancomment = false) {
         $postdata = array(
-                'sys_id' => $user->id,
-                'email' => $user->email,
-                'firstname' => $user->firstname,
-                'lastname' => $user->lastname,
+            'sys_id'    => $user->id,
+            'email'     => $user->email,
+            'firstname' => $user->firstname,
+            'lastname'  => $user->lastname,
+            'scope'     => $cancomment ? self::ACCESS_SCOPE_WRITE : self::ACCESS_SCOPE_READ,
         );
 
         return unplag_api_request::instance()->http_post()->request('user/create', $postdata);
+    }
+
+    /**
+     * @param $cmid
+     * @param $options
+     */
+    private function advanced_check_options($cmid, &$options) {
+        if ($sensitivity = unplag_settings::get_assign_settings($cmid, 'similarity_sensitivity')) {
+            $options['sensitivity'] = $sensitivity;
+        }
+
+        if ($excludeselfplagiarism = unplag_settings::get_assign_settings($cmid, 'exclude_self_plagiarism')) {
+            $options['exclude_self_plagiarism'] = $excludeselfplagiarism;
+        }
     }
 }
