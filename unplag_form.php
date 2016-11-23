@@ -46,7 +46,7 @@ class unplag_setup_form extends moodleform {
         $settingstext = '<div id="fitem_id_unplag_settings_link" class="fitem fitem_ftext ">
                             <div class="felement ftext">
                                 <a href="' . UNPLAG_DOMAIN . 'profile/apisettings" target="_blank"> ' .
-                plagiarism_unplag::trans('unplag_settings_url_text') . '</a>
+            plagiarism_unplag::trans('unplag_settings_url_text') . '</a>
                             </div>
                         </div>';
         $mform->addElement('html', $settingstext);
@@ -68,7 +68,7 @@ class unplag_setup_form extends moodleform {
         $mform->setType('unplag_lang', PARAM_TEXT);
 
         $mform->addElement('textarea', 'unplag_student_disclosure', plagiarism_unplag::trans('studentdisclosure'),
-                'wrap="virtual" rows="6" cols="100"');
+            'wrap="virtual" rows="6" cols="100"');
         $mform->addHelpButton('unplag_student_disclosure', 'studentdisclosure', 'plagiarism_unplag');
         $mform->setDefault('unplag_student_disclosure', plagiarism_unplag::trans('studentdisclosuredefault'));
         $mform->setType('unplag_student_disclosure', PARAM_TEXT);
@@ -91,7 +91,6 @@ class unplag_setup_form extends moodleform {
 class unplag_defaults_form extends moodleform {
     /** @var bool */
     private $internalusage = false;
-
     /** @var string */
     private $modname = '';
 
@@ -122,17 +121,15 @@ class unplag_defaults_form extends moodleform {
      * @throws coding_exception
      */
     public function definition() {
+        /** @var MoodleQuickForm $mform */
         $mform = &$this->_form;
 
         $ynoptions = array(get_string('no'), get_string('yes'));
-        $tiioptions = array(
-                get_string("no"), get_string("yes"),
-        );
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
 
         if ($this->modname === 'assign') {
             $mform->addElement('static', 'use_unplag_static_description', plagiarism_unplag::trans('useunplag_assign_desc_param'),
-                    plagiarism_unplag::trans('useunplag_assign_desc_value'));
+                plagiarism_unplag::trans('useunplag_assign_desc_value'));
         }
         $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
         if ($this->modname === 'assign') {
@@ -140,19 +137,33 @@ class unplag_defaults_form extends moodleform {
         }
 
         $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), array(
-                UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
-                UNPLAG_CHECK_TYPE_WEB => plagiarism_unplag::trans('web'),
-                UNPLAG_CHECK_TYPE_MY_LIBRARY => plagiarism_unplag::trans('my_library'),
+            UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
+            UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans('web'),
+            UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans('my_library'),
         ));
         $mform->addElement('select', 'unplag_show_student_score',
-                plagiarism_unplag::trans("unplag_show_student_score"), $tiioptions
+            plagiarism_unplag::trans("unplag_show_student_score"), $ynoptions
         );
         $mform->addHelpButton('unplag_show_student_score', 'unplag_show_student_score', 'plagiarism_unplag');
         $mform->addElement('select', 'unplag_show_student_report',
-                plagiarism_unplag::trans("unplag_show_student_report"), $tiioptions
+            plagiarism_unplag::trans("unplag_show_student_report"), $ynoptions
         );
         $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
 
+        $mform->addElement('text', 'similarity_sensitivity', plagiarism_unplag::trans('similarity_sensitivity'));
+        if (!isset($mform->exportValues()['similarity_sensitivity']) || !$mform->exportValues()['similarity_sensitivity']) {
+            $mform->setDefault('similarity_sensitivity', 0);
+        }
+        $mform->setType('similarity_sensitivity', PARAM_TEXT);
+
+        $mform->addElement('select', 'exclude_citations', plagiarism_unplag::trans("exclude_citations"), $ynoptions);
+        if (!isset($mform->exportValues()['exclude_citations']) || is_null($mform->exportValues()['exclude_citations'])) {
+            $mform->setDefault('exclude_citations', 1);
+        }
+        $mform->addElement('select', 'exclude_self_plagiarism', plagiarism_unplag::trans("exclude_self_plagiarism"), $ynoptions);
+        if (!isset($mform->exportValues()['exclude_self_plagiarism']) || is_null($mform->exportValues()['exclude_self_plagiarism'])) {
+            $mform->setDefault('exclude_self_plagiarism', 1);
+        }
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
         }
