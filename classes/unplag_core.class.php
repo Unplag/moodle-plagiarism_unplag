@@ -218,18 +218,17 @@ class unplag_core {
 
     /**
      * @param      $url
-     * @param bool $cancomment
      */
-    public static function inject_comment_token(&$url, $cancomment) {
+    public static function inject_comment_token(&$url) {
         global $USER;
 
-        $url .= '&ctoken=' . self::get_external_token($USER, $cancomment);
+        $url .= '&ctoken=' . self::get_external_token($USER);
     }
 
     /**
      * @param $user
      */
-    public static function get_external_token($user, $cancomment = false) {
+    public static function get_external_token($user) {
         global $DB;
 
         $storeduser = $DB->get_record('plagiarism_unplag_user_data', array('user_id' => $user->id));
@@ -237,7 +236,7 @@ class unplag_core {
         if ($storeduser) {
             return $storeduser->external_token;
         } else {
-            $resp = unplag_api::instance()->user_create($user, $cancomment);
+            $resp = unplag_api::instance()->user_create($user);
 
             if ($resp->result) {
                 $externaluserdata = new \stdClass;

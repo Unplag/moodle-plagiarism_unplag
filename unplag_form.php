@@ -151,17 +151,17 @@ class unplag_defaults_form extends moodleform {
         $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
 
         $mform->addElement('text', 'similarity_sensitivity', plagiarism_unplag::trans('similarity_sensitivity'));
-        if (!$mform->exportValues()['similarity_sensitivity']) {
+        if (!isset($mform->exportValues()['similarity_sensitivity']) || !$mform->exportValues()['similarity_sensitivity']) {
             $mform->setDefault('similarity_sensitivity', 0);
         }
         $mform->setType('similarity_sensitivity', PARAM_TEXT);
 
         $mform->addElement('select', 'exclude_citations', plagiarism_unplag::trans("exclude_citations"), $ynoptions);
-        if (is_null($mform->exportValues()['exclude_citations'])) {
+        if (!isset($mform->exportValues()['exclude_citations']) || is_null($mform->exportValues()['exclude_citations'])) {
             $mform->setDefault('exclude_citations', 1);
         }
         $mform->addElement('select', 'exclude_self_plagiarism', plagiarism_unplag::trans("exclude_self_plagiarism"), $ynoptions);
-        if (is_null($mform->exportValues()['exclude_self_plagiarism'])) {
+        if (!isset($mform->exportValues()['exclude_self_plagiarism']) || is_null($mform->exportValues()['exclude_self_plagiarism'])) {
             $mform->setDefault('exclude_self_plagiarism', 1);
         }
         if (!$this->internalusage) {

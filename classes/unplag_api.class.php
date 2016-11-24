@@ -164,17 +164,15 @@ class unplag_api {
 
     /**
      * @param      $user
-     * @param bool $cancomment
      *
      * @return mixed
      */
-    public function user_create($user, $cancomment = false) {
+    public function user_create($user) {
         $postdata = array(
             'sys_id'    => $user->id,
             'email'     => $user->email,
             'firstname' => $user->firstname,
-            'lastname'  => $user->lastname,
-            'scope'     => $cancomment ? self::ACCESS_SCOPE_WRITE : self::ACCESS_SCOPE_READ,
+            'lastname'  => $user->lastname
         );
 
         return unplag_api_request::instance()->http_post()->request('user/create', $postdata);
@@ -185,12 +183,7 @@ class unplag_api {
      * @param $options
      */
     private function advanced_check_options($cmid, &$options) {
-        if ($sensitivity = unplag_settings::get_assign_settings($cmid, 'similarity_sensitivity')) {
-            $options['sensitivity'] = $sensitivity;
-        }
-
-        if ($excludeselfplagiarism = unplag_settings::get_assign_settings($cmid, 'exclude_self_plagiarism')) {
-            $options['exclude_self_plagiarism'] = $excludeselfplagiarism;
-        }
+        $options['sensitivity'] = unplag_settings::get_assign_settings($cmid, 'similarity_sensitivity') / 100;
+        $options['exclude_self_plagiarism'] = unplag_settings::get_assign_settings($cmid, 'exclude_self_plagiarism');
     }
 }
