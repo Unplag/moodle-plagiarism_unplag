@@ -184,6 +184,6 @@ class unplag_api {
      */
     private function advanced_check_options($cmid, &$options) {
         $options['sensitivity'] = unplag_settings::get_assign_settings($cmid, 'similarity_sensitivity') / 100;
-        $options['exclude_self_plagiarism'] = unplag_settings::get_assign_settings($cmid, 'exclude_self_plagiarism');
+        $options['exclude_self_plagiarism'] = 1;
     }
 }

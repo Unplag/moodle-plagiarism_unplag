@@ -160,10 +160,6 @@ class unplag_defaults_form extends moodleform {
         if (!isset($mform->exportValues()['exclude_citations']) || is_null($mform->exportValues()['exclude_citations'])) {
             $mform->setDefault('exclude_citations', 1);
         }
-        $mform->addElement('select', 'exclude_self_plagiarism', plagiarism_unplag::trans("exclude_self_plagiarism"), $ynoptions);
-        if (!isset($mform->exportValues()['exclude_self_plagiarism']) || is_null($mform->exportValues()['exclude_self_plagiarism'])) {
-            $mform->setDefault('exclude_self_plagiarism', 1);
-        }
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
         }
