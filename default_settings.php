@@ -57,6 +57,13 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
             $newelement->cm = 0;
             $newelement->name = $element;
             $newelement->value = $data->$element;
+
+            if ($newelement->name == 'similarity_sensitivity') {
+                $value = (int)$newelement->value;
+
+                $newelement->value = $value < 0 || $value > 100 ? 0 : $value;
+            }
+
             if (isset($unplagdefaults[$element])) {
                 $newelement->id = $DB->get_field(UNPLAG_CONFIG_TABLE, 'id', (array('cm' => 0, 'name' => $element)));
                 $DB->update_record(UNPLAG_CONFIG_TABLE, $newelement);

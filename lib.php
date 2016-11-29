@@ -109,6 +109,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 $newelement->cm = $data->coursemodule;
                 $newelement->name = $element;
                 $newelement->value = (isset($data->$element) ? $data->$element : 0);
+
+                if ($newelement->name == 'similarity_sensitivity') {
+                    $value = (int)$newelement->value;
+
+                    $newelement->value = $value < 0 || $value > 100 ? 0 : $value;
+                }
+
                 if (isset($existingelements[$element])) {
                     $newelement->id = $existingelements[$element];
                     $DB->update_record(UNPLAG_CONFIG_TABLE, $newelement);
