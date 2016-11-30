@@ -105,16 +105,20 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $data->coursemodule), '', 'name, id');
             // Array of possible plagiarism config options.
             foreach (self::config_options() as $element) {
+                if ($element == unplag_settings::SENSITIVITY_SETTING_NAME) {
+                    $value = (int)$data->$element;
+
+                    if ($value > 0 && $value < 100) {
+                        $data->$element = $value;
+                    } else {
+                        continue;
+                    }
+                }
+
                 $newelement = new stdClass();
                 $newelement->cm = $data->coursemodule;
                 $newelement->name = $element;
                 $newelement->value = (isset($data->$element) ? $data->$element : 0);
-
-                if ($newelement->name == 'similarity_sensitivity') {
-                    $value = (int)$newelement->value;
-
-                    $newelement->value = $value < 0 || $value > 100 ? 0 : $value;
-                }
 
                 if (isset($existingelements[$element])) {
                     $newelement->id = $existingelements[$element];

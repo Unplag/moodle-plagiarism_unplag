@@ -24,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 use plagiarism_unplag\classes\unplag_notification;
+use plagiarism_unplag\classes\unplag_settings;
 
 require_once(dirname(dirname(__FILE__)) . '/../config.php');
 require_once(dirname(__FILE__) . '/lib.php');
@@ -53,16 +54,20 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
     $plagiarismelements = plagiarism_plugin_unplag::config_options();
     foreach ($plagiarismelements as $element) {
         if (isset($data->$element)) {
+            if ($element == unplag_settings::SENSITIVITY_SETTING_NAME) {
+                $value = (int)$data->$element;
+
+                if ($value > 0 && $value < 100) {
+                    $data->$element = $value;
+                } else {
+                    continue;
+                }
+            }
+
             $newelement = new Stdclass();
             $newelement->cm = 0;
             $newelement->name = $element;
             $newelement->value = $data->$element;
-
-            if ($newelement->name == 'similarity_sensitivity') {
-                $value = (int)$newelement->value;
-
-                $newelement->value = $value < 0 || $value > 100 ? 0 : $value;
-            }
 
             if (isset($unplagdefaults[$element])) {
                 $newelement->id = $DB->get_field(UNPLAG_CONFIG_TABLE, 'id', (array('cm' => 0, 'name' => $element)));
