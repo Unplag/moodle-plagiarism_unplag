@@ -54,14 +54,15 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
     $plagiarismelements = plagiarism_plugin_unplag::config_options();
     foreach ($plagiarismelements as $element) {
         if (isset($data->$element)) {
-            if ($element == unplag_settings::SENSITIVITY_SETTING_NAME) {
-                $value = (int)$data->$element;
-
-                if ($value > 0 && $value < 100) {
-                    $data->$element = $value;
-                } else {
+            if ($element == unplag_settings::SENSITIVITY_SETTING_NAME
+                && (!is_numeric($data->$element)
+                    || $data->$element < 0
+                    || $data->$element > 100)) {
+                if (isset($unplagdefaults[$element])) {
                     continue;
                 }
+
+                $data->$element = 0;
             }
 
             $newelement = new Stdclass();
