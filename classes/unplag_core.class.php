@@ -37,8 +37,21 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_core {
-    /** @var unplag_plagiarism_entity */
+
+    /**
+     * @var unplag_plagiarism_entity
+     */
     private $unplagplagiarismentity;
+
+    /**
+     * @var int
+     */
+    public $userid = null;
+
+    /**
+     * @var int
+     */
+    public $cmid = null;
 
     /**
      * unplag_core constructor.

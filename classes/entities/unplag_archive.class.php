@@ -143,18 +143,18 @@ class unplag_archive {
             $tmpfile = tempnam($CFG->tempdir, 'unplag_unzip');
 
             if (!$fp = fopen($tmpfile, 'wb')) {
-                @unlink($tmpfile);
+                $this->unlink($tmpfile);
                 $processed[$name] = 'Can not write temp file';
                 continue;
             }
 
             if ($name === '' or array_key_exists($name, $processed)) {
-                @unlink($tmpfile);
+                $this->unlink($tmpfile);
                 continue;
             }
 
             if (!$fz = $ziparch->get_stream($file->index)) {
-                @unlink($tmpfile);
+                $this->unlink($tmpfile);
                 $processed[$name] = 'Can not read file from zip archive';
                 continue;
             }
@@ -165,7 +165,7 @@ class unplag_archive {
             fclose($fp);
 
             if ($bytescopied != $size) {
-                @unlink($tmpfile);
+                $this->unlink($tmpfile);
                 $processed[$name] = 'Can not read file from zip archive';
                 continue;
             }
@@ -204,6 +204,15 @@ class unplag_archive {
             unplag_notification::success('plagiarism_run_success', true);
 
             $this->run_checks();
+        }
+    }
+
+    /**
+     * @param $file
+     */
+    private function unlink($file) {
+        if (!unlink($file)) {
+            mtrace('Error deleting ' . $file);
         }
     }
 }
