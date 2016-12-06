@@ -65,9 +65,9 @@ foreach ($childs as $child) {
         case UNPLAG_STATUSCODE_PROCESSED :
 
             $url = new \moodle_url('/plagiarism/unplag/reports.php', array(
-                    'cmid' => $cmid,
-                    'pf' => $pf,
-                    'cpf' => $child->id
+                'cmid' => $cmid,
+                'pf'   => $pf,
+                'cpf'  => $child->id,
             ));
 
             if ($child->check_id !== null && $child->progress == 100) {
@@ -76,9 +76,9 @@ foreach ($childs as $child) {
 
                 $link = html_writer::link($url, $child->filename);
                 $fileinfos[] = array(
-                        'filename' => html_writer::tag('div', $link, array('class' => 'edit-link')),
-                        'status' => $OUTPUT->pix_icon('i/valid', plagiarism_unplag::trans('reportready')) .
-                                plagiarism_unplag::trans('reportready')
+                    'filename' => html_writer::tag('div', $link, array('class' => 'edit-link')),
+                    'status'   => $OUTPUT->pix_icon('i/valid', plagiarism_unplag::trans('reportready')) .
+                        plagiarism_unplag::trans('reportready'),
                 );
             }
             break;
@@ -90,32 +90,32 @@ foreach ($childs as $child) {
                 $erroresponse = plagiarism_unplag::trans('unknownwarning');
             }
             $fileinfos[] = array(
-                    'filename' => $child->filename,
-                    'status' => $OUTPUT->pix_icon('i/invalid', $erroresponse) . $erroresponse
+                'filename' => $child->filename,
+                'status'   => $OUTPUT->pix_icon('i/invalid', $erroresponse) . $erroresponse,
             );
             break;
     }
 };
 
 $generalinfourl = new \moodle_url('/plagiarism/unplag/reports.php', array(
-        'cmid' => $cmid,
-        'pf' => $pf
+    'cmid' => $cmid,
+    'pf'   => $pf,
 ));
 
 array_unshift($tabs,
-        new tabobject('unplag_files_info', $generalinfourl->out(), plagiarism_unplag::trans('generalinfo'), '', false));
+    new tabobject('unplag_files_info', $generalinfourl->out(), plagiarism_unplag::trans('generalinfo'), '', false));
 
 print_tabs(array($tabs), $currenttab);
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 
 if ($cpf !== null) {
-    $teacherhere = has_capability('moodle/grade:edit', $modulecontext, $USER->id);
+    $teacherhere = unplag_core::is_teacher($cmid);
     $reporturl = $current->reporturl;
     if ($teacherhere) {
         $reporturl = $current->reportediturl;
-        unplag_core::inject_comment_token($reporturl);
     }
+    unplag_core::inject_comment_token($reporturl, $teacherhere);
     unplag_language::inject_language_to_url($reporturl);
 
     echo '<iframe src="' . $reporturl . '" frameborder="0" id="_unplag_report_frame" style="width: 100%; height: 750px;"></iframe>';

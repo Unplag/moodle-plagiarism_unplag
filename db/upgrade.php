@@ -78,5 +78,23 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2016100500, 'plagiarism', 'unplag');
     }
 
+    if ($oldversion < 2016112200) {
+        if ($dbman->table_exists('plagiarism_unplag_user_data')) {
+            $dbman->drop_table('plagiarism_unplag_user_data');
+        }
+
+        $table = new xmldb_table('plagiarism_unplag_user_data');
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->add_field('user_id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->add_field('external_user_id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->add_field('external_token', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null, null, null);
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'), null, null);
+        $table->add_key('user_id', XMLDB_KEY_FOREIGN, array('user_id'), 'user', 'id');
+
+        $dbman->create_table($table);
+    }
+
     return true;
 }
