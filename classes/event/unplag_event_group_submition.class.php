@@ -47,8 +47,8 @@ class unplag_event_group_submition extends unplag_abstract_event {
 
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
         /* Only for team submission */
-        $isGroup = (bool)$DB->get_record('assign', array('id' => $submission->assignment), 'teamsubmission')->teamsubmission;
-        if (!$isGroup || $submission->status == unplag_event_submission_updated::DRAFT_STATUS) {
+        $isgroup = (bool)$DB->get_record('assign', array('id' => $submission->assignment), 'teamsubmission')->teamsubmission;
+        if (!$isgroup || $submission->status == unplag_event_submission_updated::DRAFT_STATUS) {
             return;
         }
 
