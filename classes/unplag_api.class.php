@@ -49,13 +49,15 @@ class unplag_api {
     }
 
     /**
-     * @param $content
-     * @param $filename
-     * @param $format
+     * @param      $content
+     * @param      $filename
+     * @param      $format
+     * @param null $cmid
+     * @param null $token
      *
      * @return mixed
      */
-    public function upload_file($content, $filename, $format) {
+    public function upload_file($content, $filename, $format, $cmid = null, $token = null) {
 
         set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
 
@@ -68,6 +70,14 @@ class unplag_api {
                 'file_data' => base64_encode($content),
                 'name' => $filename,
         );
+
+        if (!is_null($cmid)) {
+            $postdata['options']['submission_id'] = $cmid;
+        }
+
+        if (!is_null($token)) {
+            $postdata['options']['utoken'] = $token;
+        }
 
         return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
     }
@@ -85,11 +95,20 @@ class unplag_api {
         }
 
         $checktype = unplag_settings::get_assign_settings($file->cm, 'check_type');
+
+        $options = array();
+        $this->advanced_check_options($file->cm, $options);
+
         $postdata = array(
-                'type' => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
-                'file_id' => $file->external_file_id,
-                'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
+            'type'         => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
+            'file_id'      => $file->external_file_id,
+            'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
+            'options'      => $options,
         );
+
+        if (unplag_settings::get_assign_settings($file->cm, 'exclude_citations')) {
+            $postdata = array_merge($postdata, array('exclude_citations' => 1, 'exclude_references' => 1));
+        }
 
         return unplag_api_request::instance()->http_post()->request('check/create', $postdata);
     }
@@ -146,18 +165,26 @@ class unplag_api {
 
     /**
      * @param      $user
-     * @param bool $cancomment
      *
      * @return mixed
      */
-    public function user_create($user, $cancomment = false) {
+    public function user_create($user) {
         $postdata = array(
-                'sys_id' => $user->id,
-                'email' => $user->email,
-                'firstname' => $user->firstname,
-                'lastname' => $user->lastname,
+            'sys_id'    => $user->id,
+            'email'     => $user->email,
+            'firstname' => $user->firstname,
+            'lastname'  => $user->lastname
         );
 
         return unplag_api_request::instance()->http_post()->request('user/create', $postdata);
+    }
+
+    /**
+     * @param $cmid
+     * @param $options
+     */
+    private function advanced_check_options($cmid, &$options) {
+        $options['sensitivity'] = unplag_settings::get_assign_settings($cmid, 'similarity_sensitivity') / 100;
+        $options['exclude_self_plagiarism'] = 1;
     }
 }
