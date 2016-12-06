@@ -56,12 +56,11 @@ class unplag_event_file_submited extends unplag_abstract_event {
 
         $this->unplagcore = $unplagcore;
 
-        $plagiarismentitys = array();
         foreach ($event->other['pathnamehashes'] as $pathnamehash) {
-            $plagiarismentitys[] = $this->handle_uploaded_file($pathnamehash);
+            $this->add_after_handle_task($this->handle_uploaded_file($pathnamehash));
         }
 
-        self::after_handle_event($plagiarismentitys);
+        $this->after_handle_event();
     }
 
     /**

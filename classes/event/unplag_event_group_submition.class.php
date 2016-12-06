@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_event_onlinetext_submited.class.php
+ * unplag_event_group_submition.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -26,6 +26,7 @@
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -33,33 +34,40 @@ if (!defined('MOODLE_INTERNAL')) {
 }
 
 /**
- * Class unplag_event_onlinetext_submited
- *
+ * Class unplag_event_group_submition
  * @package plagiarism_unplag\classes\event
  */
-class unplag_event_onlinetext_submited extends unplag_abstract_event {
-    /** @var */
-    protected static $instance;
-
+class unplag_event_group_submition extends unplag_abstract_event {
     /**
      * @param unplag_core $unplagcore
      * @param base        $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
-        if (empty($event->other['content'])) {
+        global $DB;
+
+        $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
+        /* Only for team submission */
+        $isGroup = (bool)$DB->get_record('assign', array('id' => $submission->assignment), 'teamsubmission')->teamsubmission;
+        if (!$isGroup || $submission->status == unplag_event_submission_updated::DRAFT_STATUS) {
             return;
         }
 
-        $file = $unplagcore->create_file_from_content($event);
+        $assignfiles = unplag_assign::get_submission_files($event->contextid);
+        foreach ($assignfiles as $assignfile) {
+            if ($assignfile->get_userid() != $event->userid) {
+                continue;
+            }
 
-        if (self::is_submition_draft($event)) {
-            return;
-        }
+            $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile);
+            $internalfile = $plagiarismentity->get_internal_file();
+            if ($internalfile->check_id) {
+                continue;
+            }
 
-        if ($file) {
-            $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
-            $plagiarismentity->upload_file_on_unplag_server();
-            $this->add_after_handle_task($plagiarismentity);
+            if ($internalfile->external_file_id == null) {
+                $plagiarismentity->upload_file_on_unplag_server();
+                $this->add_after_handle_task($plagiarismentity);
+            }
         }
 
         $this->after_handle_event();

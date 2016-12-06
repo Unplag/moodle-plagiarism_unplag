@@ -28,17 +28,18 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_assign
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag\classes
  * @subpackage  plagiarism
- * @namespace plagiarism_unplag\classes
+ * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_assign {
     /**
-     * @param $cmid
+     * @param      $cmid
      * @param null $userid
+     *
      * @return bool|\stdClass
      */
     public static function get_user_submission_by_cmid($cmid, $userid = null) {
@@ -96,5 +97,15 @@ class unplag_assign {
                 unplag_notification::error('Can\'t start check: ' . $error[0]->message, false);
             }
         }
+    }
+
+    /**
+     * @param      $contextid
+     * @param bool $itemid
+     *
+     * @return \stored_file[]
+     */
+    public static function get_submission_files($contextid, $itemid = false) {
+        return get_file_storage()->get_area_files($contextid, 'assignsubmission_file', 'submission_files', $itemid, null, false);
     }
 }
