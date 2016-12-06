@@ -31,6 +31,8 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_settings {
+    const SENSITIVITY_SETTING_NAME = 'similarity_sensitivity';
+
     /**
      * @param      $cmid
      * @param null $name

@@ -61,5 +61,17 @@
                 <KEY NAME="cm" TYPE="foreign" FIELDS="cm" REFTABLE="course_modules" REFFIELDS="id" PREVIOUS="primary"/>
             </KEYS>
         </TABLE>
+        <TABLE NAME="plagiarism_unplag_user_data" COMMENT="user external data" PREVIOUS="plagiarism_unplag_config">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="user_id"/>
+                <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="external_user_id"/>
+                <FIELD NAME="external_user_id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="user_id" NEXT="token"/>
+                <FIELD NAME="external_token" TYPE="char" LENGTH="64" NOTNULL="true" PREVIOUS="external_user_id"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="user_id"/>
+                <KEY NAME="user_id" TYPE="foreign" FIELDS="user_id" REFTABLE="user" REFFIELDS="id" PREVIOUS="primary"/>
+            </KEYS>
+        </TABLE>
     </TABLES>
 </XMLDB>
