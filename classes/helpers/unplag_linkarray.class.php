@@ -27,9 +27,9 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_linkarray
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag\classes
  * @subpackage  plagiarism
- * @namespace plagiarism_unplag\classes
+ * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -75,48 +75,48 @@ class unplag_linkarray {
 
     /**
      * @param \stdClass $fileobj
-     * @param $cm
-     * @param $linkarray
+     * @param           $cm
+     * @param           $linkarray
      *
      * @return mixed
      */
     public static function get_output_for_linkarray(\stdClass $fileobj, $cm, $linkarray) {
         static $iterator; // This iterator for one-time start-up.
-        $output = '';
-        $dir = dirname(__FILE__) . '/../../views/';
-        $statuscode = $fileobj->statuscode;
-        switch ($statuscode) {
+        $tmpl = null;
+
+        switch ($fileobj->statuscode) {
             case UNPLAG_STATUSCODE_PROCESSED:
-                $output = require($dir . 'view_tmpl_processed.php');
+                $tmpl = 'view_tmpl_processed.php';
                 break;
             case UNPLAG_STATUSCODE_ACCEPTED:
                 if (isset($fileobj->check_id) || $fileobj->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
-                    $output = require($dir . 'view_tmpl_accepted.php');
+                    $tmpl = 'view_tmpl_accepted.php';
                     $iterator++;
                 } else {
-                    $output = require($dir . 'view_tmpl_unknownwarning.php');
+                    $tmpl = 'view_tmpl_unknownwarning.php';
                 }
                 break;
             case UNPLAG_STATUSCODE_INVALID_RESPONSE:
-                $output = require($dir . 'view_tmpl_invalid_response.php');
+                $tmpl = 'view_tmpl_invalid_response.php';
                 break;
             case UNPLAG_STATUSCODE_PENDING:
                 if (self::is_pending($cm, $fileobj) && self::is_submission_submitted($linkarray)) {
-                    $output = require($dir . 'view_tmpl_can_check.php');
+                    $tmpl = 'view_tmpl_can_check.php';
                     $iterator++;
                 }
                 break;
             default:
-                $output = require($dir . 'view_tmpl_unknownwarning.php');
+                $tmpl = 'view_tmpl_unknownwarning.php';
                 break;
         }
 
-        return $output;
+        return is_null($tmpl) ? '' : require(dirname(__FILE__) . '/../../views/' . $tmpl);
     }
 
     /**
      * @param $cm
      * @param $fileobj
+     *
      * @return bool
      */
     private static function is_pending($cm, $fileobj) {
@@ -125,6 +125,7 @@ class unplag_linkarray {
 
     /**
      * @param $linkarray
+     *
      * @return bool
      */
     private static function is_submission_submitted($linkarray) {
