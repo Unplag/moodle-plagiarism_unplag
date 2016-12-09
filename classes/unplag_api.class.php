@@ -57,13 +57,9 @@ class unplag_api {
      *
      * @return mixed
      */
-    public function upload_file($content, $filename, $format, $cmid = null, $token = null) {
+    public function upload_file($content, $filename, $format = 'html', $cmid = null, $token = null) {
 
         set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
-
-        if (!$format) {
-            $format = 'html';
-        }
 
         $postdata = array(
                 'format' => $format,

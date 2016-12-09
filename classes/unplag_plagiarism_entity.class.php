@@ -45,6 +45,8 @@ abstract class unplag_plagiarism_entity {
     protected $core;
     /** @var \stdClass */
     protected $plagiarismfile;
+    /** @var bool */
+    private $teamsubmission = false;
 
     /**
      * @return object
@@ -127,5 +129,16 @@ abstract class unplag_plagiarism_entity {
         $plagiarismfile->errorresponse = null;
 
         return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+    }
+
+    public function enable_teamsubmission() {
+        $this->teamsubmission = true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function is_teamsubmission_mode() {
+        return $this->teamsubmission;
     }
 }

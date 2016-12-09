@@ -37,17 +37,14 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_core {
-
     /**
      * @var unplag_plagiarism_entity
      */
     private $unplagplagiarismentity;
-
     /**
      * @var int
      */
     public $userid = null;
-
     /**
      * @var int
      */
@@ -120,16 +117,21 @@ class unplag_core {
     }
 
     /**
-     * @param $file
+     * @param      $file
+     * @param bool $teamsubmission
      *
-     * @return null|unplag_plagiarism_entity
+     * @return null|unplag_file|unplag_plagiarism_entity
      */
-    public function get_plagiarism_entity($file) {
+    public function get_plagiarism_entity($file, $teamsubmission = false) {
         if (empty($file)) {
             return null;
         }
 
         $this->unplagplagiarismentity = new unplag_file($this, $file);
+
+        if ($teamsubmission) {
+            $this->unplagplagiarismentity->enable_teamsubmission();
+        }
 
         return $this->unplagplagiarismentity;
     }

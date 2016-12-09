@@ -76,10 +76,10 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
             $editreporturl = $fileobj->reportediturl;
 
             unplag_language::inject_language_to_url($reporturl);
-            unplag_core::inject_comment_token($reporturl, $teacherhere);
+            unplag_core::inject_comment_token($reporturl);
 
             unplag_language::inject_language_to_url($editreporturl);
-            unplag_core::inject_comment_token($editreporturl, $teacherhere);
+            unplag_core::inject_comment_token($editreporturl);
         }
 
         if ($teacherhere || $assigncfg['unplag_show_student_report']) {

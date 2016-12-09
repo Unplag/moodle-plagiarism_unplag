@@ -43,22 +43,23 @@ class unplag_event_group_submition extends unplag_abstract_event {
      * @param base        $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
-        global $DB;
 
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
+        $assign = unplag_assign::get($submission->assignment);
+
         /* Only for team submission */
-        $isgroup = (bool)$DB->get_record('assign', array('id' => $submission->assignment), 'teamsubmission')->teamsubmission;
-        if (!$isgroup || $submission->status == unplag_event_submission_updated::DRAFT_STATUS) {
+        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool)$assign->teamsubmission) {
+            return;
+        }
+
+        /* All users of group must confirm submission */
+        if ((bool)$assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
             return;
         }
 
         $assignfiles = unplag_assign::get_submission_files($event->contextid);
         foreach ($assignfiles as $assignfile) {
-            if ($assignfile->get_userid() != $event->userid) {
-                continue;
-            }
-
-            $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile);
+            $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile, (bool)$assign->teamsubmission);
             $internalfile = $plagiarismentity->get_internal_file();
             if ($internalfile->check_id) {
                 continue;
@@ -71,5 +72,21 @@ class unplag_event_group_submition extends unplag_abstract_event {
         }
 
         $this->after_handle_event();
+    }
+
+    /**
+     * @param $assign
+     *
+     * @return bool
+     */
+    private function all_users_confirm_submition($assign) {
+        global $USER;
+
+        list($course, $cm) = get_course_and_cm_from_instance($assign, 'assign');
+
+        $context = \context_module::instance($cm->id);
+        $assign = new \assign($context, $cm, $course);
+        $lastattempt = $assign->get_assign_submission_status_renderable($USER, true);
+        return count($lastattempt->submissiongroupmemberswhoneedtosubmit) == 0;
     }
 }

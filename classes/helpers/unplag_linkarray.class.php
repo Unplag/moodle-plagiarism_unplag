@@ -82,7 +82,9 @@ class unplag_linkarray {
      */
     public static function get_output_for_linkarray(\stdClass $fileobj, $cm, $linkarray) {
         static $iterator; // This iterator for one-time start-up.
+
         $tmpl = null;
+        $inciterator = false;
 
         switch ($fileobj->statuscode) {
             case UNPLAG_STATUSCODE_PROCESSED:
@@ -91,7 +93,7 @@ class unplag_linkarray {
             case UNPLAG_STATUSCODE_ACCEPTED:
                 if (isset($fileobj->check_id) || $fileobj->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
                     $tmpl = 'view_tmpl_accepted.php';
-                    $iterator++;
+                    $inciterator = true;
                 } else {
                     $tmpl = 'view_tmpl_unknownwarning.php';
                 }
@@ -102,7 +104,7 @@ class unplag_linkarray {
             case UNPLAG_STATUSCODE_PENDING:
                 if (self::is_pending($cm, $fileobj) && self::is_submission_submitted($linkarray)) {
                     $tmpl = 'view_tmpl_can_check.php';
-                    $iterator++;
+                    $inciterator = true;
                 }
                 break;
             default:
@@ -110,7 +112,13 @@ class unplag_linkarray {
                 break;
         }
 
-        return is_null($tmpl) ? '' : require(dirname(__FILE__) . '/../../views/' . $tmpl);
+        $output = is_null($tmpl) ? '' : require(dirname(__FILE__) . '/../../views/' . $tmpl);
+
+        if ($inciterator) {
+            $iterator++;
+        }
+
+        return $output;
     }
 
     /**

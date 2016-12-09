@@ -24,6 +24,7 @@
  */
 
 use plagiarism_unplag\classes\helpers\unplag_linkarray;
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 
@@ -65,6 +66,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     public function get_links($linkarray) {
         $file = null;
         $fileobj = null;
+        $teamsubmission = false;
 
         if (!plagiarism_unplag::is_plagin_enabled() || !unplag_settings::get_assign_settings($linkarray['cmid'], 'use_unplag')) {
             // Not allowed access to this content.
@@ -78,7 +80,12 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
             if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
                 $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
-                $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
+
+                if ($cm->modname == 'assign') {
+                    $teamsubmission = (bool)unplag_assign::get($cm->instance)->teamsubmission;
+                }
+
+                $fileobj = $ucore->get_plagiarism_entity($file, $teamsubmission)->get_internal_file();
                 if (!empty($fileobj) && is_object($fileobj)) {
                     $output = unplag_linkarray::get_output_for_linkarray($fileobj, $cm, $linkarray);
                 }
@@ -108,7 +115,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 if ($element == unplag_settings::SENSITIVITY_SETTING_NAME
                     && (!is_numeric($data->$element)
                         || $data->$element < 0
-                        || $data->$element > 100)) {
+                        || $data->$element > 100)
+                ) {
                     if (isset($existingelements[$element])) {
                         continue;
                     }

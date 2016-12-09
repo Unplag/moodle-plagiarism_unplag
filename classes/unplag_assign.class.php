@@ -36,6 +36,8 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_assign {
+    const DB_NAME = 'assign';
+
     /**
      * @param      $cmid
      * @param null $userid
@@ -107,5 +109,16 @@ class unplag_assign {
      */
     public static function get_submission_files($contextid, $itemid = false) {
         return get_file_storage()->get_area_files($contextid, 'assignsubmission_file', 'submission_files', $itemid, null, false);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return \stdClass
+     */
+    public static function get($id) {
+        global $DB;
+
+        return $assign = $DB->get_record(self::DB_NAME, array('id' => $id), '*', MUST_EXIST);
     }
 }
