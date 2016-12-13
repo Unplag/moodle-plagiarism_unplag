@@ -84,9 +84,11 @@ class unplag_event_group_submition extends unplag_abstract_event {
 
         list($course, $cm) = get_course_and_cm_from_instance($assign, 'assign');
 
-        $context = \context_module::instance($cm->id);
-        $assign = new \assign($context, $cm, $course);
-        $lastattempt = $assign->get_assign_submission_status_renderable($USER, true);
-        return count($lastattempt->submissiongroupmemberswhoneedtosubmit) == 0;
+        $assign = new \assign(\context_module::instance($cm->id), $cm, $course);
+
+        $groupid = $assign->get_submission_group($USER->id)->id;
+        $notsubmitted = $assign->get_submission_group_members_who_have_not_submitted($groupid, true);
+
+        return count($notsubmitted) == 0;
     }
 }
