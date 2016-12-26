@@ -26,6 +26,7 @@
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
+use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -57,10 +58,24 @@ class unplag_event_group_submition extends unplag_abstract_event {
             return;
         }
 
+        $unplagcore->enable_teamsubmission();
+
         $assignfiles = unplag_assign::get_submission_files($event->contextid);
         foreach ($assignfiles as $assignfile) {
-            $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile, (bool)$assign->teamsubmission);
+            $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile);
             $internalfile = $plagiarismentity->get_internal_file();
+
+            if ($internalfile->statuscode == UNPLAG_STATUSCODE_PROCESSED) {
+                continue;
+            }
+
+            if (\plagiarism_unplag::is_archive($assignfile)) {
+                $unplagarchive = new unplag_archive($assignfile, $unplagcore);
+                $unplagarchive->run_checks();
+
+                continue;
+            }
+
             if ($internalfile->check_id) {
                 continue;
             }

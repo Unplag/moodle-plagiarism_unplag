@@ -41,6 +41,8 @@ class unplag_core {
      * @var unplag_plagiarism_entity
      */
     private $unplagplagiarismentity;
+    /** @var  bool */
+    private $teamsubmission = false;
     /**
      * @var int
      */
@@ -118,18 +120,17 @@ class unplag_core {
 
     /**
      * @param      $file
-     * @param bool $teamsubmission
      *
      * @return null|unplag_file|unplag_plagiarism_entity
      */
-    public function get_plagiarism_entity($file, $teamsubmission = false) {
+    public function get_plagiarism_entity($file) {
         if (empty($file)) {
             return null;
         }
 
         $this->unplagplagiarismentity = new unplag_file($this, $file);
 
-        if ($teamsubmission) {
+        if ($this->teamsubmission) {
             $this->unplagplagiarismentity->enable_teamsubmission();
         }
 
@@ -277,5 +278,14 @@ class unplag_core {
         ));
 
         $storedfile->delete();
+    }
+
+    /**
+     * @return $this
+     */
+    public function enable_teamsubmission() {
+        $this->teamsubmission = true;
+
+        return $this;
     }
 }
