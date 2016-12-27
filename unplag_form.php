@@ -23,6 +23,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\unplag_settings;
+
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); // It must be included from a Moodle page.
 }
@@ -131,35 +133,45 @@ class unplag_defaults_form extends moodleform {
             $mform->addElement('static', 'use_unplag_static_description', plagiarism_unplag::trans('useunplag_assign_desc_param'),
                 plagiarism_unplag::trans('useunplag_assign_desc_value'));
         }
-        $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
+
+        $setting = unplag_settings::USE_UNPLAG;
+        $mform->addElement('select', $setting, plagiarism_unplag::trans("useunplag"), $ynoptions);
         if ($this->modname === 'assign') {
-            $mform->addHelpButton('use_unplag', 'useunplag', 'plagiarism_unplag');
+            $mform->addHelpButton($setting, 'useunplag', 'plagiarism_unplag');
         }
 
-        $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), array(
+        $setting = unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS;
+        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+
+        $setting = unplag_settings::CHECK_TYPE;
+        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), array(
             UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
             UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans('web'),
             UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans('my_library'),
         ));
-        $mform->addElement('select', 'unplag_show_student_score',
-            plagiarism_unplag::trans("unplag_show_student_score"), $ynoptions
-        );
-        $mform->addHelpButton('unplag_show_student_score', 'unplag_show_student_score', 'plagiarism_unplag');
-        $mform->addElement('select', 'unplag_show_student_report',
-            plagiarism_unplag::trans("unplag_show_student_report"), $ynoptions
-        );
-        $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
 
-        $mform->addElement('text', 'similarity_sensitivity', plagiarism_unplag::trans('similarity_sensitivity'));
-        if (!isset($mform->exportValues()['similarity_sensitivity']) || !$mform->exportValues()['similarity_sensitivity']) {
-            $mform->setDefault('similarity_sensitivity', 0);
-        }
-        $mform->setType('similarity_sensitivity', PARAM_TEXT);
+        $setting = unplag_settings::SHOW_STUDENT_SCORE;
+        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+        $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
 
-        $mform->addElement('select', 'exclude_citations', plagiarism_unplag::trans("exclude_citations"), $ynoptions);
-        if (!isset($mform->exportValues()['exclude_citations']) || is_null($mform->exportValues()['exclude_citations'])) {
-            $mform->setDefault('exclude_citations', 1);
+        $setting = unplag_settings::SHOW_STUDENT_REPORT;
+        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+        $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
+
+        $setting = unplag_settings::SENSITIVITY_SETTING_NAME;
+        $mform->addElement('text', $setting, plagiarism_unplag::trans($setting));
+        $mform->setType($setting, PARAM_TEXT);
+        if (!isset($mform->exportValues()[$setting]) || !$mform->exportValues()[$setting]) {
+            $mform->setDefault($setting, 0);
         }
+
+        $setting = unplag_settings::EXCLUDE_CITATIONS;
+        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+        $citvalue = $mform->exportValues()[$setting];
+        if (!isset($citvalue) || is_null($citvalue)) {
+            $mform->setDefault($setting, 1);
+        }
+
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
         }

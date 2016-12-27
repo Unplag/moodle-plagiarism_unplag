@@ -23,7 +23,9 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\task\manager;
 use plagiarism_unplag\classes\helpers\unplag_linkarray;
+use plagiarism_unplag\classes\task\unplag_bulk_check_assign_files;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 
@@ -99,7 +101,6 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (isset($data->submissiondrafts) && !$data->submissiondrafts) {
             $data->use_unplag = 0;
         }
-
         if (isset($data->use_unplag)) {
             // First get existing values.
             $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $data->coursemodule), '', 'name, id');
@@ -108,7 +109,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                 if ($element == unplag_settings::SENSITIVITY_SETTING_NAME
                     && (!is_numeric($data->$element)
                         || $data->$element < 0
-                        || $data->$element > 100)) {
+                        || $data->$element > 100)
+                ) {
                     if (isset($existingelements[$element])) {
                         continue;
                     }
@@ -128,6 +130,17 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     $DB->insert_record(UNPLAG_CONFIG_TABLE, $newelement);
                 }
             }
+
+            if ($data->check_all_submitted_assignments == 1) {
+                $task = new unplag_bulk_check_assign_files();
+                $task->set_component('unplag');
+                $task->set_custom_data(array(
+                    'contextid' => $data->gradingman->get_context()->id,
+                    'cmid'      => $data->coursemodule,
+                ));
+
+                manager::queue_adhoc_task($task);
+            }
         }
     }
 
@@ -138,11 +151,9 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      *
      */
     public static function config_options() {
-        return array(
-            'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
-            'unplag_draft_submit', 'check_type', 'similarity_sensitivity', 'exclude_citations',
-            'exclude_self_plagiarism',
-        );
+        $constants = (new ReflectionClass('plagiarism_unplag\\classes\\unplag_settings'))->getConstants();
+
+        return array_values($constants);
     }
 
     /**
