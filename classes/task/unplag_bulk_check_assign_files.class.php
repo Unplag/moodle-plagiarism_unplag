@@ -24,7 +24,7 @@
 
 namespace plagiarism_unplag\classes\task;
 
-use core\task\adhoc_task;
+use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
@@ -37,7 +37,12 @@ if (!defined('MOODLE_INTERNAL')) {
  * Class unplag_bulk_check_assign_files
  * @package plagiarism_unplag\classes\task
  */
-class unplag_bulk_check_assign_files extends adhoc_task {
+class unplag_bulk_check_assign_files extends unplag_abstract_task {
+    /** @var  unplag_core */
+    private $unplagcore;
+    /** @var  \stored_file */
+    private $assignfile;
+
     public function execute() {
         $data = $this->get_custom_data();
 
@@ -47,18 +52,44 @@ class unplag_bulk_check_assign_files extends adhoc_task {
             return;
         }
 
-        foreach ($assignfiles as $assignfile) {
-            mtrace('File with uuid ' . $assignfile->get_pathnamehash() . ' ready to send');
-            $unplagcore = new unplag_core($data->cmid, $assignfile->get_userid());
-            $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile);
-            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-            if (isset($internalfile->check_id)) {
-                mtrace('File with uuid ' . $internalfile->identifier . ' already sent to Unplag');
-            } else if ($internalfile->external_file_id) {
-                $checkresp = unplag_api::instance()->run_check($internalfile);
-                $plagiarismentity->handle_check_response($checkresp);
-                mtrace('File ' . $internalfile->identifier . ' send to Unplag');
+        foreach ($assignfiles as $this->assignfile) {
+            $this->unplagcore = new unplag_core($data->cmid, $this->assignfile->get_userid());
+
+            $pattern = '%s with uuid ' . $this->assignfile->get_pathnamehash() . ' ready to send';
+            if (\plagiarism_unplag::is_archive($this->assignfile)) {
+                mtrace(sprintf($pattern, 'Archive'));
+                $this->handle_archive($data->cmid);
+            } else {
+                mtrace(sprintf($pattern, 'File'));
+                $this->handle_non_archive();
             }
+        }
+    }
+
+    /**
+     * @param $contextid
+     */
+    private function handle_archive($contextid) {
+        if (!is_null(unplag_core::get_file_by_hash($contextid, $this->assignfile->get_pathnamehash()))) {
+            mtrace('... archive already sent to Unplag');
+
+            return;
+        }
+
+        $unplagarchive = new unplag_archive($this->assignfile, $this->unplagcore);
+        $unplagarchive->run_checks();
+        mtrace('... archive send to Unplag');
+    }
+
+    private function handle_non_archive() {
+        $plagiarismentity = $this->unplagcore->get_plagiarism_entity($this->assignfile);
+        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+        if (isset($internalfile->check_id)) {
+            mtrace('... file already sent to Unplag');
+        } else if ($internalfile->external_file_id) {
+            $checkresp = unplag_api::instance()->run_check($internalfile);
+            $plagiarismentity->handle_check_response($checkresp);
+            mtrace('... file send to Unplag');
         }
     }
 }

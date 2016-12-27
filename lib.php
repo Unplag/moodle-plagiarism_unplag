@@ -23,7 +23,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core\task\manager;
 use plagiarism_unplag\classes\helpers\unplag_linkarray;
 use plagiarism_unplag\classes\task\unplag_bulk_check_assign_files;
 use plagiarism_unplag\classes\unplag_core;
@@ -101,6 +100,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (isset($data->submissiondrafts) && !$data->submissiondrafts) {
             $data->use_unplag = 0;
         }
+
         if (isset($data->use_unplag)) {
             // First get existing values.
             $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $data->coursemodule), '', 'name, id');
@@ -130,16 +130,15 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
                     $DB->insert_record(UNPLAG_CONFIG_TABLE, $newelement);
                 }
             }
+        }
 
+        // Plugin is enabled.
+        if ($data->use_unplag == 1) {
             if ($data->check_all_submitted_assignments == 1) {
-                $task = new unplag_bulk_check_assign_files();
-                $task->set_component('unplag');
-                $task->set_custom_data(array(
+                unplag_bulk_check_assign_files::add_task(array(
                     'contextid' => $data->gradingman->get_context()->id,
                     'cmid'      => $data->coursemodule,
                 ));
-
-                manager::queue_adhoc_task($task);
             }
         }
     }

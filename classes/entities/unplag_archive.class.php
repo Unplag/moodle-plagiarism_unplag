@@ -25,7 +25,6 @@
 
 namespace plagiarism_unplag\classes\entities;
 
-use core\task\manager;
 use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
@@ -41,17 +40,15 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_archive
  *
- * @package plagiarism_unplag\classes\entities
+ * @package   plagiarism_unplag\classes\entities
  * @namespace plagiarism_unplag\classes\entities
  *
  */
 class unplag_archive {
-
     /**
      * @var \stored_file
      */
     private $file;
-
     /**
      * @var unplag_core
      */
@@ -61,7 +58,8 @@ class unplag_archive {
      * unplag_archive constructor.
      *
      * @param \stored_file $file
-     * @param unplag_core $core
+     * @param unplag_core  $core
+     *
      * @throws unplag_exception
      */
     public function __construct(\stored_file $file, unplag_core $core) {
@@ -82,10 +80,11 @@ class unplag_archive {
         if (!$ziparch->open($pathname, \file_archive::OPEN)) {
             $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
             $archiveinternalfile->errorresponse = json_encode(array(
-                    array("message" => "Can't open zip archive")
+                array("message" => "Can't open zip archive"),
             ));
 
             $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
+
             return false;
         }
 
@@ -100,9 +99,10 @@ class unplag_archive {
         if (!$fileexist) {
             $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
             $archiveinternalfile->errorresponse = json_encode(array(
-                    array("message" => "Empty archive")
+                array("message" => "Empty archive"),
             ));
             $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
+
             return false;
         }
 
@@ -124,7 +124,7 @@ class unplag_archive {
 
     /**
      * @param \zip_archive $ziparch
-     * @param null $parentid
+     * @param null         $parentid
      */
     private function process_archive_files(\zip_archive &$ziparch, $parentid = null) {
         global $CFG;
@@ -173,17 +173,13 @@ class unplag_archive {
             $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $parentid);
             $plagiarismentity->get_internal_file();
 
-            $task = new unplag_upload_and_check_task();
-            $task->set_custom_data(array(
-                    'tmpfile' => $tmpfile,
-                    'filename' => $name,
-                    'unplagcore' => $this->unplagcore,
-                    'format' => $format,
-                    'parent_id' => $parentid
+            unplag_upload_and_check_task::add_task(array(
+                'tmpfile'    => $tmpfile,
+                'filename'   => $name,
+                'unplagcore' => $this->unplagcore,
+                'format'     => $format,
+                'parent_id'  => $parentid,
             ));
-            $task->set_component('unplag');
-
-            manager::queue_adhoc_task($task);
 
             unset($content);
         }
@@ -195,7 +191,7 @@ class unplag_archive {
         $internalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
         $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($internalfile->id));
         if ($childs) {
-            foreach ((object) $childs as $child) {
+            foreach ((object)$childs as $child) {
                 if ($child->check_id) {
                     unplag_api::instance()->delete_check($child);
                 }
