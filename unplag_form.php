@@ -167,8 +167,7 @@ class unplag_defaults_form extends moodleform {
 
         $setting = unplag_settings::EXCLUDE_CITATIONS;
         $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
-        $citvalue = $mform->exportValues()[$setting];
-        if (!isset($citvalue) || is_null($citvalue)) {
+        if (!isset($mform->exportValues()[$setting]) || is_null($mform->exportValues()[$setting])) {
             $mform->setDefault($setting, 1);
         }
 
