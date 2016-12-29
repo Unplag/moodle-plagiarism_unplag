@@ -134,7 +134,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         // Plugin is enabled.
         if ($data->use_unplag == 1) {
-            if ($data->check_all_submitted_assignments == 1) {
+            if ($data->modulename == 'assign' && $data->check_all_submitted_assignments == 1) {
                 unplag_bulk_check_assign_files::add_task(array(
                     'contextid' => $data->gradingman->get_context()->id,
                     'cmid'      => $data->coursemodule,

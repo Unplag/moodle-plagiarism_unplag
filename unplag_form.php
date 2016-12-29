@@ -136,12 +136,13 @@ class unplag_defaults_form extends moodleform {
 
         $setting = unplag_settings::USE_UNPLAG;
         $mform->addElement('select', $setting, plagiarism_unplag::trans("useunplag"), $ynoptions);
+
         if ($this->modname === 'assign') {
             $mform->addHelpButton($setting, 'useunplag', 'plagiarism_unplag');
-        }
 
-        $setting = unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS;
-        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+            $setting = unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS;
+            $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+        }
 
         $setting = unplag_settings::CHECK_TYPE;
         $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), array(
