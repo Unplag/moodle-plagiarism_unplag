@@ -37,10 +37,8 @@ if (!defined('MOODLE_INTERNAL')) {
  * @package plagiarism_unplag\classes
  */
 abstract class unplag_plagiarism_entity {
-
     const TYPE_ARCHIVE = 'archive';
     const TYPE_DOCUMENT = 'document';
-
     /** @var unplag_core */
     protected $core;
     /** @var \stdClass */
@@ -86,8 +84,10 @@ abstract class unplag_plagiarism_entity {
 
         if ($result && $plagiarismfile->parent_id) {
             $hasgoodchild = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                    array($plagiarismfile->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED,
-                            UNPLAG_STATUSCODE_PENDING));
+                array(
+                    $plagiarismfile->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED,
+                    UNPLAG_STATUSCODE_PENDING,
+                ));
 
             if (!$hasgoodchild) {
                 $parentplagiarismfile = unplag_stored_file::get_unplag_file($plagiarismfile->parent_id);
@@ -127,5 +127,34 @@ abstract class unplag_plagiarism_entity {
         $plagiarismfile->errorresponse = null;
 
         return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+    }
+
+    /**
+     * @param $data
+     *
+     * @return null|\stdClass
+     */
+    public function new_plagiarismfile($data) {
+
+        foreach (array('cm', 'userid', 'identifier', 'filename') as $key) {
+            if (empty($data[$key])) {
+                print_error($key . ' value is empty');
+
+                return null;
+            }
+        }
+
+        $plagiarismfile = new \stdClass();
+        $plagiarismfile->cm = $data['cm'];
+        $plagiarismfile->userid = $data['userid'];
+        $plagiarismfile->identifier = $data['identifier'];
+        $plagiarismfile->filename = $data['filename'];
+        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
+        $plagiarismfile->attempt = 0;
+        $plagiarismfile->progress = 0;
+        $plagiarismfile->timesubmitted = time();
+        $plagiarismfile->type = self::TYPE_DOCUMENT;
+
+        return $plagiarismfile;
     }
 }
