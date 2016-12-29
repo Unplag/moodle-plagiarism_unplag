@@ -130,10 +130,6 @@ class unplag_core {
 
         $this->unplagplagiarismentity = new unplag_file($this, $file);
 
-        if ($this->teamsubmission) {
-            $this->unplagplagiarismentity->enable_teamsubmission();
-        }
-
         return $this->unplagplagiarismentity;
     }
 
@@ -287,5 +283,12 @@ class unplag_core {
         $this->teamsubmission = true;
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function is_teamsubmission_mode() {
+        return $this->teamsubmission;
     }
 }

@@ -114,7 +114,7 @@ class unplag_file extends unplag_plagiarism_entity {
                 'identifier' => $this->stored_file()->get_pathnamehash(),
             );
 
-            if ($this->is_teamsubmission_mode()) {
+            if ($this->core->is_teamsubmission_mode()) {
                 unset($filedata['userid']);
             }
 
@@ -122,21 +122,16 @@ class unplag_file extends unplag_plagiarism_entity {
             $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, $filedata);
 
             if (empty($plagiarismfile)) {
-                $plagiarismfile = new \stdClass();
-                $plagiarismfile->cm = $this->cmid();
-                $plagiarismfile->userid = $this->userid();
-                $plagiarismfile->identifier = $this->stored_file()->get_pathnamehash();
-                $plagiarismfile->filename = $this->stored_file()->get_filename();
-                $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
-                $plagiarismfile->attempt = 0;
-                $plagiarismfile->progress = 0;
-                $plagiarismfile->timesubmitted = time();
+                $plagiarismfile = $this->new_plagiarismfile(array(
+                    'cm'         => $this->cmid(),
+                    'userid'     => $this->userid(),
+                    'identifier' => $this->stored_file()->get_pathnamehash(),
+                    'filename'   => $this->stored_file()->get_filename(),
+                ));
 
-                $type = unplag_plagiarism_entity::TYPE_DOCUMENT;
                 if (\plagiarism_unplag::is_archive($this->stored_file())) {
-                    $type = unplag_plagiarism_entity::TYPE_ARCHIVE;
+                    $plagiarismfile->type = unplag_plagiarism_entity::TYPE_ARCHIVE;
                 }
-                $plagiarismfile->type = $type;
 
                 if (!$pid = $DB->insert_record(UNPLAG_FILES_TABLE, $plagiarismfile)) {
                     debugging("INSERT INTO {UNPLAG_FILES_TABLE}");

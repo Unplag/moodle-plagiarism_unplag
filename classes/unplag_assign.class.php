@@ -121,4 +121,15 @@ class unplag_assign {
 
         return $assign = $DB->get_record(self::DB_NAME, array('id' => $id), '*', MUST_EXIST);
     }
+
+    /**
+     * @param $cmid
+     *
+     * @return \stdClass
+     */
+    public static function get_by_cmid($cmid) {
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
+
+        return self::get($cm->instance);
+    }
 }
