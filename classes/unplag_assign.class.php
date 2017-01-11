@@ -110,4 +110,17 @@ class unplag_assign {
             'assignsubmission_file', 'submission_files', $itemid, null, false
         );
     }
+
+    /**
+     * @param $id
+     *
+     * @return bool
+     */
+    public static function is_draft($id) {
+        global $DB;
+
+        $sql = 'SELECT COUNT(id) FROM {assign_submission} WHERE id = ? AND status = ?';
+
+        return (bool)$DB->count_records_sql($sql, array($id, 'draft'));
+    }
 }

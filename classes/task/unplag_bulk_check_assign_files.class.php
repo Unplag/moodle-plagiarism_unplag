@@ -53,6 +53,10 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
         }
 
         foreach ($assignfiles as $this->assignfile) {
+            if (unplag_assign::is_draft($this->assignfile->get_itemid())) {
+                continue;
+            }
+
             $this->unplagcore = new unplag_core($data->cmid, $this->assignfile->get_userid());
 
             $pattern = '%s with uuid ' . $this->assignfile->get_pathnamehash() . ' ready to send';
