@@ -14,24 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * version.php
+ * unplag_abstract_task.class.php
  *
  * @package     plagiarism_unplag
- * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
-if (!isset($plugin)) {
-    $plugin = new stdClass();
+namespace plagiarism_unplag\classes\task;
+
+use core\task\adhoc_task;
+use core\task\manager;
+
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
 }
 
+/**
+ * Interface unplag_abstract_task
+ * @package classes\task
+ */
+abstract class unplag_abstract_task extends adhoc_task {
+    /**
+     * Add new task for execution
+     *
+     * @param $data
+     *
+     * @return bool
+     */
+    public static function add_task($data) {
+        $task = new static();
+        $task->set_component(UNPLAG_PLAGIN_NAME);
+        $task->set_custom_data($data);
 
-$plugin->version = 2017011100; // YYYYMMDDVV.
-$plugin->requires = 2014051200; // Requires Moodle 2.7.
-$plugin->maturity = MATURITY_STABLE;
-
-$plugin->component = 'plagiarism_unplag';
-$plugin->release = '2.2.0';
+        return manager::queue_adhoc_task($task);
+    }
+}
