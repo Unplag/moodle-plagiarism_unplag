@@ -216,26 +216,30 @@ class unplag_core {
     }
 
     /**
-     * @param      $url
+     * @param $url
+     * @param $cancomment
      */
-    public static function inject_comment_token(&$url) {
+    public static function inject_comment_token(&$url, $cancomment) {
         global $USER;
 
-        $url .= '&ctoken=' . self::get_external_token($USER);
+        $url .= '&ctoken=' . self::get_external_token($USER, $cancomment);
     }
 
     /**
-     * @param $user
+     * @param      $user
+     * @param bool $cancomment
+     *
+     * @return mixed
      */
-    public static function get_external_token($user) {
+    public static function get_external_token($user, $cancomment = false) {
         global $DB;
 
-        $storeduser = $DB->get_record('plagiarism_unplag_user_data', array('user_id' => $user->id));
+        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, array('user_id' => $user->id));
 
         if ($storeduser) {
             return $storeduser->external_token;
         } else {
-            $resp = unplag_api::instance()->user_create($user);
+            $resp = unplag_api::instance()->user_create($user, $cancomment);
 
             if ($resp->result) {
                 $externaluserdata = new \stdClass;
@@ -243,7 +247,7 @@ class unplag_core {
                 $externaluserdata->external_user_id = $resp->user->id;
                 $externaluserdata->external_token = $resp->user->token;
 
-                $DB->insert_record('plagiarism_unplag_user_data', $externaluserdata);
+                $DB->insert_record(UNPLAG_USER_DATA_TABLE, $externaluserdata);
 
                 return $externaluserdata->external_token;
             }
