@@ -25,6 +25,7 @@
 
 use plagiarism_unplag\classes\helpers\unplag_linkarray;
 use plagiarism_unplag\classes\task\unplag_bulk_check_assign_files;
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 
@@ -79,6 +80,11 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
             if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
                 $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
+
+                if ($cm->modname == 'assign' && (bool)unplag_assign::get($cm->instance)->teamsubmission) {
+                    $ucore->enable_teamsubmission();
+                }
+
                 $fileobj = $ucore->get_plagiarism_entity($file)->get_internal_file();
                 if (!empty($fileobj) && is_object($fileobj)) {
                     $output = unplag_linkarray::get_output_for_linkarray($fileobj, $cm, $linkarray);

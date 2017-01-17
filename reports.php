@@ -115,7 +115,7 @@ if ($cpf !== null) {
     if ($teacherhere) {
         $reporturl = $current->reportediturl;
     }
-    unplag_core::inject_comment_token($reporturl, $teacherhere);
+    unplag_core::inject_comment_token($reporturl);
     unplag_language::inject_language_to_url($reporturl);
 
     echo '<iframe src="' . $reporturl . '" frameborder="0" id="_unplag_report_frame" style="width: 100%; height: 750px;"></iframe>';

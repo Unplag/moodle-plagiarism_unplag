@@ -36,6 +36,8 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_assign {
+    const DB_NAME = 'assign';
+
     /**
      * @param      $cmid
      * @param null $userid
@@ -106,9 +108,7 @@ class unplag_assign {
      * @return \stored_file[]
      */
     public static function get_area_files($contextid, $itemid = false) {
-        return get_file_storage()->get_area_files($contextid,
-            'assignsubmission_file', 'submission_files', $itemid, null, false
-        );
+        return get_file_storage()->get_area_files($contextid, 'assignsubmission_file', 'submission_files', $itemid, null, false);
     }
 
     /**
@@ -122,5 +122,27 @@ class unplag_assign {
         $sql = 'SELECT COUNT(id) FROM {assign_submission} WHERE id = ? AND status = ?';
 
         return (bool)$DB->count_records_sql($sql, array($id, 'draft'));
+    }
+
+    /**
+     * @param $id
+     *
+     * @return \stdClass
+     */
+    public static function get($id) {
+        global $DB;
+
+        return $assign = $DB->get_record(self::DB_NAME, array('id' => $id), '*', MUST_EXIST);
+    }
+
+    /**
+     * @param $cmid
+     *
+     * @return \stdClass
+     */
+    public static function get_by_cmid($cmid) {
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
+
+        return self::get($cm->instance);
     }
 }
