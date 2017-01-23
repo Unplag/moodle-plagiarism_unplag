@@ -164,6 +164,22 @@ class unplag_core {
         return get_file_storage()->get_file_instance($filerecord);
     }
 
+    public static function migrate_users_access() {
+        global $DB;
+
+        $users = $DB->get_records_sql(sprintf('SELECT user_id
+            FROM {%s}
+            JOIN {%s} ON (user_id = userid)
+            GROUP BY user_id', UNPLAG_USER_DATA_TABLE, UNPLAG_FILES_TABLE));
+
+        foreach ($users as $user) {
+            $user = $DB->get_record('user', array('id' => $user->user_id));
+            if ($user) {
+                unplag_api::instance()->user_create($user);
+            }
+        }
+    }
+
     /**
      * @param base $event
      *
