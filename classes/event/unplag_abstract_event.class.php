@@ -42,7 +42,7 @@ if (!defined('MOODLE_INTERNAL')) {
 abstract class unplag_abstract_event {
     /** @var */
     protected static $instance;
-    /** @var array  */
+    /** @var array */
     protected $tasks = array();
 
     /**
@@ -67,6 +67,9 @@ abstract class unplag_abstract_event {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
+        if (!$submission) {
+            return true;
+        }
 
         return ($submission->status !== 'submitted');
     }

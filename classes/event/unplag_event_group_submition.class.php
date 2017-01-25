@@ -46,10 +46,10 @@ class unplag_event_group_submition extends unplag_abstract_event {
     public function handle_event(unplag_core $unplagcore, base $event) {
 
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
-        if (!$submission->assignment) {
+        if (!$submission) {
             return;
         }
-        
+
         $assign = unplag_assign::get($submission->assignment);
 
         /* Only for team submission */
