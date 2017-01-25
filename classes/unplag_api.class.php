@@ -35,7 +35,6 @@ if (!defined('MOODLE_INTERNAL')) {
  * @package plagiarism_unplag\classes
  */
 class unplag_api {
-
     /**
      * @var null|unplag_api
      */
@@ -66,13 +65,17 @@ class unplag_api {
         }
 
         $postdata = array(
-                'format' => $format,
-                'file_data' => base64_encode($content),
-                'name' => $filename,
+            'format'    => $format,
+            'file_data' => base64_encode($content),
+            'name'      => $filename,
         );
 
         if (!is_null($cmid)) {
             $postdata['options']['submission_id'] = $cmid;
+
+            if ($noindex = unplag_settings::get_assign_settings($cmid, 'no_index_files')) {
+                $postdata['options']['no_index'] = $noindex;
+            }
         }
 
         if (!is_null($token)) {
@@ -123,7 +126,7 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument $checkids');
         }
         $postdata = array(
-                'id' => implode(',', $checkids),
+            'id' => implode(',', $checkids),
         );
 
         return unplag_api_request::instance()->http_get()->request('check/progress', $postdata);
@@ -140,7 +143,7 @@ class unplag_api {
         }
 
         $postdata = array(
-                'id' => $id,
+            'id' => $id,
         );
 
         return unplag_api_request::instance()->http_get()->request('check/get', $postdata);
@@ -157,7 +160,7 @@ class unplag_api {
         }
 
         $postdata = array(
-                'id' => $file->check_id,
+            'id' => $file->check_id,
         );
 
         return unplag_api_request::instance()->http_post()->request('check/delete', $postdata);
@@ -173,7 +176,7 @@ class unplag_api {
             'sys_id'    => $user->id,
             'email'     => $user->email,
             'firstname' => $user->firstname,
-            'lastname'  => $user->lastname
+            'lastname'  => $user->lastname,
         );
 
         return unplag_api_request::instance()->http_post()->request('user/create', $postdata);

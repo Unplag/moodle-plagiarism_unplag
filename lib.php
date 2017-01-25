@@ -141,7 +141,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         return array(
             'use_unplag', 'unplag_show_student_score', 'unplag_show_student_report',
             'unplag_draft_submit', 'check_type', 'similarity_sensitivity', 'exclude_citations',
-            'exclude_self_plagiarism',
+            'exclude_self_plagiarism', 'no_index_files'
         );
     }
 
