@@ -117,7 +117,7 @@ class plagiarism_unplag {
      */
     public static function object_to_array($obj) {
         if (is_object($obj)) {
-            $obj = (array) $obj;
+            $obj = (array)$obj;
         }
         if (is_array($obj)) {
             $new = array();
@@ -146,7 +146,7 @@ class plagiarism_unplag {
     }
 
     /**
-     * @return array|bool
+     * @return null|false
      */
     public static function is_plagin_enabled() {
         return unplag_settings::get_settings('use');

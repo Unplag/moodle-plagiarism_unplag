@@ -51,10 +51,10 @@ class unplag_api {
      * @param      $content
      * @param      $filename
      * @param      $format
-     * @param null $cmid
+     * @param integer $cmid
      * @param null $token
      *
-     * @return mixed
+     * @return \stdClass
      */
     public function upload_file($content, $filename, $format, $cmid = null, $token = null) {
 
@@ -84,7 +84,7 @@ class unplag_api {
     /**
      * @param \stdClass $file
      *
-     * @return mixed
+     * @return \stdClass
      */
     public function run_check(\stdClass $file) {
         global $CFG;
@@ -131,7 +131,7 @@ class unplag_api {
     /**
      * @param $id
      *
-     * @return mixed
+     * @return \stdClass
      */
     public function get_check_data($id) {
         if (empty($id)) {

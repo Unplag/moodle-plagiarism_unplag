@@ -32,7 +32,7 @@ class restore_plagiarism_unplag_plugin extends restore_plagiarism_plugin {
      * @param $data
      */
     public function process_unplagconfig($data) {
-        $data = (object) $data;
+        $data = (object)$data;
 
         set_config($this->task->get_courseid(), $data->value, $data->plugin);
     }

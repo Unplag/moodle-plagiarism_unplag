@@ -84,7 +84,7 @@ class unplag_settings {
             return self::get_settings_item($settings, $key);
         }
 
-        $settings = (array) get_config('plagiarism');
+        $settings = (array)get_config('plagiarism');
 
         // Check if enabled.
         if (isset($settings['unplag_use']) && $settings['unplag_use']) {

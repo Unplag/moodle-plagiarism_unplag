@@ -39,14 +39,14 @@ class unplag_check_helper {
      * @param \stdClass $check
      * @param int $progress
      */
-    public static function check_complete(\stdClass &$record, \stdClass $check, $progress = 100) {
+    public static function check_complete(\stdClass & $record, \stdClass $check, $progress = 100) {
         global $DB;
 
         if ($progress == 100) {
             $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
         }
 
-        $record->similarityscore = (float) $check->report->similarity;
+        $record->similarityscore = (float)$check->report->similarity;
         $record->reporturl = $check->report->view_url;
         $record->reportediturl = $check->report->view_edit_url;
         $record->progress = round($progress, 0, PHP_ROUND_HALF_DOWN);
@@ -79,8 +79,8 @@ class unplag_check_helper {
             $parentcheck = array(
                     'report' => array(
                             'similarity' => round($similarity / count($childs), 2, PHP_ROUND_HALF_DOWN),
-                            'view_url' => (string) $reporturl->out_as_local_url(),
-                            'view_edit_url' => (string) $reporturl->out_as_local_url()
+                            'view_url' => (string)$reporturl->out_as_local_url(),
+                            'view_edit_url' => (string)$reporturl->out_as_local_url()
                     )
             );
 
