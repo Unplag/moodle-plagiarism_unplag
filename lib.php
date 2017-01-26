@@ -47,7 +47,7 @@ require_once(dirname(__FILE__) . '/locallib.php');
  */
 class plagiarism_plugin_unplag extends plagiarism_plugin {
     /**
-     * @return array
+     * @return string[]
      */
     public static function default_plagin_options() {
         return array('unplag_use', 'unplag_enable_mod_assign', 'unplag_enable_mod_forum', 'unplag_enable_mod_workshop');
@@ -134,7 +134,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     /**
      * Function which returns an array of all the module instance settings.
      *
-     * @return array
+     * @return string[]
      *
      */
     public static function config_options() {
@@ -146,7 +146,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param $modulename
+     * @param string $modulename
      *
      * @return bool
      */
@@ -155,7 +155,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $modname = 'unplag_enable_' . $modulename;
 
         if (!$plagiarismsettings || empty($plagiarismsettings[$modname])) {
-            return false;// Return if unplag is not enabled for the module.
+            return false; // Return if unplag is not enabled for the module.
         }
 
         return true;
@@ -200,7 +200,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param array  $plagiarismelements
+     * @param string[]  $plagiarismelements
      * @param object $mform - Moodle form
      */
     private function disable_elements_if_not_use($plagiarismelements, $mform) {
@@ -213,7 +213,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param array  $plagiarismelements
+     * @param string[]  $plagiarismelements
      * @param object $mform - Moodle form
      */
     private function add_plagiarism_hidden_vars($plagiarismelements, $mform) {

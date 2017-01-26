@@ -156,6 +156,9 @@ class unplag_file extends unplag_plagiarism_entity {
         return $this->file;
     }
 
+    /**
+     * @return \stdClass
+     */
     private function upload() {
         global $USER;
 

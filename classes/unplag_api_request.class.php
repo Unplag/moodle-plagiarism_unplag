@@ -160,7 +160,7 @@ class unplag_api_request {
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function get_request_data() {
         return $this->requestdata;
@@ -174,7 +174,7 @@ class unplag_api_request {
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function get_url() {
         return $this->url;

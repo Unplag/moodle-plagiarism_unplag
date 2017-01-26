@@ -126,7 +126,7 @@ class unplag_archive {
      * @param \zip_archive $ziparch
      * @param null $parentid
      */
-    private function process_archive_files(\zip_archive &$ziparch, $parentid = null) {
+    private function process_archive_files(\zip_archive & $ziparch, $parentid = null) {
         global $CFG;
 
         $processed = array();
@@ -195,7 +195,7 @@ class unplag_archive {
         $internalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
         $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($internalfile->id));
         if ($childs) {
-            foreach ((object) $childs as $child) {
+            foreach ((object)$childs as $child) {
                 if ($child->check_id) {
                     unplag_api::instance()->delete_check($child);
                 }

@@ -40,7 +40,7 @@ class unplag_setup_form extends moodleform {
      * @throws coding_exception
      */
     public function definition() {
-        $mform =& $this->_form;
+        $mform = & $this->_form;
         $mform->addElement('checkbox', 'unplag_use', plagiarism_unplag::trans('useunplag'));
 
         $settingstext = '<div id="fitem_id_unplag_settings_link" class="fitem fitem_ftext ">

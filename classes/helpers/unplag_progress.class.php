@@ -115,7 +115,7 @@ class unplag_progress {
         $info = array(
                 'file_id' => $record->id,
                 'statuscode' => $record->statuscode,
-                'progress' => (int) $record->progress,
+                'progress' => (int)$record->progress,
                 'content' => self::gen_row_content_score($cid, $record),
         );
         return $info;
