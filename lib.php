@@ -49,7 +49,7 @@ require_once(dirname(__FILE__) . '/locallib.php');
  */
 class plagiarism_plugin_unplag extends plagiarism_plugin {
     /**
-     * @return array
+     * @return string[]
      */
     public static function default_plagin_options() {
         return array('unplag_use', 'unplag_enable_mod_assign', 'unplag_enable_mod_forum', 'unplag_enable_mod_workshop');
@@ -81,7 +81,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
                 $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
 
-                if ($cm->modname == 'assign' && (bool)unplag_assign::get($cm->instance)->teamsubmission) {
+                if ($cm->modname == 'assign' && (bool) unplag_assign::get($cm->instance)->teamsubmission) {
                     $ucore->enable_teamsubmission();
                 }
 
@@ -162,7 +162,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     * @param $modulename
+     * @param string $modulename
      *
      * @return bool
      */
@@ -171,7 +171,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $modname = 'unplag_enable_' . $modulename;
 
         if (!$plagiarismsettings || empty($plagiarismsettings[$modname])) {
-            return false;// Return if unplag is not enabled for the module.
+            return false; // Return if unplag is not enabled for the module.
         }
 
         return true;

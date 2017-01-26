@@ -53,12 +53,12 @@ class unplag_event_group_submition extends unplag_abstract_event {
         $assign = unplag_assign::get($submission->assignment);
 
         /* Only for team submission */
-        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool)$assign->teamsubmission) {
+        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool) $assign->teamsubmission) {
             return;
         }
 
         /* All users of group must confirm submission */
-        if ((bool)$assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
+        if ((bool) $assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
             return;
         }
 
