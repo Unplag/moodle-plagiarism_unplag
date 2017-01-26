@@ -61,7 +61,7 @@ class unplag_settings {
         }
 
         $data = $DB->get_records(UNPLAG_CONFIG_TABLE, $condition, '', 'name,value');
-        $data = array_map(function ($item) {
+        $data = array_map(function($item) {
             return $item->value;
         }, $data);
 
@@ -92,7 +92,7 @@ class unplag_settings {
             return self::get_settings_item($settings, $key);
         }
 
-        $settings = (array)get_config('plagiarism');
+        $settings = (array) get_config('plagiarism');
 
         // Check if enabled.
         if (isset($settings['unplag_use']) && $settings['unplag_use']) {
