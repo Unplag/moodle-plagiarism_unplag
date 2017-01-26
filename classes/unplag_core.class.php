@@ -257,7 +257,7 @@ class unplag_core {
         } else {
             $resp = unplag_api::instance()->user_create($user, $cancomment);
 
-            if ($resp->result) {
+            if ($resp && $resp->result) {
                 $externaluserdata = new \stdClass;
                 $externaluserdata->user_id = $user->id;
                 $externaluserdata->external_user_id = $resp->user->id;

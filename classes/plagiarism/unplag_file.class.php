@@ -85,11 +85,13 @@ class unplag_file extends unplag_plagiarism_entity {
         $internalfile->attempt++;
 
         $uploadedfileresponse = $this->upload();
-        if ($uploadedfileresponse->result) {
-            $internalfile->external_file_id = $uploadedfileresponse->file->id;
-            $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
-        } else {
-            $this->store_file_errors($uploadedfileresponse);
+        if ($uploadedfileresponse) {
+            if ($uploadedfileresponse->result) {
+                $internalfile->external_file_id = $uploadedfileresponse->file->id;
+                $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
+            } else {
+                $this->store_file_errors($uploadedfileresponse);
+            }
         }
 
         return $internalfile;
@@ -166,11 +168,9 @@ class unplag_file extends unplag_plagiarism_entity {
             $format = pathinfo($source, PATHINFO_EXTENSION);
         }
 
-        $filename = $this->stored_file()->get_filename();
-
         return unplag_api::instance()->upload_file(
             $this->stored_file()->get_content(),
-            $filename,
+            $this->stored_file()->get_filename(),
             $format,
             $this->cmid(),
             unplag_core::get_external_token($USER)
