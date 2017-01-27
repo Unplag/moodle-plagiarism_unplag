@@ -121,7 +121,7 @@ class unplag_assign {
 
         $sql = 'SELECT COUNT(id) FROM {assign_submission} WHERE id = ? AND status = ?';
 
-        return (bool)$DB->count_records_sql($sql, array($id, 'draft'));
+        return (bool) $DB->count_records_sql($sql, array($id, 'draft'));
     }
 
     /**
@@ -136,7 +136,7 @@ class unplag_assign {
     }
 
     /**
-     * @param $cmid
+     * @param integer $cmid
      *
      * @return \stdClass
      */

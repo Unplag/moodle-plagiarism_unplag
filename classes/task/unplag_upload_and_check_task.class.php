@@ -46,7 +46,7 @@ class unplag_upload_and_check_task extends unplag_abstract_task {
         if (file_exists($data->tmpfile)) {
             $ucore = new unplag_core($data->unplagcore->cmid, $data->unplagcore->userid);
 
-            if ((bool)unplag_assign::get_by_cmid($ucore->cmid)->teamsubmission) {
+            if ((bool) unplag_assign::get_by_cmid($ucore->cmid)->teamsubmission) {
                 $ucore->enable_teamsubmission();
             }
 

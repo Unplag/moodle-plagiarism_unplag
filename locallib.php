@@ -146,7 +146,7 @@ class plagiarism_unplag {
     }
 
     /**
-     * @return array|bool
+     * @return null|false
      */
     public static function is_plagin_enabled() {
         return unplag_settings::get_settings('use');
