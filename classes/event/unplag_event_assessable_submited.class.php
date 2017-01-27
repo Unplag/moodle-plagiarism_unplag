@@ -28,7 +28,6 @@ namespace plagiarism_unplag\classes\event;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -46,8 +45,6 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
 class unplag_event_assessable_submited extends unplag_abstract_event {
     /** @var self */
     protected static $instance;
-    /** @var unplag_core */
-    private $unplagcore;
 
     /**
      * @param unplag_core $unplagcore
@@ -74,7 +71,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
     /**
      * @param \stored_file $file
      *
-     * @return null
+     * @return bool
      */
     private function handle_file_plagiarism(\stored_file $file) {
         if (\plagiarism_unplag::is_archive($file)) {
@@ -85,19 +82,6 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
         }
 
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
-        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-        if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-            return null;
-        }
-
-        if (isset($internalfile->check_id)) {
-            print_error('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
-        } else {
-            $checkresp = unplag_api::instance()->run_check($internalfile);
-            $plagiarismentity->handle_check_response($checkresp);
-            mtrace('file ' . $internalfile->identifier . 'send to Unplag');
-        }
-
-        return true;
+        return $this->upload_and_run_check($plagiarismentity);
     }
 }

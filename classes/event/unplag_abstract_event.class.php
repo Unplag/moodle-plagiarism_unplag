@@ -44,6 +44,8 @@ abstract class unplag_abstract_event {
     protected static $instance;
     /** @var array */
     protected $tasks = array();
+    /** @var unplag_core */
+    protected $unplagcore;
 
     /**
      * @return static
@@ -99,6 +101,28 @@ abstract class unplag_abstract_event {
      */
     protected function add_after_handle_task($plagiarismentity) {
         array_push($this->tasks, $plagiarismentity);
+    }
+
+    /**
+     * @param unplag_plagiarism_entity $plagiarismentity
+     *
+     * @return bool
+     */
+    public static function upload_and_run_check(unplag_plagiarism_entity $plagiarismentity) {
+        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+        if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
+            return false;
+        }
+
+        if (isset($internalfile->check_id)) {
+            print_error('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
+        } else {
+            $checkresp = unplag_api::instance()->run_check($internalfile);
+            $plagiarismentity->handle_check_response($checkresp);
+            mtrace('file ' . $internalfile->identifier . 'send to Unplag');
+        }
+
+        return true;
     }
 
     /**

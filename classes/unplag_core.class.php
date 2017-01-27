@@ -102,6 +102,7 @@ class unplag_core {
 
             $plagiarismentity = $ucore->get_plagiarism_entity($file);
             $internalfile = $plagiarismentity->get_internal_file();
+
             if (isset($internalfile->external_file_id)) {
                 if ($internalfile->check_id) {
                     unplag_api::instance()->delete_check($internalfile);
