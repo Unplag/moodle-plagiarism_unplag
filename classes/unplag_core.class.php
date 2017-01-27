@@ -37,17 +37,16 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_core {
-
     /**
      * @var unplag_plagiarism_entity
      */
     private $unplagplagiarismentity;
-
+    /** @var  bool */
+    private $teamsubmission = false;
     /**
      * @var int
      */
     public $userid = null;
-
     /**
      * @var int
      */
@@ -120,9 +119,9 @@ class unplag_core {
     }
 
     /**
-     * @param $file
+     * @param      $file
      *
-     * @return null|unplag_plagiarism_entity
+     * @return null|unplag_file|unplag_plagiarism_entity
      */
     public function get_plagiarism_entity($file) {
         if (empty($file)) {
@@ -163,6 +162,22 @@ class unplag_core {
         }
 
         return get_file_storage()->get_file_instance($filerecord);
+    }
+
+    public static function migrate_users_access() {
+        global $DB;
+
+        $users = $DB->get_records_sql(sprintf('SELECT user_id
+            FROM {%s}
+            JOIN {%s} ON (user_id = userid)
+            GROUP BY user_id', UNPLAG_USER_DATA_TABLE, UNPLAG_FILES_TABLE));
+
+        foreach ($users as $user) {
+            $user = $DB->get_record('user', array('id' => $user->user_id));
+            if ($user) {
+                unplag_api::instance()->user_create($user);
+            }
+        }
     }
 
     /**
@@ -217,34 +232,38 @@ class unplag_core {
     }
 
     /**
-     * @param      $url
+     * @param $url
+     * @param $cancomment
      */
-    public static function inject_comment_token(&$url) {
+    public static function inject_comment_token(&$url, $cancomment) {
         global $USER;
 
-        $url .= '&ctoken=' . self::get_external_token($USER);
+        $url .= '&ctoken=' . self::get_external_token($USER, $cancomment);
     }
 
     /**
-     * @param $user
+     * @param      $user
+     * @param bool $cancomment
+     *
+     * @return mixed
      */
-    public static function get_external_token($user) {
+    public static function get_external_token($user, $cancomment = false) {
         global $DB;
 
-        $storeduser = $DB->get_record('plagiarism_unplag_user_data', array('user_id' => $user->id));
+        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, array('user_id' => $user->id));
 
         if ($storeduser) {
             return $storeduser->external_token;
         } else {
-            $resp = unplag_api::instance()->user_create($user);
+            $resp = unplag_api::instance()->user_create($user, $cancomment);
 
-            if ($resp->result) {
+            if ($resp && $resp->result) {
                 $externaluserdata = new \stdClass;
                 $externaluserdata->user_id = $user->id;
                 $externaluserdata->external_user_id = $resp->user->id;
                 $externaluserdata->external_token = $resp->user->token;
 
-                $DB->insert_record('plagiarism_unplag_user_data', $externaluserdata);
+                $DB->insert_record(UNPLAG_USER_DATA_TABLE, $externaluserdata);
 
                 return $externaluserdata->external_token;
             }
@@ -275,5 +294,21 @@ class unplag_core {
         ));
 
         $storedfile->delete();
+    }
+
+    /**
+     * @return $this
+     */
+    public function enable_teamsubmission() {
+        $this->teamsubmission = true;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function is_teamsubmission_mode() {
+        return $this->teamsubmission;
     }
 }

@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+use plagiarism_unplag\classes\unplag_core;
+
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
+
+require_once(dirname(__FILE__) . '/../constants.php');
+require_once(dirname(__FILE__) . '/../autoloader.php');
 
 /**
  * @param $oldversion
@@ -94,6 +99,10 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         $table->add_key('user_id', XMLDB_KEY_FOREIGN, array('user_id'), 'user', 'id');
 
         $dbman->create_table($table);
+    }
+
+    if ($oldversion < 2017012300) {
+        unplag_core::migrate_users_access();
     }
 
     return true;
