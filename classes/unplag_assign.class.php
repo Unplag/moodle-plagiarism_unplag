@@ -132,7 +132,7 @@ class unplag_assign {
     public static function get($id) {
         global $DB;
 
-        return $assign = $DB->get_record(self::DB_NAME, array('id' => $id), '*', MUST_EXIST);
+        return $DB->get_record(self::DB_NAME, array('id' => $id), '*', MUST_EXIST);
     }
 
     /**
