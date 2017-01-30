@@ -110,12 +110,11 @@ print_tabs(array($tabs), $currenttab);
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 
 if ($cpf !== null) {
-    $teacherhere = unplag_core::is_teacher($cmid);
     $reporturl = $current->reporturl;
-    if ($teacherhere) {
+    if (unplag_core::is_teacher($cmid)) {
         $reporturl = $current->reportediturl;
     }
-    unplag_core::inject_comment_token($reporturl, $teacherhere);
+    unplag_core::inject_comment_token($reporturl, $cmid);
     unplag_language::inject_language_to_url($reporturl);
 
     echo '<iframe src="' . $reporturl . '" frameborder="0" id="_unplag_report_frame" style="width: 100%; height: 750px;"></iframe>';

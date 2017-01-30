@@ -233,34 +233,31 @@ class unplag_core {
     }
 
     /**
-     * @param $url
-     * @param $cancomment
+     * @param string $url
+     * @param int    $cmid
      */
-    public static function inject_comment_token(&$url, $cancomment) {
-        global $USER;
-
-        $url .= '&ctoken=' . self::get_external_token($USER, $cancomment);
+    public static function inject_comment_token(&$url, $cmid) {
+        $url .= '&ctoken=' . self::get_external_token($cmid);
     }
 
     /**
-     * @param      $user
-     * @param bool $cancomment
+     * @param $cmid
      *
      * @return mixed
      */
-    public static function get_external_token($user, $cancomment = false) {
-        global $DB;
+    public static function get_external_token($cmid) {
+        global $DB, $USER;
 
-        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, array('user_id' => $user->id));
+        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, array('user_id' => $USER->id));
 
         if ($storeduser) {
             return $storeduser->external_token;
         } else {
-            $resp = unplag_api::instance()->user_create($user, $cancomment);
+            $resp = unplag_api::instance()->user_create($USER, unplag_core::is_teacher($cmid));
 
             if ($resp && $resp->result) {
                 $externaluserdata = new \stdClass;
-                $externaluserdata->user_id = $user->id;
+                $externaluserdata->user_id = $USER->id;
                 $externaluserdata->external_user_id = $resp->user->id;
                 $externaluserdata->external_token = $resp->user->token;
 

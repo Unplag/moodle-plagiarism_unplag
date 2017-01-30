@@ -88,7 +88,6 @@ class unplag_content extends unplag_plagiarism_entity {
      */
     public function upload_file_on_unplag_server() {
         global $DB;
-        global $USER;
 
         $internalfile = $this->get_internal_file();
 
@@ -109,7 +108,7 @@ class unplag_content extends unplag_plagiarism_entity {
             $this->name,
             $this->ext,
             $this->cmid(),
-            unplag_core::get_external_token($USER)
+            unplag_core::get_external_token($this->cmid())
         );
         if ($uploadedfileresponse->result) {
             $internalfile->external_file_id = $uploadedfileresponse->file->id;

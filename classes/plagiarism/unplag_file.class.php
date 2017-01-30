@@ -161,8 +161,6 @@ class unplag_file extends unplag_plagiarism_entity {
      * @return \stdClass
      */
     private function upload() {
-        global $USER;
-
         $format = 'html';
         if ($source = $this->stored_file()->get_source()) {
             $format = pathinfo($source, PATHINFO_EXTENSION);
@@ -173,7 +171,7 @@ class unplag_file extends unplag_plagiarism_entity {
             $this->stored_file()->get_filename(),
             $format,
             $this->cmid(),
-            unplag_core::get_external_token($USER)
+            unplag_core::get_external_token($this->cmid())
         );
     }
 }
