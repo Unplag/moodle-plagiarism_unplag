@@ -97,7 +97,11 @@ class unplag_check_helper {
      *
      * @return bool
      */
-    public static function upload_and_run_detection(unplag_plagiarism_entity $plagiarismentity) {
+    public static function upload_and_run_detection($plagiarismentity) {
+        if (!$plagiarismentity) {
+            return false;
+        }
+
         $internalfile = $plagiarismentity->upload_file_on_unplag_server();
         if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
             return false;
@@ -118,7 +122,11 @@ class unplag_check_helper {
      * @param unplag_plagiarism_entity $plagiarismentity
      * @param                          $internalfile
      */
-    public static function run_plagiarism_detection(unplag_plagiarism_entity $plagiarismentity, $internalfile) {
+    public static function run_plagiarism_detection($plagiarismentity, $internalfile) {
+        if (!$plagiarismentity) {
+            return;
+        }
+
         if (isset($internalfile->external_file_id)) {
             if ($internalfile->check_id) {
                 unplag_api::instance()->delete_check($internalfile);
