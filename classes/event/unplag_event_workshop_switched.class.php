@@ -27,6 +27,7 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag;
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -41,11 +42,6 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
  * @package plagiarism_unplag\classes\event
  */
 class unplag_event_workshop_switched extends unplag_abstract_event {
-    /** @var self */
-    protected static $instance;
-    /** @var unplag_core */
-    private $unplagcore;
-
     /**
      * @param unplag_core $unplagcore
      * @param base        $event
@@ -81,6 +77,6 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
         $this->unplagcore->userid = $file->get_userid();
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
 
-        return $this->upload_and_run_check($plagiarismentity);
+        return unplag_check_helper::upload_and_run_detection($plagiarismentity);
     }
 }

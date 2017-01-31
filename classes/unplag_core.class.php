@@ -20,6 +20,7 @@ use context_module;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -103,19 +104,7 @@ class unplag_core {
             $plagiarismentity = $ucore->get_plagiarism_entity($file);
             $internalfile = $plagiarismentity->get_internal_file();
 
-            if (isset($internalfile->external_file_id)) {
-                if ($internalfile->check_id) {
-                    unplag_api::instance()->delete_check($internalfile);
-                }
-
-                unplag_notification::success('plagiarism_run_success', true);
-
-                $checkresp = unplag_api::instance()->run_check($internalfile);
-                $plagiarismentity->handle_check_response($checkresp);
-            } else {
-                $error = self::parse_json($internalfile->errorresponse);
-                unplag_notification::error('Can\'t restart check: ' . $error[0]->message, false);
-            }
+            unplag_check_helper::run_plagiarism_detection($plagiarismentity, $internalfile);
         }
     }
 
@@ -253,7 +242,7 @@ class unplag_core {
         if ($storeduser) {
             return $storeduser->external_token;
         } else {
-            $resp = unplag_api::instance()->user_create($USER, unplag_core::is_teacher($cmid));
+            $resp = unplag_api::instance()->user_create($USER, self::is_teacher($cmid));
 
             if ($resp && $resp->result) {
                 $externaluserdata = new \stdClass;

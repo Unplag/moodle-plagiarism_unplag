@@ -104,28 +104,6 @@ abstract class unplag_abstract_event {
     }
 
     /**
-     * @param unplag_plagiarism_entity $plagiarismentity
-     *
-     * @return bool
-     */
-    public static function upload_and_run_check(unplag_plagiarism_entity $plagiarismentity) {
-        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-        if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-            return false;
-        }
-
-        if (isset($internalfile->check_id)) {
-            print_error('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
-        } else {
-            $checkresp = unplag_api::instance()->run_check($internalfile);
-            $plagiarismentity->handle_check_response($checkresp);
-            mtrace('file ' . $internalfile->identifier . 'send to Unplag');
-        }
-
-        return true;
-    }
-
-    /**
      * @param unplag_core $unplagcore
      * @param base        $event
      */

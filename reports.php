@@ -83,12 +83,8 @@ foreach ($childs as $child) {
             }
             break;
         case UNPLAG_STATUSCODE_INVALID_RESPONSE :
-            $errors = json_decode($child->errorresponse, true);
-            if (is_array($errors)) {
-                $erroresponse = $errors[0]['message'];
-            } else {
-                $erroresponse = plagiarism_unplag::trans('unknownwarning');
-            }
+
+            $erroresponse = plagiarism_unplag::error_resp_handler($child->errorresponse);
             $fileinfos[] = array(
                 'filename' => $child->filename,
                 'status'   => $OUTPUT->pix_icon('i/invalid', $erroresponse) . $erroresponse,

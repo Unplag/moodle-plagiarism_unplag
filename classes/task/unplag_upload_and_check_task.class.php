@@ -24,6 +24,7 @@
 
 namespace plagiarism_unplag\classes\task;
 
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_assign;
@@ -58,17 +59,8 @@ class unplag_upload_and_check_task extends unplag_abstract_task {
             if (!unlink($data->tmpfile)) {
                 mtrace('Error deleting ' . $data->tmpfile);
             }
-            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
 
-            if (isset($internalfile->check_id)) {
-                mtrace('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
-            } else {
-                if ($internalfile->external_file_id) {
-                    $checkresp = unplag_api::instance()->run_check($internalfile);
-                    $plagiarismentity->handle_check_response($checkresp);
-                    mtrace('file ' . $internalfile->identifier . 'send to Unplag');
-                }
-            }
+            unplag_check_helper::upload_and_run_detection($plagiarismentity);
 
             unset($internalfile, $plagiarismentity, $checkresp);
         } else {

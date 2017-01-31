@@ -42,7 +42,7 @@ class unplag_setup_form extends moodleform {
      * @throws coding_exception
      */
     public function definition() {
-        $mform = & $this->_form;
+        $mform = &$this->_form;
         $mform->addElement('checkbox', 'unplag_use', plagiarism_unplag::trans('useunplag'));
 
         $settingstext = '<div id="fitem_id_unplag_settings_link" class="fitem fitem_ftext ">
@@ -123,6 +123,13 @@ class unplag_defaults_form extends moodleform {
      * @throws coding_exception
      */
     public function definition() {
+
+        $defaultsforfield = function (MoodleQuickForm $mform, $setting, $defaultvalue) {
+            if (!isset($mform->exportValues()[$setting]) || is_null($mform->exportValues()[$setting])) {
+                $mform->setDefault($setting, $defaultvalue);
+            }
+        };
+
         /** @var MoodleQuickForm $mform */
         $mform = &$this->_form;
 
@@ -164,15 +171,11 @@ class unplag_defaults_form extends moodleform {
         $setting = unplag_settings::SENSITIVITY_SETTING_NAME;
         $mform->addElement('text', $setting, plagiarism_unplag::trans($setting));
         $mform->setType($setting, PARAM_TEXT);
-        if (!isset($mform->exportValues()[$setting]) || !$mform->exportValues()[$setting]) {
-            $mform->setDefault($setting, 0);
-        }
+        $defaultsforfield($mform, $setting, 0);
 
         $setting = unplag_settings::EXCLUDE_CITATIONS;
         $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
-        if (!isset($mform->exportValues()[$setting]) || is_null($mform->exportValues()[$setting])) {
-            $mform->setDefault($setting, 1);
-        }
+        $defaultsforfield($mform, $setting, 1);
 
         if (!$this->internalusage) {
             $this->add_action_buttons(true);

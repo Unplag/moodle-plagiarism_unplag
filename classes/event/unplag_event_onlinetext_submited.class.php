@@ -38,9 +38,6 @@ if (!defined('MOODLE_INTERNAL')) {
  * @package plagiarism_unplag\classes\event
  */
 class unplag_event_onlinetext_submited extends unplag_abstract_event {
-    /** @var */
-    protected static $instance;
-
     /**
      * @param unplag_core $unplagcore
      * @param base        $event

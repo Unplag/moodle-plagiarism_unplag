@@ -37,6 +37,12 @@ if (!defined('MOODLE_INTERNAL')) {
 class unplag_api {
     const ACCESS_SCOPE_WRITE = 'w';
     const ACCESS_SCOPE_READ = 'r';
+    const CHECK_PROGRESS = 'check/progress';
+    const CHECK_GET = 'check/get';
+    const FILE_UPLOAD = 'file/upload';
+    const CHECK_CREATE = 'check/create';
+    const CHECK_DELETE = 'check/delete';
+    const USER_CREATE = 'user/create';
     /**
      * @var null|unplag_api
      */
@@ -50,11 +56,11 @@ class unplag_api {
     }
 
     /**
-     * @param      $content
-     * @param      $filename
-     * @param      $format
+     * @param         $content
+     * @param         $filename
+     * @param         $format
      * @param integer $cmid
-     * @param null $token
+     * @param null    $token
      *
      * @return \stdClass
      */
@@ -76,7 +82,7 @@ class unplag_api {
             $postdata['options']['utoken'] = $token;
         }
 
-        return unplag_api_request::instance()->http_post()->request('file/upload', $postdata);
+        return unplag_api_request::instance()->http_post()->request(self::FILE_UPLOAD, $postdata);
     }
 
     /**
@@ -107,7 +113,7 @@ class unplag_api {
             $postdata = array_merge($postdata, array('exclude_citations' => 1, 'exclude_references' => 1));
         }
 
-        return unplag_api_request::instance()->http_post()->request('check/create', $postdata);
+        return unplag_api_request::instance()->http_post()->request(self::CHECK_CREATE, $postdata);
     }
 
     /**
@@ -119,11 +125,10 @@ class unplag_api {
         if (empty($checkids)) {
             throw new \InvalidArgumentException('Invalid argument $checkids');
         }
-        $postdata = array(
-            'id' => implode(',', $checkids),
-        );
 
-        return unplag_api_request::instance()->http_get()->request('check/progress', $postdata);
+        return unplag_api_request::instance()->http_get()->request(self::CHECK_PROGRESS, array(
+            'id' => implode(',', $checkids),
+        ));
     }
 
     /**
@@ -136,11 +141,9 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument id');
         }
 
-        $postdata = array(
+        return unplag_api_request::instance()->http_get()->request(self::CHECK_GET, array(
             'id' => $id,
-        );
-
-        return unplag_api_request::instance()->http_get()->request('check/get', $postdata);
+        ));
     }
 
     /**
@@ -153,11 +156,9 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument check_id');
         }
 
-        $postdata = array(
+        return unplag_api_request::instance()->http_post()->request(self::CHECK_DELETE, array(
             'id' => $file->check_id,
-        );
-
-        return unplag_api_request::instance()->http_post()->request('check/delete', $postdata);
+        ));
     }
 
     /**
@@ -175,7 +176,7 @@ class unplag_api {
             'scope'     => $cancomment ? self::ACCESS_SCOPE_WRITE : self::ACCESS_SCOPE_READ,
         );
 
-        return unplag_api_request::instance()->http_post()->request('user/create', $postdata);
+        return unplag_api_request::instance()->http_post()->request(self::USER_CREATE, $postdata);
     }
 
     /**
