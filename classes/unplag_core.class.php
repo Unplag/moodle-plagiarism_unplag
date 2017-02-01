@@ -141,17 +141,17 @@ class unplag_core {
     public static function get_file_by_hash($contextid, $contenthash) {
         global $DB;
 
-        $filerecord = $DB->get_record('files', array(
+        $filerecord = $DB->get_records('files', array(
             'contextid'   => $contextid,
             'component'   => UNPLAG_PLAGIN_NAME,
             'contenthash' => $contenthash,
-        ));
+        ), 'id desc', '*', 0, 1);
 
         if (!$filerecord) {
             return null;
         }
 
-        return get_file_storage()->get_file_instance($filerecord);
+        return get_file_storage()->get_file_instance(array_shift($filerecord));
     }
 
     public static function migrate_users_access() {

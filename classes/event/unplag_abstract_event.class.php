@@ -51,7 +51,13 @@ abstract class unplag_abstract_event {
      * @return static
      */
     public static function instance() {
-        return isset(static::$instance) ? static::$instance : static::$instance = new static;
+        $class = get_called_class();
+
+        if (!isset(static::$instance[$class])) {
+            static::$instance[$class] = new static;
+        }
+
+        return static::$instance[$class];
     }
 
     /**
