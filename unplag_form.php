@@ -161,7 +161,9 @@ class unplag_defaults_form extends moodleform {
             $mform->setDefault('exclude_citations', 1);
         }
 
-        $mform->addElement('select', 'no_index_files', plagiarism_unplag::trans("no_index_files"), $ynoptions);
+        if (!in_array($this->modname, array('forum', 'workshop'))) {
+            $mform->addElement('select', 'no_index_files', plagiarism_unplag::trans("no_index_files"), $ynoptions);
+        }
 
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
