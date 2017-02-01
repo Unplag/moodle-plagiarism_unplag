@@ -45,8 +45,8 @@ class unplag_notification {
     private static $notifymessage = 'notifymessage';
 
     /**
-     * @param      $message
-     * @param      $translate
+     * @param      string $message
+     * @param      boolean $translate
      */
     public static function error($message, $translate) {
         echo self::notify($message, self::$notifyerror, $translate);
@@ -54,7 +54,7 @@ class unplag_notification {
 
     /**
      * @param      $message
-     * @param      $level
+     * @param      string $level
      * @param      $translate
      *
      * @return string
@@ -72,8 +72,8 @@ class unplag_notification {
     }
 
     /**
-     * @param      $message
-     * @param      $translate
+     * @param      string $message
+     * @param      boolean $translate
      */
     public static function success($message, $translate) {
         echo self::notify($message, self::$notifysuccess, $translate);
@@ -88,7 +88,7 @@ class unplag_notification {
     }
 
     /**
-     * @param $plagiarismfile
+     * @param \stdClass $plagiarismfile
      *
      * @return bool|null
      */

@@ -23,15 +23,23 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_settings
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag\classes
  * @subpackage  plagiarism
- * @namespace plagiarism_unplag\classes
+ * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_settings {
     const SENSITIVITY_SETTING_NAME = 'similarity_sensitivity';
+    const USE_UNPLAG = 'use_unplag';
+    const SHOW_STUDENT_SCORE = 'unplag_show_student_score';
+    const SHOW_STUDENT_REPORT = 'unplag_show_student_report';
+    const DRAFT_SUBMIT = 'unplag_draft_submit';
+    const CHECK_TYPE = 'check_type';
+    const EXCLUDE_CITATIONS = 'exclude_citations';
+    const EXCLUDE_SELF_PLAGIARISM = 'exclude_self_plagiarism';
+    const CHECK_ALL_SUBMITTED_ASSIGNMENTS = 'check_all_submitted_assignments';
 
     /**
      * @param      $cmid
@@ -45,7 +53,7 @@ class unplag_settings {
         global $DB;
 
         $condition = array(
-                'cm' => $cmid,
+            'cm' => $cmid,
         );
 
         if (isset($name)) {

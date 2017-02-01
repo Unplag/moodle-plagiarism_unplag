@@ -14,54 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_event_onlinetext_submited.class.php
+ * unplag_abstract_task.class.php
  *
  * @package     plagiarism_unplag
- * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace plagiarism_unplag\classes\event;
+namespace plagiarism_unplag\classes\task;
 
-use core\event\base;
-use plagiarism_unplag\classes\unplag_core;
+use core\task\adhoc_task;
+use core\task\manager;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
 /**
- * Class unplag_event_onlinetext_submited
- *
- * @package plagiarism_unplag\classes\event
+ * Interface unplag_abstract_task
+ * @package classes\task
  */
-class unplag_event_onlinetext_submited extends unplag_abstract_event {
-    /** @var */
-    protected static $instance;
-
+abstract class unplag_abstract_task extends adhoc_task {
     /**
-     * @param unplag_core $unplagcore
-     * @param base        $event
+     * Add new task for execution
+     *
+     * @param $data
+     *
+     * @return bool
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
-        if (empty($event->other['content'])) {
-            return;
-        }
+    public static function add_task($data) {
+        $task = new static();
+        $task->set_component(UNPLAG_PLAGIN_NAME);
+        $task->set_custom_data($data);
 
-        $file = $unplagcore->create_file_from_content($event);
-
-        if (self::is_submition_draft($event)) {
-            return;
-        }
-
-        if ($file) {
-            $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
-            $plagiarismentity->upload_file_on_unplag_server();
-            $this->add_after_handle_task($plagiarismentity);
-        }
-
-        $this->after_handle_event();
+        return manager::queue_adhoc_task($task);
     }
 }

@@ -39,7 +39,7 @@ class unplag_check_helper {
      * @param \stdClass $check
      * @param int $progress
      */
-    public static function check_complete(\stdClass &$record, \stdClass $check, $progress = 100) {
+    public static function check_complete(\stdClass&$record, \stdClass $check, $progress = 100) {
         global $DB;
 
         if ($progress == 100) {

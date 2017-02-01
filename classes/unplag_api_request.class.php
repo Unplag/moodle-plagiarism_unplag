@@ -100,9 +100,13 @@ class unplag_api_request {
         $this->set_request_data($data);
         $this->set_action($method);
 
+        $domain = [];
+        preg_match('/\/([a-zA-Z0-9-\.]+)\//', new \moodle_url('/'), $domain);
+
         $ch = new \curl();
         $ch->setHeader($this->gen_oauth_headers());
         $ch->setHeader('Content-Type: application/json');
+        $ch->setHeader('Plugin-Identifier: ' . $domain[1]);
         $ch->setopt(array(
                 'CURLOPT_RETURNTRANSFER' => true,
                 'CURLOPT_CONNECTTIMEOUT' => 10,
@@ -156,7 +160,7 @@ class unplag_api_request {
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function get_request_data() {
         return $this->requestdata;
@@ -170,7 +174,7 @@ class unplag_api_request {
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function get_url() {
         return $this->url;

@@ -26,6 +26,7 @@
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -35,17 +36,17 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_event_submission_updated
  *
- * @package plagiarism_unplag\classes\event
+ * @package   plagiarism_unplag\classes\event
  * @namespace plagiarism_unplag\classes\event
  *
  */
 class unplag_event_submission_updated extends unplag_abstract_event {
-
     const DRAFT_STATUS = 'draft';
 
     /**
      * @param unplag_core $unplagcore
-     * @param base $event
+     * @param base        $event
+     *
      * @return bool
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
@@ -58,9 +59,7 @@ class unplag_event_submission_updated extends unplag_abstract_event {
         $unplagcore->userid = $event->relateduserid;
         if ($newstatus == self::DRAFT_STATUS) {
             $unplagfiles = \plagiarism_unplag::get_area_files($event->contextid, UNPLAG_DEFAULT_FILES_AREA, $event->objectid);
-            $assignfiles = get_file_storage()->get_area_files($event->contextid,
-                    'assignsubmission_file', 'submission_files', $event->objectid, null, false
-            );
+            $assignfiles = unplag_assign::get_area_files($event->contextid, $event->objectid);
 
             $files = array_merge($unplagfiles, $assignfiles);
 

@@ -42,6 +42,8 @@ if (!defined('MOODLE_INTERNAL')) {
 abstract class unplag_abstract_event {
     /** @var */
     protected static $instance;
+    /** @var array */
+    protected $tasks = array();
 
     /**
      * @return static
@@ -65,22 +67,23 @@ abstract class unplag_abstract_event {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
+        if (!$submission) {
+            return true;
+        }
 
         return ($submission->status !== 'submitted');
     }
 
     /**
-     * @param unplag_plagiarism_entity[] $plagiarismentitys
      *
-     * @return null
      */
-    protected static function after_handle_event(array $plagiarismentitys) {
-        if (empty($plagiarismentitys)) {
+    protected function after_handle_event() {
+        if (empty($this->tasks)) {
             // Skip this file check cause assign is draft.
-            return null;
+            return;
         }
 
-        foreach ($plagiarismentitys as $plagiarismentity) {
+        foreach ($this->tasks as $plagiarismentity) {
             if ($plagiarismentity instanceof unplag_plagiarism_entity) {
                 $internalfile = $plagiarismentity->get_internal_file();
                 if (isset($internalfile->external_file_id) && !isset($internalfile->check_id)) {
@@ -92,8 +95,15 @@ abstract class unplag_abstract_event {
     }
 
     /**
+     * @param $plagiarismentity
+     */
+    protected function add_after_handle_task($plagiarismentity) {
+        array_push($this->tasks, $plagiarismentity);
+    }
+
+    /**
      * @param unplag_core $unplagcore
-     * @param base $event
+     * @param base        $event
      */
     abstract public function handle_event(unplag_core $unplagcore, base $event);
 }
