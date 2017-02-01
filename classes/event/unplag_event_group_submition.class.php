@@ -53,12 +53,12 @@ class unplag_event_group_submition extends unplag_abstract_event {
         $assign = unplag_assign::get($submission->assignment);
 
         /* Only for team submission */
-        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool)$assign->teamsubmission) {
+        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool) $assign->teamsubmission) {
             return;
         }
 
         /* All users of group must confirm submission */
-        if ((bool)$assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
+        if ((bool) $assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
             return;
         }
 
@@ -105,8 +105,12 @@ class unplag_event_group_submition extends unplag_abstract_event {
 
         $assign = new \assign(\context_module::instance($cm->id), $cm, $course);
 
-        $groupid = $assign->get_submission_group($USER->id)->id;
-        $notsubmitted = $assign->get_submission_group_members_who_have_not_submitted($groupid, true);
+        $submgroup = $assign->get_submission_group($USER->id);
+        if (!$submgroup) {
+            return false;
+        }
+
+        $notsubmitted = $assign->get_submission_group_members_who_have_not_submitted($submgroup->id, true);
 
         return count($notsubmitted) == 0;
     }
