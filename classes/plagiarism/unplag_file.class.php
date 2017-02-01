@@ -109,7 +109,6 @@ class unplag_file extends unplag_plagiarism_entity {
 
         $plagiarismfile = null;
         try {
-
             $filedata = array(
                 'cm'         => $this->cmid(),
                 'userid'     => $this->userid(),
@@ -142,7 +141,6 @@ class unplag_file extends unplag_plagiarism_entity {
                 $plagiarismfile->id = $pid;
             }
         } catch (\Exception $ex) {
-            print_error($ex->getMessage());
         }
 
         $this->plagiarismfile = $plagiarismfile;
