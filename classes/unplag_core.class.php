@@ -230,23 +230,26 @@ class unplag_core {
     }
 
     /**
-     * @param $cmid
+     * @param      $cmid
+     * @param null $user
      *
      * @return mixed
      */
-    public static function get_external_token($cmid) {
-        global $DB, $USER;
+    public static function get_external_token($cmid, $user = null) {
+        global $DB;
 
-        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, array('user_id' => $USER->id));
+        $user = $user ? $user : self::get_user();
+
+        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, array('user_id' => $user->id));
 
         if ($storeduser) {
             return $storeduser->external_token;
         } else {
-            $resp = unplag_api::instance()->user_create($USER, self::is_teacher($cmid));
+            $resp = unplag_api::instance()->user_create($user, self::is_teacher($cmid));
 
             if ($resp && $resp->result) {
                 $externaluserdata = new \stdClass;
-                $externaluserdata->user_id = $USER->id;
+                $externaluserdata->user_id = $user->id;
                 $externaluserdata->external_user_id = $resp->user->id;
                 $externaluserdata->external_token = $resp->user->token;
 
@@ -297,5 +300,20 @@ class unplag_core {
      */
     public function is_teamsubmission_mode() {
         return $this->teamsubmission;
+    }
+
+    /**
+     * @param null|int $uid
+     *
+     * @return object
+     */
+    public static function get_user($uid = null) {
+        global $USER, $DB;
+
+        if ($uid) {
+            return $DB->get_record('user', array('id' => $uid));
+        }
+
+        return $USER;
     }
 }

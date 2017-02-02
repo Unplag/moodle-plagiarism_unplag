@@ -62,11 +62,11 @@ class unplag_content extends unplag_plagiarism_entity {
     /**
      * unplag_content constructor.
      *
-     * @param unplag_core $core
+     * @param unplag_core        $core
      * @param             string $content
-     * @param             $name
-     * @param null        $ext
-     * @param null        $parentid
+     * @param                    $name
+     * @param null               $ext
+     * @param null               $parentid
      *
      * @throws unplag_exception
      */
@@ -107,9 +107,9 @@ class unplag_content extends unplag_plagiarism_entity {
             $this->content,
             $this->name,
             $this->ext,
-            $this->cmid(),
-            unplag_core::get_external_token($this->cmid())
+            $this->cmid()
         );
+
         if ($uploadedfileresponse->result) {
             $internalfile->external_file_id = $uploadedfileresponse->file->id;
             $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);

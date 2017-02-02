@@ -169,7 +169,7 @@ class unplag_file extends unplag_plagiarism_entity {
             $this->stored_file()->get_filename(),
             $format,
             $this->cmid(),
-            unplag_core::get_external_token($this->cmid())
+            unplag_core::get_user($this->stored_file()->get_userid())
         );
     }
 }
