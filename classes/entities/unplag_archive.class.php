@@ -117,7 +117,7 @@ class unplag_archive {
      * @param \zip_archive $ziparch
      * @param null         $parentid
      */
-    private function process_archive_files(\zip_archive &$ziparch, $parentid = null) {
+    private function process_archive_files(\zip_archive&$ziparch, $parentid = null) {
         global $CFG;
 
         $processed = array();

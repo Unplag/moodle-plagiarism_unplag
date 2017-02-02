@@ -62,11 +62,11 @@ class unplag_content extends unplag_plagiarism_entity {
     /**
      * unplag_content constructor.
      *
-     * @param unplag_core        $core
-     * @param             string $content
-     * @param                    $name
-     * @param null               $ext
-     * @param null               $parentid
+     * @param unplag_core $core
+     * @param string      $content
+     * @param             $name
+     * @param null        $ext
+     * @param null        $parentid
      *
      * @throws unplag_exception
      */
