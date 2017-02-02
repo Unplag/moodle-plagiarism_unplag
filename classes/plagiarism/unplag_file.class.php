@@ -141,6 +141,7 @@ class unplag_file extends unplag_plagiarism_entity {
                 $plagiarismfile->id = $pid;
             }
         } catch (\Exception $ex) {
+            debugging("get internal file error: {$ex->getMessage()}");
         }
 
         $this->plagiarismfile = $plagiarismfile;

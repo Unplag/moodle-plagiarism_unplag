@@ -230,8 +230,8 @@ class unplag_core {
     }
 
     /**
-     * @param      $cmid
-     * @param null $user
+     * @param             $cmid
+     * @param null|object $user
      *
      * @return mixed
      */
@@ -310,7 +310,7 @@ class unplag_core {
     public static function get_user($uid = null) {
         global $USER, $DB;
 
-        if ($uid) {
+        if ($uid !== null) {
             return $DB->get_record('user', array('id' => $uid));
         }
 
