@@ -63,7 +63,7 @@ class unplag_content extends unplag_plagiarism_entity {
      * unplag_content constructor.
      *
      * @param unplag_core $core
-     * @param             string $content
+     * @param string      $content
      * @param             $name
      * @param null        $ext
      * @param null        $parentid
@@ -88,7 +88,6 @@ class unplag_content extends unplag_plagiarism_entity {
      */
     public function upload_file_on_unplag_server() {
         global $DB;
-        global $USER;
 
         $internalfile = $this->get_internal_file();
 
@@ -108,9 +107,9 @@ class unplag_content extends unplag_plagiarism_entity {
             $this->content,
             $this->name,
             $this->ext,
-            $this->cmid(),
-            unplag_core::get_external_token($USER)
+            $this->cmid()
         );
+
         if ($uploadedfileresponse->result) {
             $internalfile->external_file_id = $uploadedfileresponse->file->id;
             $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);

@@ -43,29 +43,26 @@ require_once($CFG->libdir . '/filelib.php');
  * Class plagiarism_unplag
  */
 class plagiarism_unplag {
-
     /**
      * @var array
      */
     private static $supportedplagiarismmods = array(
-            'assign', 'workshop', 'forum',
+        'assign', 'workshop', 'forum',
     );
-
     /**
      * @var array
      */
     private static $supportedarchivemimetypes = array(
-            'application/zip'
+        'application/zip',
     );
-
     /** @var array */
     private static $supportedfilearea = array(
-            UNPLAG_WORKSHOP_FILES_AREA,
-            UNPLAG_DEFAULT_FILES_AREA,
-            UNPLAG_FORUM_FILES_AREA,
-            'submission_files',
-            'submission_attachment',
-            'attachment'
+        UNPLAG_WORKSHOP_FILES_AREA,
+        UNPLAG_DEFAULT_FILES_AREA,
+        UNPLAG_FORUM_FILES_AREA,
+        'submission_files',
+        'submission_attachment',
+        'attachment',
     );
 
     /**
@@ -98,6 +95,7 @@ class plagiarism_unplag {
 
     /**
      * @param stored_file $file
+     *
      * @return bool
      */
     public static function is_archive(stored_file $file) {
@@ -117,7 +115,7 @@ class plagiarism_unplag {
      */
     public static function object_to_array($obj) {
         if (is_object($obj)) {
-            $obj = (array) $obj;
+            $obj = (array)$obj;
         }
         if (is_array($obj)) {
             $new = array();
@@ -132,9 +130,9 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $contextid
+     * @param        $contextid
      * @param string $filearea
-     * @param null $itemid
+     * @param null   $itemid
      *
      * @return stored_file[]
      */
@@ -174,6 +172,22 @@ class plagiarism_unplag {
         $file = unplag_core::get_file_by_hash($context->id, $contenthash);
 
         return $file;
+    }
+
+    /**
+     * @param string $errorresponse
+     *
+     * @return string
+     */
+    public static function error_resp_handler($errorresponse) {
+        $errors = json_decode($errorresponse, true);
+        if (is_array($errors)) {
+            $errors = $errors[0]['message'];
+        } else {
+            $errors = self::trans('unknownwarning');
+        }
+
+        return $errors;
     }
 
     /**

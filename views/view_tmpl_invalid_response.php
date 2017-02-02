@@ -33,20 +33,15 @@ if (AJAX_SCRIPT) {
     $PAGE->set_context(null);
 }
 
-$errors = isset($fileobj->errorresponse) ? json_decode($fileobj->errorresponse, true) : null;
-if (is_array($errors)) {
-    $erroresponse = 'Error: ' . $errors[0]['message'];
-} else {
-    $erroresponse = plagiarism_unplag::trans('unknownwarning');
-}
-
 $htmlparts = array('<span class="un_report">');
 $htmlparts[] = sprintf('<img  width="32" height="32" src="%s" title="%s"> ',
-        $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
+    $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
 );
+
+$erroresponse = plagiarism_unplag::error_resp_handler($fileobj->errorresponse);
 $htmlparts[] = $erroresponse;
 $htmlparts[] = sprintf(' <img class="un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
-        $OUTPUT->pix_url('error', 'plagiarism_unplag'), $erroresponse
+    $OUTPUT->pix_url('error', 'plagiarism_unplag'), "Error: {$erroresponse}"
 );
 $htmlparts[] = '</span>';
 

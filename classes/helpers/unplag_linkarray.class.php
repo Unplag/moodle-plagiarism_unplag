@@ -56,7 +56,8 @@ class unplag_linkarray {
                     break;
                 case 'assign':
                     $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
-                    $files = \plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA, $submission->id);
+                    $itemid = $submission ? $submission->id : null;
+                    $files = \plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA, $itemid);
                     $file = array_shift($files);
                     break;
                 default:

@@ -44,12 +44,20 @@ abstract class unplag_abstract_event {
     protected static $instance;
     /** @var array */
     protected $tasks = array();
+    /** @var unplag_core */
+    protected $unplagcore;
 
     /**
      * @return static
      */
     public static function instance() {
-        return isset(static::$instance) ? static::$instance : static::$instance = new static;
+        $class = get_called_class();
+
+        if (!isset(static::$instance[$class])) {
+            static::$instance[$class] = new static;
+        }
+
+        return static::$instance[$class];
     }
 
     /**

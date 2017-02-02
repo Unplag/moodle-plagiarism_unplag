@@ -72,9 +72,7 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                         return false;
                     }
 
-                    Y.each(jsondata, function (item) {
-                        handle_record(item);
-                    });
+                    Y.each(jsondata, handle_record);
                 },
                 failure: function () {
                     M.plagiarism_unplag.items = [];
