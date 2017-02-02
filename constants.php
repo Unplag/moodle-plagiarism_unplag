@@ -40,6 +40,7 @@ define('UNPLAG_FORUM_FILES_AREA', 'forum_posts');
 
 /** TABLES **/
 define('UNPLAG_FILES_TABLE', 'plagiarism_unplag_files');
+define('UNPLAG_USER_DATA_TABLE', 'plagiarism_unplag_user_data');
 define('UNPLAG_CONFIG_TABLE', 'plagiarism_unplag_config');
 
 define('UNPLAG_CHECK_TYPE_WEB', 'web');
@@ -58,3 +59,7 @@ define('UNPLAG_WORKSHOP_SETUP_PHASE', 10);
 define('UNPLAG_WORKSHOP_SUBMISSION_PHASE', 20);
 define('UNPLAG_WORKSHOP_ASSESSMENT_PHASE', 30);
 define('UNPLAG_WORKSHOP_GRADING_PHASE', 40);
+
+define('UNPLAG_MODNAME_WORKSHOP', 'workshop');
+define('UNPLAG_MODNAME_FORUM', 'forum');
+define('UNPLAG_MODNAME_ASSIGN', 'assign');

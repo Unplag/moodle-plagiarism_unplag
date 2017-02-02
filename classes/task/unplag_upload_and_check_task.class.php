@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_api.class.php - SDK for working with unplag api.
+ * unplag_upload_and_check_task.class.php
  *
  * @package     plagiarism_unplag
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
@@ -24,9 +24,9 @@
 
 namespace plagiarism_unplag\classes\task;
 
-use core\task\adhoc_task;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
 use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -36,19 +36,25 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_upload_and_check_task
  *
- * @package plagiarism_unplag\classes\task
+ * @package   plagiarism_unplag\classes\task
  * @namespace plagiarism_unplag\classes\task
  *
  */
-class unplag_upload_and_check_task extends adhoc_task {
-
+class unplag_upload_and_check_task extends unplag_abstract_task {
     public function execute() {
         $data = $this->get_custom_data();
         if (file_exists($data->tmpfile)) {
-            $content = file_get_contents($data->tmpfile);
             $ucore = new unplag_core($data->unplagcore->cmid, $data->unplagcore->userid);
+
+            if ((bool) unplag_assign::get_by_cmid($ucore->cmid)->teamsubmission) {
+                $ucore->enable_teamsubmission();
+            }
+
+            $content = file_get_contents($data->tmpfile);
             $plagiarismentity = new unplag_content($ucore, $content, $data->filename, $data->format, $data->parent_id);
+
             unset($content, $ucore);
+
             if (!unlink($data->tmpfile)) {
                 mtrace('Error deleting ' . $data->tmpfile);
             }

@@ -51,7 +51,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
 
     /**
      * @param unplag_core $unplagcore
-     * @param base $event
+     * @param base        $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
 
@@ -61,9 +61,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
         $submissionid = (!empty($submission->id) ? $submission->id : false);
 
         $unplagfiles = plagiarism_unplag::get_area_files($event->contextid, UNPLAG_DEFAULT_FILES_AREA, $submissionid);
-        $assignfiles = get_file_storage()->get_area_files($event->contextid,
-                'assignsubmission_file', 'submission_files', $submissionid, null, false
-        );
+        $assignfiles = unplag_assign::get_area_files($event->contextid, $submissionid);
 
         $files = array_merge($unplagfiles, $assignfiles);
         if (!empty($files)) {
@@ -75,6 +73,7 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
 
     /**
      * @param \stored_file $file
+     *
      * @return null
      */
     private function handle_file_plagiarism(\stored_file $file) {

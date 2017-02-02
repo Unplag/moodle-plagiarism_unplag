@@ -28,6 +28,7 @@ namespace plagiarism_unplag\classes\entities;
 use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_assessable_submited;
 use plagiarism_unplag\classes\event\unplag_event_file_submited;
+use plagiarism_unplag\classes\event\unplag_event_group_submition;
 use plagiarism_unplag\classes\event\unplag_event_onlinetext_submited;
 use plagiarism_unplag\classes\event\unplag_event_submission_updated;
 use plagiarism_unplag\classes\event\unplag_event_workshop_switched;
@@ -76,6 +77,9 @@ class unplag_event {
             switch ($event->eventname) {
                 case '\mod_assign\event\submission_status_updated':
                     unplag_event_submission_updated::instance()->handle_event($unplagcore, $event);
+                    break;
+                case '\mod_assign\event\submission_status_viewed':
+                    unplag_event_group_submition::instance()->handle_event($unplagcore, $event);
                     break;
             }
         }

@@ -114,3 +114,4 @@ $string['generalinfo'] = 'General information';
 $string['similarity_sensitivity'] = 'Hide sources with a match less then (%)';
 $string['exclude_citations'] = 'Auto exclude Citations & Reserences';
 $string['exclude_self_plagiarism'] = 'Exclude self-plagiarism';
+$string['check_all_submitted_assignments'] = 'Check all submitted assignments';
