@@ -35,7 +35,7 @@ $string['unplag_lang_help'] = 'Language code provided by UNPLAG';
 $string['unplag_api_secret'] = 'API Secret';
 $string['unplag_api_secret_help'] = 'API Secret provided by UNPLAG to access the API you can find it on <a href="https://unplag.com/profile/apisettings">https://unplag.com/profile/apisettings</a>';
 $string['use_unplag'] = 'Enable UNPLAG';
-$string['useunplag_help'] = 'To use Unplag plugin, first set option Require students click submit button to Yes (Submissions settings).';
+$string['use_unplag_help'] = 'To use Unplag plugin, first set option Require students click submit button to Yes (Submissions settings).';
 $string['useunplag_assign_desc_param'] = 'To unlock Unplag settings';
 $string['useunplag_assign_desc_value'] = 'Set Submissions settings → Require students click submit button = Yes';
 $string['unplag_enableplugin'] = 'Enable UNPLAG for {$a}';
