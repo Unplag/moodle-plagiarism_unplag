@@ -31,8 +31,8 @@ require_once(dirname(__FILE__) . '/lib.php');
 
 global $PAGE, $CFG;
 
-$cmid = required_param('cmid', PARAM_INT);  // Course Module ID
-$pf = required_param('pf', PARAM_INT);   // plagiarism file id.
+$cmid = required_param('cmid', PARAM_INT); // Course Module ID
+$pf = required_param('pf', PARAM_INT); // plagiarism file id.
 
 require_sesskey();
 
@@ -50,7 +50,7 @@ unplag_assign::check_submitted_assignment($pf);
 if ($cm->modname == 'assignment') {
     $redirect = new moodle_url('/mod/assignment/submissions.php', array('id' => $cmid));
 } else {
-    if ($cm->modname == 'assign') {
+    if ($cm->modname == UNPLAG_MODNAME_ASSIGN) {
         $redirect = new moodle_url('/mod/assign/view.php', array('id' => $cmid, 'action' => 'grading'));
     } else {
         // TODO: add correct locations for workshop and forum.

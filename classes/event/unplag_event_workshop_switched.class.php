@@ -27,7 +27,7 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag;
-use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -42,25 +42,20 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
  * @package plagiarism_unplag\classes\event
  */
 class unplag_event_workshop_switched extends unplag_abstract_event {
-    /** @var self */
-    protected static $instance;
-    /** @var unplag_core */
-    private $unplagcore;
-
     /**
      * @param unplag_core $unplagcore
-     * @param base $event
+     * @param base        $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
 
         if (!empty($event->other['workshopphase'])
-                && $event->other['workshopphase'] == UNPLAG_WORKSHOP_ASSESSMENT_PHASE
+            && $event->other['workshopphase'] == UNPLAG_WORKSHOP_ASSESSMENT_PHASE
         ) { // Assessment phase.
             $this->unplagcore = $unplagcore;
 
             $unplagfiles = plagiarism_unplag::get_area_files($event->contextid, UNPLAG_WORKSHOP_FILES_AREA);
             $assignfiles = get_file_storage()->get_area_files($event->contextid,
-                    'mod_workshop', 'submission_attachment', false, null, false
+                'mod_workshop', 'submission_attachment', false, null, false
             );
 
             $files = array_merge($unplagfiles, $assignfiles);
@@ -76,26 +71,12 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
     /**
      * @param \stored_file $file
      *
-     * @return null
-     * @throws \moodle_exception
+     * @return bool
      */
     private function handle_file_plagiarism($file) {
         $this->unplagcore->userid = $file->get_userid();
-
         $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
-        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-        if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-            return null;
-        }
 
-        if (isset($internalfile->check_id)) {
-            print_error('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
-        } else {
-            $checkresp = unplag_api::instance()->run_check($internalfile);
-            $plagiarismentity->handle_check_response($checkresp);
-            mtrace('file ' . $internalfile->identifier . 'send to Unplag');
-        }
-
-        return true;
+        return unplag_check_helper::upload_and_run_detection($plagiarismentity);
     }
 }

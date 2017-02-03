@@ -27,6 +27,7 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -38,36 +39,30 @@ if (!defined('MOODLE_INTERNAL')) {
  * @package plagiarism_unplag\classes\event
  */
 class unplag_event_file_submited extends unplag_abstract_event {
-    /** @var */
-    protected static $instance;
-    /** @var  unplag_core */
-    private $unplagcore;
-
     /**
      * @param unplag_core $unplagcore
-     * @param base $event
+     * @param base        $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
         if (self::is_submition_draft($event) ||
-                !isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])
+            !isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])
         ) {
             return;
         }
 
         $this->unplagcore = $unplagcore;
 
-        $plagiarismentitys = array();
         foreach ($event->other['pathnamehashes'] as $pathnamehash) {
-            $plagiarismentitys[] = $this->handle_uploaded_file($pathnamehash);
+            $this->add_after_handle_task($this->handle_uploaded_file($pathnamehash));
         }
 
-        self::after_handle_event($plagiarismentitys);
+        $this->after_handle_event();
     }
 
     /**
      * @param $pathnamehash
      *
-     * @return null|\plagiarism_unplag\classes\unplag_plagiarism_entity
+     * @return null|unplag_plagiarism_entity
      */
     private function handle_uploaded_file($pathnamehash) {
         $file = get_file_storage()->get_file_by_hash($pathnamehash);

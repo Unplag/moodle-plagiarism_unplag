@@ -23,6 +23,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\unplag_settings;
+
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); // It must be included from a Moodle page.
 }
@@ -40,8 +42,8 @@ class unplag_setup_form extends moodleform {
      * @throws coding_exception
      */
     public function definition() {
-        $mform =& $this->_form;
-        $mform->addElement('checkbox', 'unplag_use', plagiarism_unplag::trans('useunplag'));
+        $mform = &$this->_form;
+        $mform->addElement('checkbox', 'unplag_use', plagiarism_unplag::trans('use_unplag'));
 
         $settingstext = '<div id="fitem_id_unplag_settings_link" class="fitem fitem_ftext ">
                             <div class="felement ftext">
@@ -121,48 +123,62 @@ class unplag_defaults_form extends moodleform {
      * @throws coding_exception
      */
     public function definition() {
+
+        $defaultsforfield = function (MoodleQuickForm $mform, $setting, $defaultvalue) {
+            if (!isset($mform->exportValues()[$setting]) || is_null($mform->exportValues()[$setting])) {
+                $mform->setDefault($setting, $defaultvalue);
+            }
+        };
+
+        $addYesNoElem = function (MoodleQuickForm $mform, $setting, $showHelpBalloon = false) {
+            $ynoptions = array(get_string('no'), get_string('yes'));
+            $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+            if ($showHelpBalloon) {
+                $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
+            }
+        };
+
         /** @var MoodleQuickForm $mform */
         $mform = &$this->_form;
 
-        $ynoptions = array(get_string('no'), get_string('yes'));
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
 
-        if ($this->modname === 'assign') {
+        if ($this->modname === UNPLAG_MODNAME_ASSIGN) {
             $mform->addElement('static', 'use_unplag_static_description', plagiarism_unplag::trans('useunplag_assign_desc_param'),
                 plagiarism_unplag::trans('useunplag_assign_desc_value'));
         }
-        $mform->addElement('select', 'use_unplag', plagiarism_unplag::trans("useunplag"), $ynoptions);
-        if ($this->modname === 'assign') {
-            $mform->addHelpButton('use_unplag', 'useunplag', 'plagiarism_unplag');
+
+        $setting = unplag_settings::USE_UNPLAG;
+        $addYesNoElem($mform, $setting);
+        if ($this->modname === UNPLAG_MODNAME_ASSIGN) {
+            $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
         }
 
-        $mform->addElement('select', 'check_type', plagiarism_unplag::trans('check_type'), array(
-            UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
-            UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans('web'),
-            UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans('my_library'),
+        if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
+            $addYesNoElem($mform, unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS);
+        }
+
+        $setting = unplag_settings::CHECK_TYPE;
+        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), array(
+            UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_WEB__LIBRARY),
+            UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_WEB),
+            UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_MY_LIBRARY),
         ));
-        $mform->addElement('select', 'unplag_show_student_score',
-            plagiarism_unplag::trans("unplag_show_student_score"), $ynoptions
-        );
-        $mform->addHelpButton('unplag_show_student_score', 'unplag_show_student_score', 'plagiarism_unplag');
-        $mform->addElement('select', 'unplag_show_student_report',
-            plagiarism_unplag::trans("unplag_show_student_report"), $ynoptions
-        );
-        $mform->addHelpButton('unplag_show_student_report', 'unplag_show_student_report', 'plagiarism_unplag');
 
-        $mform->addElement('text', 'similarity_sensitivity', plagiarism_unplag::trans('similarity_sensitivity'));
-        if (!isset($mform->exportValues()['similarity_sensitivity']) || !$mform->exportValues()['similarity_sensitivity']) {
-            $mform->setDefault('similarity_sensitivity', 0);
-        }
-        $mform->setType('similarity_sensitivity', PARAM_TEXT);
+        $addYesNoElem($mform, unplag_settings::SHOW_STUDENT_SCORE, true);
+        $addYesNoElem($mform, unplag_settings::SHOW_STUDENT_REPORT, true);
 
-        $mform->addElement('select', 'exclude_citations', plagiarism_unplag::trans("exclude_citations"), $ynoptions);
-        if (!isset($mform->exportValues()['exclude_citations']) || is_null($mform->exportValues()['exclude_citations'])) {
-            $mform->setDefault('exclude_citations', 1);
-        }
+        $setting = unplag_settings::SENSITIVITY_SETTING_NAME;
+        $mform->addElement('text', $setting, plagiarism_unplag::trans($setting));
+        $mform->setType($setting, PARAM_TEXT);
+        $defaultsforfield($mform, $setting, 0);
 
-        if (!in_array($this->modname, array('forum', 'workshop'))) {
-            $mform->addElement('select', 'no_index_files', plagiarism_unplag::trans("no_index_files"), $ynoptions);
+        $setting = unplag_settings::EXCLUDE_CITATIONS;
+        $addYesNoElem($mform, $setting);
+        $defaultsforfield($mform, $setting, 1);
+
+        if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
+            $addYesNoElem($mform, unplag_settings::NO_INDEX_FILES);
         }
 
         if (!$this->internalusage) {

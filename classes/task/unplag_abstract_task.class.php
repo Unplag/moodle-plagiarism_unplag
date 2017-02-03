@@ -14,35 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * view_tmpl_invalid_response.php
+ * unplag_abstract_task.class.php
  *
  * @package     plagiarism_unplag
- * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace plagiarism_unplag\classes\task;
+
+use core\task\adhoc_task;
+use core\task\manager;
+
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
-global $OUTPUT, $PAGE;
+/**
+ * Interface unplag_abstract_task
+ * @package classes\task
+ */
+abstract class unplag_abstract_task extends adhoc_task {
+    /**
+     * Add new task for execution
+     *
+     * @param $data
+     *
+     * @return bool
+     */
+    public static function add_task($data) {
+        $task = new static();
+        $task->set_component(UNPLAG_PLAGIN_NAME);
+        $task->set_custom_data($data);
 
-if (AJAX_SCRIPT) {
-    $PAGE->set_context(null);
+        return manager::queue_adhoc_task($task);
+    }
 }
-
-$htmlparts = array('<span class="un_report">');
-$htmlparts[] = sprintf('<img  width="32" height="32" src="%s" title="%s"> ',
-    $OUTPUT->pix_url('unplag', 'plagiarism_unplag'), plagiarism_unplag::trans('pluginname')
-);
-
-$erroresponse = plagiarism_unplag::error_resp_handler($fileobj->errorresponse);
-$htmlparts[] = $erroresponse;
-$htmlparts[] = sprintf(' <img class="un_tooltip" src="%1$s" alt="%2$s" title="%2$s" />',
-    $OUTPUT->pix_url('error', 'plagiarism_unplag'), "Error: {$erroresponse}"
-);
-$htmlparts[] = '</span>';
-
-return implode('', $htmlparts);

@@ -37,27 +37,23 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_content
  *
- * @package plagiarism_unplag\classes\plagiarism
+ * @package   plagiarism_unplag\classes\plagiarism
  * @namespace plagiarism_unplag\classes\plagiarism
  *
  */
 class unplag_content extends unplag_plagiarism_entity {
-
     /**
      * @var string
      */
     private $content;
-
     /**
      * @var string
      */
     private $name;
-
     /**
      * @var string
      */
     private $ext;
-
     /**
      * @var int
      */
@@ -67,10 +63,11 @@ class unplag_content extends unplag_plagiarism_entity {
      * unplag_content constructor.
      *
      * @param unplag_core $core
-     * @param $content
-     * @param $name
-     * @param null $ext
-     * @param null $parentid
+     * @param string      $content
+     * @param             $name
+     * @param null        $ext
+     * @param null        $parentid
+     *
      * @throws unplag_exception
      */
     public function __construct(unplag_core $core, $content = null, $name, $ext = null, $parentid = null) {
@@ -91,7 +88,6 @@ class unplag_content extends unplag_plagiarism_entity {
      */
     public function upload_file_on_unplag_server() {
         global $DB;
-        global $USER;
 
         $internalfile = $this->get_internal_file();
 
@@ -111,9 +107,9 @@ class unplag_content extends unplag_plagiarism_entity {
             $this->content,
             $this->name,
             $this->ext,
-            $this->cmid(),
-            unplag_core::get_external_token($USER)
+            $this->cmid()
         );
+
         if ($uploadedfileresponse->result) {
             $internalfile->external_file_id = $uploadedfileresponse->file->id;
             $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
@@ -136,30 +132,30 @@ class unplag_content extends unplag_plagiarism_entity {
 
         $plagiarismfile = null;
         try {
-            $identifier = sha1($this->name . $this->cmid() . $this->userid() . $this->parentid);
-
             $filedata = array(
-                    'cm' => $this->cmid(),
-                    'userid' => $this->userid(),
-                    'identifier' => $identifier,
+                'cm'         => $this->cmid(),
+                'userid'     => $this->userid(),
+                'identifier' => sha1($this->name . $this->cmid() . UNPLAG_DEFAULT_FILES_AREA . $this->parentid),
             );
+
+            if ($this->core->is_teamsubmission_mode()) {
+                unset($filedata['userid']);
+            }
 
             // Now update or insert record into unplag_files.
             $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, $filedata);
 
             if (empty($plagiarismfile)) {
-                $plagiarismfile = new \stdClass();
+                $plagiarismfile = $this->new_plagiarismfile(array(
+                    'cm'         => $this->cmid(),
+                    'userid'     => $this->userid(),
+                    'identifier' => $filedata['identifier'],
+                    'filename'   => $this->name,
+                ));
+
                 if ($this->parentid) {
                     $plagiarismfile->parent_id = $this->parentid;
                 }
-                $plagiarismfile->cm = $filedata['cm'];
-                $plagiarismfile->userid = $filedata['userid'];
-                $plagiarismfile->identifier = $filedata['identifier'];
-                $plagiarismfile->filename = $this->name;
-                $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
-                $plagiarismfile->attempt = 0;
-                $plagiarismfile->progress = 0;
-                $plagiarismfile->timesubmitted = time();
 
                 if (!$pid = $DB->insert_record(UNPLAG_FILES_TABLE, $plagiarismfile)) {
                     debugging("INSERT INTO {UNPLAG_FILES_TABLE}");

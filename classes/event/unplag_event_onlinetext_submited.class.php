@@ -38,19 +38,15 @@ if (!defined('MOODLE_INTERNAL')) {
  * @package plagiarism_unplag\classes\event
  */
 class unplag_event_onlinetext_submited extends unplag_abstract_event {
-    /** @var */
-    protected static $instance;
-
     /**
      * @param unplag_core $unplagcore
-     * @param base $event
+     * @param base        $event
      */
     public function handle_event(unplag_core $unplagcore, base $event) {
         if (empty($event->other['content'])) {
             return;
         }
 
-        $plagiarismentitys = array();
         $file = $unplagcore->create_file_from_content($event);
 
         if (self::is_submition_draft($event)) {
@@ -60,9 +56,9 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
         if ($file) {
             $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
             $plagiarismentity->upload_file_on_unplag_server();
-            array_push($plagiarismentitys, $plagiarismentity);
+            $this->add_after_handle_task($plagiarismentity);
         }
 
-        self::after_handle_event($plagiarismentitys);
+        $this->after_handle_event();
     }
 }
