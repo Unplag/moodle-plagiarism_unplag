@@ -43,7 +43,7 @@ class unplag_setup_form extends moodleform {
      */
     public function definition() {
         $mform = &$this->_form;
-        $mform->addElement('checkbox', 'unplag_use', plagiarism_unplag::trans('useunplag'));
+        $mform->addElement('checkbox', 'unplag_use', plagiarism_unplag::trans('use_unplag'));
 
         $settingstext = '<div id="fitem_id_unplag_settings_link" class="fitem fitem_ftext ">
                             <div class="felement ftext">
@@ -130,10 +130,17 @@ class unplag_defaults_form extends moodleform {
             }
         };
 
+        $addyesnoelem = function (MoodleQuickForm $mform, $setting, $showhelpballoon = false) {
+            $ynoptions = array(get_string('no'), get_string('yes'));
+            $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+            if ($showhelpballoon) {
+                $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
+            }
+        };
+
         /** @var MoodleQuickForm $mform */
         $mform = &$this->_form;
 
-        $ynoptions = array(get_string('no'), get_string('yes'));
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
 
         if ($this->modname === UNPLAG_MODNAME_ASSIGN) {
@@ -142,31 +149,25 @@ class unplag_defaults_form extends moodleform {
         }
 
         $setting = unplag_settings::USE_UNPLAG;
-        $mform->addElement('select', $setting, plagiarism_unplag::trans("useunplag"), $ynoptions);
-
+        $addyesnoelem($mform, $setting);
         if ($this->modname === UNPLAG_MODNAME_ASSIGN) {
-            $mform->addHelpButton($setting, 'useunplag', 'plagiarism_unplag');
+            $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
         }
 
         if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
-            $setting = unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS;
-            $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+            $addyesnoelem($mform, unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS);
+            $addyesnoelem($mform, unplag_settings::NO_INDEX_FILES);
         }
 
         $setting = unplag_settings::CHECK_TYPE;
         $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), array(
-            UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans('web_and_my_library'),
-            UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans('web'),
-            UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans('my_library'),
+            UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_WEB__LIBRARY),
+            UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_WEB),
+            UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_MY_LIBRARY),
         ));
 
-        $setting = unplag_settings::SHOW_STUDENT_SCORE;
-        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
-        $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
-
-        $setting = unplag_settings::SHOW_STUDENT_REPORT;
-        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
-        $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
+        $addyesnoelem($mform, unplag_settings::SHOW_STUDENT_SCORE, true);
+        $addyesnoelem($mform, unplag_settings::SHOW_STUDENT_REPORT, true);
 
         $setting = unplag_settings::SENSITIVITY_SETTING_NAME;
         $mform->addElement('text', $setting, plagiarism_unplag::trans($setting));
@@ -174,7 +175,7 @@ class unplag_defaults_form extends moodleform {
         $defaultsforfield($mform, $setting, 0);
 
         $setting = unplag_settings::EXCLUDE_CITATIONS;
-        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
+        $addyesnoelem($mform, $setting);
         $defaultsforfield($mform, $setting, 1);
 
         if (!$this->internalusage) {

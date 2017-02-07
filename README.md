@@ -5,8 +5,8 @@
 
 UNPLAG Plagiarism plugin for Moodle
 
-**Supported Moodle versions:** 2.7 - 3.1
-**Supported PHP versions:** 5.4 - 7.0  
+**Supported Moodle versions:** 2.7 - 3.2  
+**Supported PHP versions:** 5.4 - 7.1  
 **Moodle plugins directory:** https://moodle.org/plugins/plagiarism_unplag
 
 Author: Ben Larson <developer@unplag.com>  

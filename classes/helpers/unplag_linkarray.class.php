@@ -46,15 +46,15 @@ class unplag_linkarray {
         if (isset($linkarray['content'])) {
             $context = \context_module::instance($linkarray['cmid']);
             switch ($cm->modname) {
-                case 'workshop':
+                case UNPLAG_MODNAME_WORKSHOP:
                     $workshopsubmission = unplag_workshop::get_user_workshop_submission_by_cm($cm, $linkarray['userid']);
                     $files = \plagiarism_unplag::get_area_files($context->id, UNPLAG_WORKSHOP_FILES_AREA, $workshopsubmission->id);
                     $file = array_shift($files);
                     break;
-                case 'forum':
+                case UNPLAG_MODNAME_FORUM:
                     $file = \plagiarism_unplag::get_forum_topic_results($context, $linkarray);
                     break;
-                case 'assign':
+                case UNPLAG_MODNAME_ASSIGN:
                     $submission = unplag_assign::get_user_submission_by_cmid($linkarray['cmid'], $linkarray['userid']);
                     $itemid = $submission ? $submission->id : null;
                     $files = \plagiarism_unplag::get_area_files($context->id, UNPLAG_DEFAULT_FILES_AREA, $itemid);
@@ -129,7 +129,9 @@ class unplag_linkarray {
      * @return bool
      */
     private static function is_pending($cm, $fileobj) {
-        return $cm->modname == 'assign' && empty($fileobj->check_id) && $fileobj->type == unplag_plagiarism_entity::TYPE_DOCUMENT;
+        return $cm->modname == UNPLAG_MODNAME_ASSIGN
+            && empty($fileobj->check_id)
+            && $fileobj->type == unplag_plagiarism_entity::TYPE_DOCUMENT;
     }
 
     /**
