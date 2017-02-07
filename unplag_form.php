@@ -130,10 +130,10 @@ class unplag_defaults_form extends moodleform {
             }
         };
 
-        $addYesNoElem = function (MoodleQuickForm $mform, $setting, $showHelpBalloon = false) {
+        $addyesnoelem = function (MoodleQuickForm $mform, $setting, $showhelpballoon = false) {
             $ynoptions = array(get_string('no'), get_string('yes'));
             $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
-            if ($showHelpBalloon) {
+            if ($showhelpballoon) {
                 $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
             }
         };
@@ -149,13 +149,14 @@ class unplag_defaults_form extends moodleform {
         }
 
         $setting = unplag_settings::USE_UNPLAG;
-        $addYesNoElem($mform, $setting);
+        $addyesnoelem($mform, $setting);
         if ($this->modname === UNPLAG_MODNAME_ASSIGN) {
             $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
         }
 
         if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
-            $addYesNoElem($mform, unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS);
+            $addyesnoelem($mform, unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS);
+            $addyesnoelem($mform, unplag_settings::NO_INDEX_FILES);
         }
 
         $setting = unplag_settings::CHECK_TYPE;
@@ -165,8 +166,8 @@ class unplag_defaults_form extends moodleform {
             UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_MY_LIBRARY),
         ));
 
-        $addYesNoElem($mform, unplag_settings::SHOW_STUDENT_SCORE, true);
-        $addYesNoElem($mform, unplag_settings::SHOW_STUDENT_REPORT, true);
+        $addyesnoelem($mform, unplag_settings::SHOW_STUDENT_SCORE, true);
+        $addyesnoelem($mform, unplag_settings::SHOW_STUDENT_REPORT, true);
 
         $setting = unplag_settings::SENSITIVITY_SETTING_NAME;
         $mform->addElement('text', $setting, plagiarism_unplag::trans($setting));
@@ -174,12 +175,8 @@ class unplag_defaults_form extends moodleform {
         $defaultsforfield($mform, $setting, 0);
 
         $setting = unplag_settings::EXCLUDE_CITATIONS;
-        $addYesNoElem($mform, $setting);
+        $addyesnoelem($mform, $setting);
         $defaultsforfield($mform, $setting, 1);
-
-        if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
-            $addYesNoElem($mform, unplag_settings::NO_INDEX_FILES);
-        }
 
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
