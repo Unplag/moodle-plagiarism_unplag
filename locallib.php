@@ -47,7 +47,7 @@ class plagiarism_unplag {
      * @var array
      */
     private static $supportedplagiarismmods = array(
-        'assign', 'workshop', 'forum',
+        UNPLAG_MODNAME_ASSIGN, UNPLAG_MODNAME_WORKSHOP, UNPLAG_MODNAME_FORUM,
     );
     /**
      * @var array

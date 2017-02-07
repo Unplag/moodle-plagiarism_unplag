@@ -40,6 +40,7 @@ class unplag_settings {
     const EXCLUDE_CITATIONS = 'exclude_citations';
     const EXCLUDE_SELF_PLAGIARISM = 'exclude_self_plagiarism';
     const CHECK_ALL_SUBMITTED_ASSIGNMENTS = 'check_all_submitted_assignments';
+    const NO_INDEX_FILES = 'no_index_files';
 
     /**
      * @param      $cmid

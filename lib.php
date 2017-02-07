@@ -79,7 +79,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
             if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
                 $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
 
-                if ($cm->modname == 'assign' && (bool) unplag_assign::get($cm->instance)->teamsubmission) {
+                if ($cm->modname == UNPLAG_MODNAME_ASSIGN && (bool) unplag_assign::get($cm->instance)->teamsubmission) {
                     $ucore->enable_teamsubmission();
                 }
 
@@ -138,7 +138,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         // Plugin is enabled.
         if ($data->use_unplag == 1) {
-            if ($data->modulename == 'assign' && $data->check_all_submitted_assignments == 1) {
+            if ($data->modulename == UNPLAG_MODNAME_ASSIGN && $data->check_all_submitted_assignments == 1) {
                 unplag_bulk_check_assign_files::add_task(array(
                     'contextid' => $data->gradingman->get_context()->id,
                     'cmid'      => $data->coursemodule,

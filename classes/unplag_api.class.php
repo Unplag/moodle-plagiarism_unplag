@@ -78,6 +78,10 @@ class unplag_api {
             ),
         );
 
+        if ($noindex = unplag_settings::get_assign_settings($cmid, unplag_settings::NO_INDEX_FILES)) {
+            $postdata['options']['no_index'] = $noindex;
+        }
+
         return unplag_api_request::instance()->http_post()->request(self::FILE_UPLOAD, $postdata);
     }
 
