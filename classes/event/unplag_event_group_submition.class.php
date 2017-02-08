@@ -105,8 +105,12 @@ class unplag_event_group_submition extends unplag_abstract_event {
 
         $assign = new \assign(\context_module::instance($cm->id), $cm, $course);
 
-        $groupid = $assign->get_submission_group($USER->id)->id;
-        $notsubmitted = $assign->get_submission_group_members_who_have_not_submitted($groupid, true);
+        $submgroup = $assign->get_submission_group($USER->id);
+        if (!$submgroup) {
+            return false;
+        }
+
+        $notsubmitted = $assign->get_submission_group_members_who_have_not_submitted($submgroup->id, true);
 
         return count($notsubmitted) == 0;
     }

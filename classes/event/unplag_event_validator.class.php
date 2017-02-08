@@ -28,28 +28,28 @@ use plagiarism_plugin_unplag;
 /**
  * Class unplag_event_validator
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag\classes\event
  * @subpackage  plagiarism
- * @namespace plagiarism_unplag\classes\event
+ * @namespace   plagiarism_unplag\classes\event
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_validator {
-
     /**
      * @var array
      */
     private static $allowedcomponents = array(
-            'mod_assign',
-            'mod_forum',
-            'mod_workshop',
-            'assignsubmission_file',
-            'assignsubmission_onlinetext'
+        'mod_assign',
+        'mod_forum',
+        'mod_workshop',
+        'assignsubmission_file',
+        'assignsubmission_onlinetext',
     );
 
     /**
      * @param base $event
+     *
      * @return bool
      */
     public static function validate_event(base $event) {
@@ -82,6 +82,7 @@ class unplag_event_validator {
 
     /**
      * @param $component
+     *
      * @return bool
      */
     private static function is_allowed_component($component) {
@@ -90,6 +91,7 @@ class unplag_event_validator {
 
     /**
      * @param $cmid
+     *
      * @return bool
      */
     private static function is_mod_enabled($cmid) {
