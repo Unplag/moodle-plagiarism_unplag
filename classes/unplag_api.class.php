@@ -82,7 +82,7 @@ class unplag_api {
             ),
         );
 
-        $content = null;
+        unset($content);
 
         if ($noindex = unplag_settings::get_assign_settings($cmid, unplag_settings::NO_INDEX_FILES)) {
             $postdata['options']['no_index'] = $noindex;

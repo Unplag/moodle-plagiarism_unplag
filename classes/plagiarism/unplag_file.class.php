@@ -26,7 +26,6 @@
 namespace plagiarism_unplag\classes\plagiarism;
 
 use plagiarism_unplag\classes\exception\unplag_exception;
-use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
@@ -62,38 +61,6 @@ class unplag_file extends unplag_plagiarism_entity {
 
         $this->core = $core;
         $this->file = $file;
-    }
-
-    /**
-     * @return object
-     */
-    public function upload_file_on_unplag_server() {
-        global $DB;
-
-        $internalfile = $this->get_internal_file();
-
-        if (isset($internalfile->external_file_id)) {
-            return $internalfile;
-        }
-
-        // Check if $internalfile actually needs to be submitted.
-        if ($internalfile->statuscode !== UNPLAG_STATUSCODE_PENDING) {
-            return $internalfile;
-        }
-
-        // Increment attempt number.
-        $internalfile->attempt++;
-
-        if ($uploadedfileresponse = $this->upload()) {
-            if ($uploadedfileresponse->result) {
-                $internalfile->external_file_id = $uploadedfileresponse->file->id;
-                $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
-            } else {
-                $this->store_file_errors($uploadedfileresponse);
-            }
-        }
-
-        return $internalfile;
     }
 
     /**
@@ -156,20 +123,20 @@ class unplag_file extends unplag_plagiarism_entity {
     }
 
     /**
-     * @return \stdClass
+     * @return array
      */
-    private function upload() {
+    protected function build_upload_data() {
         $format = 'html';
         if ($source = $this->stored_file()->get_source()) {
             $format = pathinfo($source, PATHINFO_EXTENSION);
         }
 
-        return unplag_api::instance()->upload_file(
+        return array(
             $this->stored_file()->get_content_file_handle(),
             $this->stored_file()->get_filename(),
             $format,
             $this->cmid(),
-            unplag_core::get_user($this->stored_file()->get_userid())
+            unplag_core::get_user($this->stored_file()->get_userid()),
         );
     }
 }
