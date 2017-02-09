@@ -104,7 +104,7 @@ class unplag_content extends unplag_plagiarism_entity {
         $internalfile->attempt++;
 
         $uploadedfileresponse = unplag_api::instance()->upload_file(
-            $this->content,
+            $this->get_content(),
             $this->name,
             $this->ext,
             $this->cmid()

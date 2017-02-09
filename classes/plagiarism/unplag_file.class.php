@@ -84,8 +84,7 @@ class unplag_file extends unplag_plagiarism_entity {
         // Increment attempt number.
         $internalfile->attempt++;
 
-        $uploadedfileresponse = $this->upload();
-        if ($uploadedfileresponse) {
+        if ($uploadedfileresponse = $this->upload()) {
             if ($uploadedfileresponse->result) {
                 $internalfile->external_file_id = $uploadedfileresponse->file->id;
                 $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
@@ -166,7 +165,7 @@ class unplag_file extends unplag_plagiarism_entity {
         }
 
         return unplag_api::instance()->upload_file(
-            $this->stored_file()->get_content(),
+            $this->stored_file()->get_content_file_handle(),
             $this->stored_file()->get_filename(),
             $format,
             $this->cmid(),
