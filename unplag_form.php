@@ -63,12 +63,6 @@ class unplag_setup_form extends moodleform {
         $mform->addRule('unplag_api_secret', null, 'required', null, 'client');
         $mform->setType('unplag_api_secret', PARAM_TEXT);
 
-        $mform->addElement('text', 'unplag_lang', plagiarism_unplag::trans('unplag_lang'));
-        $mform->addHelpButton('unplag_lang', 'unplag_lang', 'plagiarism_unplag');
-        $mform->addRule('unplag_lang', null, 'required', null, 'client');
-        $mform->setDefault('unplag_lang', 'en-US');
-        $mform->setType('unplag_lang', PARAM_TEXT);
-
         $mform->addElement('textarea', 'unplag_student_disclosure', plagiarism_unplag::trans('studentdisclosure'),
             'wrap="virtual" rows="6" cols="100"');
         $mform->addHelpButton('unplag_student_disclosure', 'studentdisclosure', 'plagiarism_unplag');
