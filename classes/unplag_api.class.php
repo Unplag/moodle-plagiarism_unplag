@@ -64,7 +64,7 @@ class unplag_api {
      *
      * @return \stdClass
      */
-    public function upload_file($content, $filename, $format = 'html', $cmid, $owner = null) {
+    public function upload_file(&$content, $filename, $format = 'html', $cmid, $owner = null) {
 
         set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
 
@@ -82,7 +82,7 @@ class unplag_api {
             ),
         );
 
-        unset($content);
+        $content = null;
 
         if ($noindex = unplag_settings::get_assign_settings($cmid, unplag_settings::NO_INDEX_FILES)) {
             $postdata['options']['no_index'] = $noindex;
