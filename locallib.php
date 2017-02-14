@@ -237,7 +237,8 @@ class plagiarism_unplag {
             $rawjson = file_get_contents('php://input');
             $respcheck = unplag_core::parse_json($rawjson);
             if ($record && isset($respcheck->check)) {
-                unplag_check_helper::check_complete($record, $respcheck->check);
+            	$progress = 100 * $respcheck->check->progress;
+                unplag_check_helper::check_complete($record, $respcheck->check, $progress);
             }
         } else {
             print_error('error');
