@@ -84,8 +84,7 @@ class unplag_progress {
      *
      * @throws unplag_exception
      */
-    public static function check_real_file_progress($cid, $checkstatusforids, &$resp)
-    {
+    public static function check_real_file_progress($cid, $checkstatusforids, &$resp) {
         global $DB;
 
         $progressids = [];
