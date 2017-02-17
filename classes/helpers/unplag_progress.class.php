@@ -35,8 +35,7 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_progress {
-
-	/**
+    /**
      * @param $record
      * @param $cid
      * @param $checkstatusforids
