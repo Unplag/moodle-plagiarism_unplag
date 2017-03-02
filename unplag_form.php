@@ -150,7 +150,6 @@ class unplag_defaults_form extends moodleform {
 
         if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
             $addyesnoelem($mform, unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS);
-            $addyesnoelem($mform, unplag_settings::NO_INDEX_FILES);
         }
 
         $setting = unplag_settings::CHECK_TYPE;
@@ -171,6 +170,10 @@ class unplag_defaults_form extends moodleform {
         $setting = unplag_settings::EXCLUDE_CITATIONS;
         $addyesnoelem($mform, $setting);
         $defaultsforfield($mform, $setting, 1);
+
+        if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
+            $addyesnoelem($mform, unplag_settings::NO_INDEX_FILES);
+        }
 
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
