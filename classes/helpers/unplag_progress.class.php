@@ -35,51 +35,6 @@ if (!defined('MOODLE_INTERNAL')) {
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_progress {
-
-    /**
-     * @param $cid
-     * @param $checkstatusforids
-     * @param $resp
-     *
-     * @throws unplag_exception
-     */
-    public static function check_real_file_progress($cid, $checkstatusforids, &$resp) {
-
-        global $DB;
-        $progressids = array();
-        foreach ($checkstatusforids as $recordid => $checkids) {
-            $progressids = array_merge($progressids, $checkids);
-        }
-        $progressids = array_unique($progressids);
-        $progresses = unplag_api::instance()->get_check_progress($progressids);
-        if ($progresses->result) {
-            foreach ($progresses->progress as $id => $val) {
-                $val *= 100;
-                $fileobj = self::update_file_progress($id, $val);
-                $resp[$fileobj->id]['progress'] = $val;
-                $resp[$fileobj->id]['content'] = self::gen_row_content_score($cid, $fileobj);
-            }
-
-            foreach ($checkstatusforids as $recordid => $checkids) {
-                if (count($checkids) > 1) {
-                    $childscount = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                            array($recordid, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED, UNPLAG_STATUSCODE_PENDING));
-                    $progress = 0;
-                    foreach ($checkids as $id) {
-                        $progress += ($progresses->progress->{$id} * 100);
-                    }
-
-                    $progress = floor($progress / $childscount);
-
-                    $fileobj = self::update_parent_progress($recordid, $progress);
-
-                    $resp[$recordid]['progress'] = $progress;
-                    $resp[$recordid]['content'] = self::gen_row_content_score($cid, $fileobj);
-                }
-            }
-        }
-    }
-
     /**
      * @param $record
      * @param $cid
@@ -90,6 +45,7 @@ class unplag_progress {
         global $DB;
 
         $childs = array();
+
         if ($record->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
             $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($record->id));
         }
@@ -119,6 +75,56 @@ class unplag_progress {
                 'content' => self::gen_row_content_score($cid, $record),
         );
         return $info;
+    }
+
+    /**
+     * @param $cid
+     * @param $checkstatusforids
+     * @param $resp
+     *
+     * @throws unplag_exception
+     */
+    public static function check_real_file_progress($cid, $checkstatusforids, &$resp) {
+        global $DB;
+
+        $progressids = [];
+
+        foreach ($checkstatusforids as $recordid => $checkids) {
+            $progressids = array_merge($progressids, $checkids);
+        }
+
+        $progressids = array_unique($progressids);
+        $progresses = unplag_api::instance()->get_check_progress($progressids);
+
+        if ($progresses->result) {
+            foreach ($progresses->progress as $id => $val) {
+                $val *= 100;
+                $fileobj = self::update_file_progress($id, $val);
+                $resp[$fileobj->id]['progress'] = $val;
+                $resp[$fileobj->id]['content'] = self::gen_row_content_score($cid, $fileobj);
+            }
+
+            foreach ($checkstatusforids as $recordid => $checkids) {
+                if (count($checkids) > 0) {
+                    $childscount = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
+                        [
+                            $recordid, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED,
+                            UNPLAG_STATUSCODE_PENDING
+                        ]) ?: 1;
+
+                    $progress = 0;
+
+                    foreach ($checkids as $id) {
+                        $progress += ($progresses->progress->{$id} * 100);
+                    }
+
+                    $progress = floor($progress / $childscount);
+                    $fileobj = self::update_parent_progress($recordid, $progress);
+                    $resp[$recordid]['progress'] = $progress;
+                    $resp[$recordid]['content'] = self::gen_row_content_score($cid, $fileobj);
+                }
+            }
+        }
     }
 
     /**

@@ -199,13 +199,15 @@ class plagiarism_unplag {
         global $DB;
 
         $data = unplag_core::parse_json($data);
-
         $resp = null;
         $records = $DB->get_records_list(UNPLAG_FILES_TABLE, 'id', $data->ids);
+
         if ($records) {
             $checkstatusforids = array();
+
             foreach ($records as $record) {
                 $progressinfo = unplag_progress::get_file_progress_info($record, $data->cid, $checkstatusforids);
+
                 if ($progressinfo) {
                     $resp[$record->id] = $progressinfo;
                 }
@@ -237,7 +239,8 @@ class plagiarism_unplag {
             $rawjson = file_get_contents('php://input');
             $respcheck = unplag_core::parse_json($rawjson);
             if ($record && isset($respcheck->check)) {
-                unplag_check_helper::check_complete($record, $respcheck->check);
+                $progress = 100 * $respcheck->check->progress;
+                unplag_check_helper::check_complete($record, $respcheck->check, $progress);
             }
         } else {
             print_error('error');
