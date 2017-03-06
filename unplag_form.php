@@ -63,12 +63,6 @@ class unplag_setup_form extends moodleform {
         $mform->addRule('unplag_api_secret', null, 'required', null, 'client');
         $mform->setType('unplag_api_secret', PARAM_TEXT);
 
-        $mform->addElement('text', 'unplag_lang', plagiarism_unplag::trans('unplag_lang'));
-        $mform->addHelpButton('unplag_lang', 'unplag_lang', 'plagiarism_unplag');
-        $mform->addRule('unplag_lang', null, 'required', null, 'client');
-        $mform->setDefault('unplag_lang', 'en-US');
-        $mform->setType('unplag_lang', PARAM_TEXT);
-
         $mform->addElement('textarea', 'unplag_student_disclosure', plagiarism_unplag::trans('studentdisclosure'),
             'wrap="virtual" rows="6" cols="100"');
         $mform->addHelpButton('unplag_student_disclosure', 'studentdisclosure', 'plagiarism_unplag');
@@ -177,6 +171,10 @@ class unplag_defaults_form extends moodleform {
         $setting = unplag_settings::EXCLUDE_CITATIONS;
         $addyesnoelem($mform, $setting);
         $defaultsforfield($mform, $setting, 1);
+
+        if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
+            $addyesnoelem($mform, unplag_settings::NO_INDEX_FILES);
+        }
 
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
