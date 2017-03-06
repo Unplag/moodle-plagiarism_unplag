@@ -157,6 +157,7 @@ class unplag_content extends unplag_plagiarism_entity {
             $this->name,
             $this->ext,
             $this->cmid(),
+            unplag_core::get_user($this->userid())
         );
     }
 }

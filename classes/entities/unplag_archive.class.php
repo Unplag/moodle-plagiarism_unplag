@@ -126,11 +126,7 @@ class unplag_archive {
                 continue;
             }
 
-            $size = $file->size;
             $name = fix_utf8($file->pathname);
-            $format = pathinfo($name, PATHINFO_EXTENSION);
-
-            $content = '';
             $tmpfile = tempnam($CFG->tempdir, 'unplag_unzip');
 
             if (!$fp = fopen($tmpfile, 'wb')) {
@@ -155,12 +151,13 @@ class unplag_archive {
             fclose($fz);
             fclose($fp);
 
-            if ($bytescopied != $size) {
+            if ($bytescopied != $file->size) {
                 $this->unlink($tmpfile);
                 $processed[$name] = 'Can not read file from zip archive';
                 continue;
             }
 
+            $format = pathinfo($name, PATHINFO_EXTENSION);
             $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $parentid);
             $plagiarismentity->get_internal_file();
 
@@ -171,8 +168,6 @@ class unplag_archive {
                 'format'     => $format,
                 'parent_id'  => $parentid,
             ));
-
-            unset($content);
         }
     }
 
