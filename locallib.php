@@ -28,6 +28,7 @@ use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\helpers\unplag_progress;
+use plagiarism_unplag\classes\helpers\unplag_translate;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 
@@ -43,6 +44,8 @@ require_once($CFG->libdir . '/filelib.php');
  * Class plagiarism_unplag
  */
 class plagiarism_unplag {
+
+    use unplag_translate;
     /**
      * @var array
      */
@@ -146,19 +149,8 @@ class plagiarism_unplag {
     /**
      * @return null|false
      */
-    public static function is_plagin_enabled() {
+    public static function is_plugin_enabled() {
         return unplag_settings::get_settings('use');
-    }
-
-    /**
-     * @param      $message
-     * @param null $param
-     *
-     * @return string
-     * @throws coding_exception
-     */
-    public static function trans($message, $param = null) {
-        return get_string($message, 'plagiarism_unplag', $param);
     }
 
     /**
@@ -254,26 +246,5 @@ class plagiarism_unplag {
      */
     private static function access_granted($token) {
         return ($token && strlen($token) === 40 && $_SERVER['REQUEST_METHOD'] == 'POST');
-    }
-
-    /**
-     * @param $error
-     *
-     * @return string
-     */
-    private static function api_trans($error) {
-        static $translates;
-
-        if (empty($translates)) {
-            $lang = current_language();
-            $path = UNPLAG_PROJECT_PATH . "lang/$lang/api_translates.json";
-            if (file_exists($path)) {
-                $translates = json_decode(file_get_contents($path));
-            }
-        }
-
-        $error = isset($error['extra_params']) ? self::trans($error['extra_params']) : $error['message'];
-
-        return isset($translates->{$error}) ? $translates->{$error} : $error;
     }
 }
