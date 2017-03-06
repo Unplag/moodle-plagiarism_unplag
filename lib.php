@@ -77,7 +77,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (self::is_enabled_module('mod_' . $cm->modname)) {
             $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
             if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
-                $ucore = new unplag_core($linkarray['cmid'], $linkarray['userid']);
+                $ucore = new unplag_core($linkarray['cmid'], $file->get_userid());
 
                 if ($cm->modname == UNPLAG_MODNAME_ASSIGN && (bool) unplag_assign::get($cm->instance)->teamsubmission) {
                     $ucore->enable_teamsubmission();
