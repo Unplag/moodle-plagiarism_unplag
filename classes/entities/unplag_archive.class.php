@@ -37,6 +37,9 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
+define('ARCHIVE_IS_EMPTY', 'Archive is empty or contains document(s) with no text');
+define('ARCHIVE_CANT_BE_OPEN', 'Can\'t open zip archive');
+
 /**
  * Class unplag_archive
  *
@@ -78,7 +81,7 @@ class unplag_archive {
         $ziparch = new \zip_archive();
         $pathname = unplag_stored_file::get_protected_pathname($this->file);
         if (!$ziparch->open($pathname, \file_archive::OPEN)) {
-            $this->invalid_response($archiveinternalfile, "Can't open zip archive");
+            $this->invalid_response($archiveinternalfile, ARCHIVE_CANT_BE_OPEN);
 
             return false;
         }
@@ -92,7 +95,7 @@ class unplag_archive {
         }
 
         if (!$fileexist) {
-            $this->invalid_response($archiveinternalfile, "Empty archive");
+            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY);
 
             return false;
         }

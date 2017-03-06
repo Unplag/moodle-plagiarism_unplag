@@ -115,7 +115,7 @@ class plagiarism_unplag {
      */
     public static function object_to_array($obj) {
         if (is_object($obj)) {
-            $obj = (array)$obj;
+            $obj = (array) $obj;
         }
         if (is_array($obj)) {
             $new = array();
@@ -182,12 +182,12 @@ class plagiarism_unplag {
     public static function error_resp_handler($errorresponse) {
         $errors = json_decode($errorresponse, true);
         if (is_array($errors)) {
-            $errors = $errors[0]['message'];
+            $error = self::api_trans(current($errors));
         } else {
-            $errors = self::trans('unknownwarning');
+            $error = self::trans('unknownwarning');
         }
 
-        return $errors;
+        return $error;
     }
 
     /**
@@ -254,5 +254,26 @@ class plagiarism_unplag {
      */
     private static function access_granted($token) {
         return ($token && strlen($token) === 40 && $_SERVER['REQUEST_METHOD'] == 'POST');
+    }
+
+    /**
+     * @param $error
+     *
+     * @return string
+     */
+    private static function api_trans($error) {
+        static $translates;
+
+        if (empty($translates)) {
+            $lang = current_language();
+            $path = UNPLAG_PROJECT_PATH . "lang/$lang/api_translates.json";
+            if (file_exists($path)) {
+                $translates = json_decode(file_get_contents($path));
+            }
+        }
+
+        $error = isset($error['extra_message']) ? $error['extra_message'] : $error['message'];
+
+        return isset($translates->{$error}) ? $translates->{$error} : $error;
     }
 }
