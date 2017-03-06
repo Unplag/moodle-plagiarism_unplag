@@ -172,10 +172,6 @@ class unplag_defaults_form extends moodleform {
         $addyesnoelem($mform, $setting);
         $defaultsforfield($mform, $setting, 1);
 
-        if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
-            $addyesnoelem($mform, unplag_settings::NO_INDEX_FILES);
-        }
-
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
         }
