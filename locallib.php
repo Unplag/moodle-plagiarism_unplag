@@ -272,7 +272,7 @@ class plagiarism_unplag {
             }
         }
 
-        $error = isset($error['extra_message']) ? $error['extra_message'] : $error['message'];
+        $error = isset($error['extra_params']) ? self::trans($error['extra_params']) : $error['message'];
 
         return isset($translates->{$error}) ? $translates->{$error} : $error;
     }
