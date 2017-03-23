@@ -129,9 +129,7 @@ class unplag_linkarray {
      * @return bool
      */
     private static function is_pending($cm, $fileobj) {
-        return $cm->modname == UNPLAG_MODNAME_ASSIGN
-            && empty($fileobj->check_id)
-            && $fileobj->type == unplag_plagiarism_entity::TYPE_DOCUMENT;
+        return $cm->modname == UNPLAG_MODNAME_ASSIGN && empty($fileobj->check_id);
     }
 
     /**

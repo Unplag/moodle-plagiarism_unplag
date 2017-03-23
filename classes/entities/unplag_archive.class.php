@@ -37,6 +37,9 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
+define('ARCHIVE_IS_EMPTY', 'Archive is empty or contains document(s) with no text');
+define('ARCHIVE_CANT_BE_OPEN', 'Can\'t open zip archive');
+
 /**
  * Class unplag_archive
  *
@@ -78,7 +81,7 @@ class unplag_archive {
         $ziparch = new \zip_archive();
         $pathname = unplag_stored_file::get_protected_pathname($this->file);
         if (!$ziparch->open($pathname, \file_archive::OPEN)) {
-            $this->invalid_response($archiveinternalfile, "Can't open zip archive");
+            $this->invalid_response($archiveinternalfile, ARCHIVE_CANT_BE_OPEN);
 
             return false;
         }
@@ -92,7 +95,7 @@ class unplag_archive {
         }
 
         if (!$fileexist) {
-            $this->invalid_response($archiveinternalfile, "Empty archive");
+            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY);
 
             return false;
         }
@@ -126,11 +129,7 @@ class unplag_archive {
                 continue;
             }
 
-            $size = $file->size;
             $name = fix_utf8($file->pathname);
-            $format = pathinfo($name, PATHINFO_EXTENSION);
-
-            $content = '';
             $tmpfile = tempnam($CFG->tempdir, 'unplag_unzip');
 
             if (!$fp = fopen($tmpfile, 'wb')) {
@@ -155,12 +154,13 @@ class unplag_archive {
             fclose($fz);
             fclose($fp);
 
-            if ($bytescopied != $size) {
+            if ($bytescopied != $file->size) {
                 $this->unlink($tmpfile);
                 $processed[$name] = 'Can not read file from zip archive';
                 continue;
             }
 
+            $format = pathinfo($name, PATHINFO_EXTENSION);
             $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $parentid);
             $plagiarismentity->get_internal_file();
 
@@ -171,8 +171,6 @@ class unplag_archive {
                 'format'     => $format,
                 'parent_id'  => $parentid,
             ));
-
-            unset($content);
         }
     }
 

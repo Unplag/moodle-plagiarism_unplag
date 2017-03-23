@@ -28,6 +28,7 @@ use core\event\base;
 use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\helpers\unplag_progress;
+use plagiarism_unplag\classes\helpers\unplag_translate;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 
@@ -43,6 +44,8 @@ require_once($CFG->libdir . '/filelib.php');
  * Class plagiarism_unplag
  */
 class plagiarism_unplag {
+
+    use unplag_translate;
     /**
      * @var array
      */
@@ -115,7 +118,7 @@ class plagiarism_unplag {
      */
     public static function object_to_array($obj) {
         if (is_object($obj)) {
-            $obj = (array)$obj;
+            $obj = (array) $obj;
         }
         if (is_array($obj)) {
             $new = array();
@@ -146,19 +149,8 @@ class plagiarism_unplag {
     /**
      * @return null|false
      */
-    public static function is_plagin_enabled() {
+    public static function is_plugin_enabled() {
         return unplag_settings::get_settings('use');
-    }
-
-    /**
-     * @param      $message
-     * @param null $param
-     *
-     * @return string
-     * @throws coding_exception
-     */
-    public static function trans($message, $param = null) {
-        return get_string($message, 'plagiarism_unplag', $param);
     }
 
     /**
@@ -182,12 +174,12 @@ class plagiarism_unplag {
     public static function error_resp_handler($errorresponse) {
         $errors = json_decode($errorresponse, true);
         if (is_array($errors)) {
-            $errors = $errors[0]['message'];
+            $error = self::api_trans(current($errors));
         } else {
-            $errors = self::trans('unknownwarning');
+            $error = self::trans('unknownwarning');
         }
 
-        return $errors;
+        return $error;
     }
 
     /**

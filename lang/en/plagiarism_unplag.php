@@ -116,3 +116,5 @@ $string['exclude_citations'] = 'Auto exclude Citations & Reserences';
 $string['exclude_self_plagiarism'] = 'Exclude self-plagiarism';
 $string['check_all_submitted_assignments'] = 'Check all submitted assignments';
 $string['no_index_files'] = 'Exclude submissions from the Institutional Library';
+$string['min_30_words'] = 'At least 30 words are required';
+$string['max_100000_words'] = 'File(s) should have no more than 100 000 words and be not larger than 70MB';

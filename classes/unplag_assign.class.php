@@ -20,6 +20,7 @@ use assign;
 use coding_exception;
 use context_module;
 use plagiarism_unplag;
+use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -61,7 +62,6 @@ class unplag_assign {
     /**
      * @param $id
      *
-     * @return null
      * @throws coding_exception
      */
     public static function check_submitted_assignment($id) {
@@ -70,7 +70,7 @@ class unplag_assign {
         $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
         if (in_array($plagiarismfile->statuscode, array(UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED))) {
             // Sanity Check.
-            return null;
+            return;
         }
 
         $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
@@ -79,14 +79,10 @@ class unplag_assign {
 
             $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
             if ($file->is_directory()) {
-                return null;
+                return;
             }
 
-            $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
-            $plagiarismentity = $ucore->get_plagiarism_entity($file);
-            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-
-            unplag_check_helper::run_plagiarism_detection($plagiarismentity, $internalfile);
+            self::run_process_detection($file, $plagiarismfile);
         }
     }
 
@@ -110,7 +106,7 @@ class unplag_assign {
 
         $sql = 'SELECT COUNT(id) FROM {assign_submission} WHERE id = ? AND status = ?';
 
-        return (bool)$DB->count_records_sql($sql, array($id, 'draft'));
+        return (bool) $DB->count_records_sql($sql, array($id, 'draft'));
     }
 
     /**
@@ -133,5 +129,22 @@ class unplag_assign {
         $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
 
         return self::get($cm->instance);
+    }
+
+    /**
+     * @param \stored_file $file
+     * @param              $plagiarismfile
+     */
+    private static function run_process_detection(\stored_file $file, $plagiarismfile) {
+
+        $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
+
+        if (plagiarism_unplag::is_archive($file)) {
+            (new unplag_archive($file, $ucore))->run_checks();
+        } else {
+            $plagiarismentity = $ucore->get_plagiarism_entity($file);
+            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
+            unplag_check_helper::run_plagiarism_detection($plagiarismentity, $internalfile);
+        }
     }
 }
