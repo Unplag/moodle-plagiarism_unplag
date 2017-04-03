@@ -28,9 +28,9 @@ if (!isset($plugin)) {
     $plugin = new stdClass();
 }
 
-$plugin->version = 2017030600; // YYYYMMDDVV.
+$plugin->version = 2017040300; // YYYYMMDDVV.
 $plugin->requires = 2014051200; // Requires Moodle 2.7.
 $plugin->maturity = MATURITY_STABLE;
 
 $plugin->component = 'plagiarism_unplag';
-$plugin->release = '2.4.0';
+$plugin->release = '2.4.1';

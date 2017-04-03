@@ -66,7 +66,7 @@
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="user_id"/>
                 <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="external_user_id"/>
                 <FIELD NAME="external_user_id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="user_id" NEXT="token"/>
-                <FIELD NAME="external_token" TYPE="char" LENGTH="64" NOTNULL="true" PREVIOUS="external_user_id"/>
+                <FIELD NAME="external_token" TYPE="char" LENGTH="64" NOTNULL="true" PREVIOUS="external_user_id" SEQUENCE="false"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="user_id"/>
