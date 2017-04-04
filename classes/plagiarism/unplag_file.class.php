@@ -149,9 +149,7 @@ class unplag_file extends unplag_plagiarism_entity {
      * @return string|null
      */
     public function mimetype_to_format($mimetype) {
-        return isset($this->mimetypes[$mimetype])
-                ? $this->mimetypes[$mimetype]
-                : null;
+        return isset($this->mimetypes[$mimetype]) ? $this->mimetypes[$mimetype] : null;
     }
 
     /**
