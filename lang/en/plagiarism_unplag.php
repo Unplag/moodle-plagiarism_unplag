@@ -74,6 +74,7 @@ $string['noreceiver'] = 'No receiver address was specified';
 $string['unplag:enable'] = 'Allow the teacher to enable/disable UNPLAG inside an activity';
 $string['unplag:resetfile'] = 'Allow the teacher to resubmit the file to UNPLAG after an error occurred';
 $string['unplag:viewreport'] = 'Allow the teacher to view the full report from UNPLAG';
+$string['unplag:vieweditreport'] = 'Allow the teacher to view and edit the full report from UNPLAG';
 $string['unplagdebug'] = 'Debugging';
 $string['explainerrors'] = 'This page lists any files that are currently in an error state. <br/>When files are deleted on this page they will not be able to be resubmitted and errors will no longer display to teachers or students';
 $string['id'] = 'ID';

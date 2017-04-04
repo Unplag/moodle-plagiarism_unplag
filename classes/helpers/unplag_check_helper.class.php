@@ -112,7 +112,7 @@ class unplag_check_helper {
         } else {
             $checkresp = unplag_api::instance()->run_check($internalfile);
             $plagiarismentity->handle_check_response($checkresp);
-            mtrace('file ' . $internalfile->identifier . 'send to Unplag');
+            mtrace('file ' . $internalfile->identifier . ' send to Unplag');
         }
 
         return true;

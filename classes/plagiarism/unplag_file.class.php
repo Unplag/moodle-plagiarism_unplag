@@ -47,6 +47,28 @@ class unplag_file extends unplag_plagiarism_entity {
     private $file;
 
     /**
+     * @var array
+     */
+    private $mimetypes = [
+            'application/pdf'                                                           => 'pdf',
+            'application/vnd.oasis.opendocument.text'                                   => 'odt',
+            'application/vnd.oasis.opendocument.presentation'                           => 'odp',
+            'application/msword'                                                        => 'doc',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'   => 'docx',
+            'text/html'                                                                 => 'html',
+            'text/plain'                                                                => 'txt',
+            'text/rtf'                                                                  => 'rtf',
+            'text/x-rtf'                                                                => 'rtf',
+            'text/richtext'                                                             => 'rtf',
+            'text/mspowerpoint'                                                         => 'ppt',
+            'text/powerpoint'                                                           => 'ppt',
+            'text/vnd.ms-powerpoint'                                                    => 'ppt',
+            'text/x-mspowerpoint'                                                       => 'ppt',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
+            'application/x-iwork-pages-sffpages'                                        => 'pages'
+    ];
+
+    /**
      * unplag_file constructor.
      *
      * @param unplag_core  $core
@@ -75,11 +97,11 @@ class unplag_file extends unplag_plagiarism_entity {
 
         $plagiarismfile = null;
         try {
-            $filedata = array(
-                'cm'         => $this->cmid(),
-                'userid'     => $this->userid(),
-                'identifier' => $this->stored_file()->get_pathnamehash(),
-            );
+            $filedata = [
+                    'cm'         => $this->cmid(),
+                    'userid'     => $this->userid(),
+                    'identifier' => $this->stored_file()->get_pathnamehash(),
+            ];
 
             if ($this->core->is_teamsubmission_mode()) {
                 unset($filedata['userid']);
@@ -89,12 +111,12 @@ class unplag_file extends unplag_plagiarism_entity {
             $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, $filedata);
 
             if (empty($plagiarismfile)) {
-                $plagiarismfile = $this->new_plagiarismfile(array(
-                    'cm'         => $this->cmid(),
-                    'userid'     => $this->userid(),
-                    'identifier' => $this->stored_file()->get_pathnamehash(),
-                    'filename'   => $this->stored_file()->get_filename(),
-                ));
+                $plagiarismfile = $this->new_plagiarismfile([
+                        'cm'         => $this->cmid(),
+                        'userid'     => $this->userid(),
+                        'identifier' => $this->stored_file()->get_pathnamehash(),
+                        'filename'   => $this->stored_file()->get_filename(),
+                ]);
 
                 if (\plagiarism_unplag::is_archive($this->stored_file())) {
                     $plagiarismfile->type = unplag_plagiarism_entity::TYPE_ARCHIVE;
@@ -123,20 +145,41 @@ class unplag_file extends unplag_plagiarism_entity {
     }
 
     /**
+     * @param $mimetype
+     * @return string|null
+     */
+    public function mimetype_to_format($mimetype) {
+        return isset($this->mimetypes[$mimetype]) ? $this->mimetypes[$mimetype] : null;
+    }
+
+    /**
      * @return array
      */
     protected function build_upload_data() {
         $format = 'html';
-        if ($source = $this->stored_file()->get_source()) {
+        $source = $this->stored_file()->get_source();
+        $mimetype = $this->stored_file()->get_mimetype();
+
+        if ($source) {
             $format = pathinfo($source, PATHINFO_EXTENSION);
         }
 
-        return array(
-            $this->stored_file()->get_content_file_handle(),
-            $this->stored_file()->get_filename(),
-            $format,
-            $this->cmid(),
-            unplag_core::get_user($this->stored_file()->get_userid()),
-        );
+        if (!$format && $mimetype) {
+            $format = $this->mimetype_to_format($mimetype);
+
+            if (!$format) {
+                debugging("Can't detect file format.
+                    Filename: {$this->stored_file()->get_filename()}, mimetype: {$this->stored_file()->get_mimetype()}"
+                );
+            }
+        }
+
+        return [
+                $this->stored_file()->get_content_file_handle(),
+                $this->stored_file()->get_filename(),
+                $format,
+                $this->cmid(),
+                unplag_core::get_user($this->stored_file()->get_userid()),
+        ];
     }
 }

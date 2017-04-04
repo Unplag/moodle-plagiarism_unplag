@@ -266,9 +266,19 @@ class unplag_core {
      * @return bool
      */
     public static function is_teacher($cmid) {
+        return self::can('moodle/grade:edit', $cmid);
+    }
+
+    /**
+     * @param $cmid
+     * @param $permission
+     *
+     * @return bool
+     */
+    public static function can($permission, $cmid) {
         global $USER;
 
-        return has_capability('moodle/grade:edit', context_module::instance($cmid), $USER->id);
+        return has_capability($permission, context_module::instance($cmid), $USER->id);
     }
 
     /**
