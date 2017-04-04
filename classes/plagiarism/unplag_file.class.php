@@ -168,7 +168,7 @@ class unplag_file extends unplag_plagiarism_entity {
             $format = $this->mimetype_to_format($mimetype);
 
             if (!$format) {
-                debugging("Can't detect file format. 
+                debugging("Can't detect file format.
                     Filename: {$this->stored_file()->get_filename()}, mimetype: {$this->stored_file()->get_mimetype()}"
                 );
             }
