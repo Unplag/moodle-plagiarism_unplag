@@ -25,6 +25,18 @@ $capabilities = [
         'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
             'manager'        => CAP_ALLOW,
+            'coursecreator'  => CAP_ALLOW
+        ],
+    ],
+    'plagiarism/unplag:viewsimilarity' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+            'coursecreator'  => CAP_ALLOW,
+            'student'        => CAP_PREVENT
         ],
     ],
     'plagiarism/unplag:viewreport'     => [
@@ -35,7 +47,7 @@ $capabilities = [
             'teacher'        => CAP_ALLOW,
             'manager'        => CAP_ALLOW,
             'coursecreator'  => CAP_ALLOW,
-            'student'        => CAP_ALLOW
+            'student'        => CAP_PREVENT
         ],
     ],
     'plagiarism/unplag:vieweditreport' => [

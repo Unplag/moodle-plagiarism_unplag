@@ -53,11 +53,11 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
     );
 
     // This is a teacher viewing the responses.
-    $canviewreport = unplag_core::can('plagiarism/unplag:viewreport', $cid);
+    $canviewsimilarity = unplag_core::can('plagiarism/unplag:viewsimilarity', $cid);
     $assigncfg = unplag_settings::get_assign_settings($cid, null, true);
 
     if (isset($fileobj->similarityscore)) {
-        if ($canviewreport || $assigncfg['unplag_show_student_score']) {
+        if ($canviewsimilarity || $assigncfg['unplag_show_student_score']) {
             // User is allowed to view only the score.
             $htmlparts[] = sprintf('%s: <span class="rank1">%s%%</span>',
                 plagiarism_unplag::trans('similarity'),
@@ -82,6 +82,7 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
             unplag_core::inject_comment_token($editreporturl, $cid);
         }
 
+        $canviewreport = unplag_core::can('plagiarism/unplag:viewreport', $cid);
         if ($canviewreport || $assigncfg['unplag_show_student_report']) {
             $canvieweditreport = unplag_core::can('plagiarism/unplag:vieweditreport', $cid);
             // Display opt-out link.
