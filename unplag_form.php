@@ -73,7 +73,7 @@ class unplag_setup_form extends moodleform {
         foreach (array_keys($mods) as $mod) {
             if (plugin_supports('mod', $mod, FEATURE_PLAGIARISM) && plagiarism_unplag::is_support_mod($mod)) {
                 $modstring = 'unplag_enable_mod_' . $mod;
-                $mform->addElement('checkbox', $modstring, plagiarism_unplag::trans('unplag_enableplugin', $mod));
+                $mform->addElement('checkbox', $modstring, plagiarism_unplag::trans('unplag_enableplugin', ucfirst($mod)));
             }
         }
 
