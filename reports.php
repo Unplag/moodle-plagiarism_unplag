@@ -59,6 +59,7 @@ echo $OUTPUT->header();
 
 $tabs = array();
 $fileinfos = array();
+$canvieweditreport = unplag_core::can('plagiarism/unplag:vieweditreport', $cmid);
 foreach ($childs as $child) {
 
     switch ($child->statuscode) {
@@ -107,7 +108,7 @@ echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 
 if ($cpf !== null) {
     $reporturl = $current->reporturl;
-    if (unplag_core::is_teacher($cmid)) {
+    if ($canvieweditreport) {
         $reporturl = $current->reportediturl;
     }
     unplag_core::inject_comment_token($reporturl, $cmid);

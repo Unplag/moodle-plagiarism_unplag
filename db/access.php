@@ -18,40 +18,65 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
-$capabilities = array(
-        'plagiarism/unplag:enable' => array(
-                'captype' => 'write',
-                'contextlevel' => CONTEXT_COURSE,
-                'archetypes' => array(
-                        'editingteacher' => CAP_ALLOW,
-                        'manager' => CAP_ALLOW,
-                ),
-        ),
-        'plagiarism/unplag:viewreport' => array(
-                'captype' => 'write',
-                'contextlevel' => CONTEXT_COURSE,
-                'archetypes' => array(
-                        'editingteacher' => CAP_ALLOW,
-                        'teacher' => CAP_ALLOW,
-                        'manager' => CAP_ALLOW,
-                ),
-        ),
-        'plagiarism/unplag:resetfile' => array(
-                'captype' => 'write',
-                'contextlevel' => CONTEXT_COURSE,
-                'archetypes' => array(
-                        'editingteacher' => CAP_ALLOW,
-                        'teacher' => CAP_ALLOW,
-                        'manager' => CAP_ALLOW,
-                ),
-        ),
-        'plagiarism/unplag:checkfile' => array(
-                'captype' => 'write',
-                'contextlevel' => CONTEXT_COURSE,
-                'archetypes' => array(
-                        'editingteacher' => CAP_ALLOW,
-                        'teacher' => CAP_ALLOW,
-                        'manager' => CAP_ALLOW,
-                ),
-        ),
-);
+$capabilities = [
+    'plagiarism/unplag:enable'         => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+            'coursecreator'  => CAP_ALLOW
+        ],
+    ],
+    'plagiarism/unplag:viewsimilarity' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+            'coursecreator'  => CAP_ALLOW,
+            'student'        => CAP_PREVENT
+        ],
+    ],
+    'plagiarism/unplag:viewreport'     => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+            'coursecreator'  => CAP_ALLOW,
+            'student'        => CAP_PREVENT
+        ],
+    ],
+    'plagiarism/unplag:vieweditreport' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_PREVENT,
+            'manager'        => CAP_ALLOW,
+            'coursecreator'  => CAP_ALLOW,
+            'student'        => CAP_PREVENT
+        ],
+    ],
+    'plagiarism/unplag:resetfile'      => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+        ],
+    ],
+    'plagiarism/unplag:checkfile'      => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
+        ],
+    ],
+];

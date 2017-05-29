@@ -26,7 +26,6 @@
 namespace plagiarism_unplag\classes\plagiarism;
 
 use plagiarism_unplag\classes\exception\unplag_exception;
-use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
@@ -81,43 +80,6 @@ class unplag_content extends unplag_plagiarism_entity {
         $this->parentid = $parentid;
 
         $this->set_content($content);
-    }
-
-    /**
-     * @return object
-     */
-    public function upload_file_on_unplag_server() {
-        global $DB;
-
-        $internalfile = $this->get_internal_file();
-
-        if (isset($internalfile->external_file_id)) {
-            return $internalfile;
-        }
-
-        // Check if $internalfile actually needs to be submitted.
-        if ($internalfile->statuscode !== UNPLAG_STATUSCODE_PENDING) {
-            return $internalfile;
-        }
-
-        // Increment attempt number.
-        $internalfile->attempt++;
-
-        $uploadedfileresponse = unplag_api::instance()->upload_file(
-            $this->content,
-            $this->name,
-            $this->ext,
-            $this->cmid()
-        );
-
-        if ($uploadedfileresponse->result) {
-            $internalfile->external_file_id = $uploadedfileresponse->file->id;
-            $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
-        } else {
-            $this->store_file_errors($uploadedfileresponse);
-        }
-
-        return $internalfile;
     }
 
     /**
@@ -184,5 +146,18 @@ class unplag_content extends unplag_plagiarism_entity {
      */
     public function set_content($content) {
         $this->content = $content;
+    }
+
+    /**
+     * @return array
+     */
+    protected function build_upload_data() {
+        return array(
+            $this->get_content(),
+            $this->name,
+            $this->ext,
+            $this->cmid(),
+            unplag_core::get_user($this->userid())
+        );
     }
 }

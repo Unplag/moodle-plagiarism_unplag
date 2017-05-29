@@ -1,0 +1,7 @@
+{
+  "At least 30 words are required": "Se requieren al menos 30 palabras",
+  "File(s) should have no more than 100 000 words and be not larger than 70MB": "Los archivos deben tener no más de 100 000 palabras y no ser mayores de 70 MB",
+  "Archive is empty or contains document(s) with no text": "El archivo está vacío o contiene documentos sin texto",
+  "Empty archive": "El archivo está vacío o contiene documentos sin texto",
+  "File is empty": "El archivo está vacío"
+}

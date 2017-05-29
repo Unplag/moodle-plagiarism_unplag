@@ -47,12 +47,12 @@ abstract class unplag_plagiarism_entity {
     /**
      * @return object
      */
-    abstract public function upload_file_on_unplag_server();
+    abstract public function get_internal_file();
 
     /**
-     * @return object
+     * @return array
      */
-    abstract public function get_internal_file();
+    abstract protected function build_upload_data();
 
     /**
      * @return integer
@@ -156,5 +156,47 @@ abstract class unplag_plagiarism_entity {
         $plagiarismfile->type = self::TYPE_DOCUMENT;
 
         return $plagiarismfile;
+    }
+
+    /**
+     * @return object
+     */
+    public function upload_file_on_unplag_server() {
+
+        $internalfile = $this->get_internal_file();
+
+        if (isset($internalfile->external_file_id)) {
+            return $internalfile;
+        }
+
+        // Check if $internalfile actually needs to be submitted.
+        if ($internalfile->statuscode !== UNPLAG_STATUSCODE_PENDING) {
+            return $internalfile;
+        }
+
+        list($content, $name, $ext, $cmid, $owner) = $this->build_upload_data();
+        $uploadresponse = unplag_api::instance()->upload_file($content, $name, $ext, $cmid, $owner);
+
+        // Increment attempt number.
+        $internalfile->attempt++;
+
+        $this->process_after_upload($internalfile, $uploadresponse);
+
+        return $internalfile;
+    }
+
+    /**
+     * @param object $internalfile
+     * @param object $uploadresponse
+     */
+    private function process_after_upload(&$internalfile, $uploadresponse) {
+        global $DB;
+
+        if ($uploadresponse->result) {
+            $internalfile->external_file_id = $uploadresponse->file->id;
+            $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
+        } else {
+            $this->store_file_errors($uploadresponse);
+        }
     }
 }

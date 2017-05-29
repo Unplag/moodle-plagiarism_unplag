@@ -119,7 +119,7 @@ class unplag_api_request {
     /**
      * @param $requestdata
      */
-    private function set_request_data($requestdata) {
+    private function set_request_data(&$requestdata) {
         if ($this->httpmethod === 'get') {
             $this->requestdata = $requestdata;
         } else {
