@@ -44,7 +44,6 @@ require_once($CFG->libdir . '/filelib.php');
  * Class plagiarism_unplag
  */
 class plagiarism_unplag {
-
     use unplag_translate;
     /**
      * @var array
