@@ -44,7 +44,6 @@ require_once($CFG->libdir . '/filelib.php');
  * Class plagiarism_unplag
  */
 class plagiarism_unplag {
-
     use unplag_translate;
     /**
      * @var array
@@ -118,7 +117,7 @@ class plagiarism_unplag {
      */
     public static function object_to_array($obj) {
         if (is_object($obj)) {
-            $obj = (array)$obj;
+            $obj = (array) $obj;
         }
         if (is_array($obj)) {
             $new = array();

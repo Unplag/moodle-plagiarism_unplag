@@ -129,7 +129,7 @@ class unplag_linkarray {
      * @return bool
      */
     private static function is_pending($cm, $fileobj) {
-        return $cm->modname == UNPLAG_MODNAME_ASSIGN && empty($fileobj->check_id) ;
+        return $cm->modname == UNPLAG_MODNAME_ASSIGN && empty($fileobj->check_id);
     }
 
     /**
