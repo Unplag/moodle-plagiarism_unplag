@@ -75,12 +75,15 @@ class unplag_archive {
      */
     public function run_checks() {
         global $DB;
+        global $CFG;
 
         $archiveinternalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
 
         $ziparch = new \zip_archive();
-        $pathname = unplag_stored_file::get_protected_pathname($this->file);
-        if (!$ziparch->open($pathname, \file_archive::OPEN)) {
+
+        $tmpzipfile = tempnam($CFG->tempdir, 'unicheck_zip');
+        $this->file->copy_content_to($tmpzipfile);
+        if (!$ziparch->open($tmpzipfile, \file_archive::OPEN)) {
             $this->invalid_response($archiveinternalfile, ARCHIVE_CANT_BE_OPEN);
 
             return false;
