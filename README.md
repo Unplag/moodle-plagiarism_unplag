@@ -9,8 +9,8 @@ UNPLAG Plagiarism plugin for Moodle
 **Supported PHP versions:** 5.4 - 7.1  
 **Moodle plugins directory:** https://moodle.org/plugins/plagiarism_unplag
 
-Author: Ben Larson <developer@unplag.com>  
-Copyright: UKU Group, LTD, http://www.unplag.com  
+Author: Ben Larson <developer@unicheck.com>  
+Copyright: UKU Group, LTD, https://www.unicheck.com  
 
  > UNPLAG is a commercial Plagiarism Prevention product owned by UKU Group, LTD - you must have a paid subscription to be able to use this plugin.  
 
