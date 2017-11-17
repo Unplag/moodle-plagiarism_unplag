@@ -26,7 +26,6 @@
 namespace plagiarism_unplag\classes\entities;
 
 use plagiarism_unplag\classes\exception\unplag_exception;
-use plagiarism_unplag\classes\helpers\unplag_stored_file;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
 use plagiarism_unplag\classes\task\unplag_upload_and_check_task;
 use plagiarism_unplag\classes\unplag_api;
@@ -122,11 +121,13 @@ class unplag_archive {
     /**
      * @param \zip_archive $ziparch
      * @param null         $parentid
+     * @param int          $maxsupportedcount Max supported processed files
      */
-    private function process_archive_files(\zip_archive&$ziparch, $parentid = null) {
+    private function process_archive_files(\zip_archive&$ziparch, $parentid = null, $maxsupportedcount = 10) {
         global $CFG;
 
         $processed = array();
+        $supportedcount = 0;
         foreach ($ziparch as $file) {
             if ($file->is_directory) {
                 continue;
@@ -164,6 +165,14 @@ class unplag_archive {
             }
 
             $format = pathinfo($name, PATHINFO_EXTENSION);
+            if (!\plagiarism_unplag::is_supported_extension($format)) {
+                continue;
+            }
+
+            if ($supportedcount >= $maxsupportedcount) {
+                break;
+            }
+
             $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $parentid);
             $plagiarismentity->get_internal_file();
 
@@ -174,6 +183,8 @@ class unplag_archive {
                 'format'     => $format,
                 'parent_id'  => $parentid,
             ));
+
+            $supportedcount++;
         }
     }
 

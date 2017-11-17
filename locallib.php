@@ -67,6 +67,25 @@ class plagiarism_unplag {
         'attachment',
     );
 
+    /* @var array */
+    private static $supportedextension = [
+        'pdf',
+        'odt',
+        'odp',
+        'doc',
+        'docx',
+        'html',
+        'txt',
+        'rtf',
+        'ppt',
+        'pptx',
+        'pages',
+        'htm',
+        'xls',
+        'xlsx',
+        'ods'
+    ];
+
     /**
      * @param base $event
      */
@@ -93,6 +112,15 @@ class plagiarism_unplag {
      */
     public static function is_support_filearea($filearea) {
         return in_array($filearea, self::$supportedfilearea);
+    }
+
+    /**
+     * @param $ext
+     *
+     * @return bool
+     */
+    public static function is_supported_extension($ext) {
+        return in_array($ext, self::$supportedextension);
     }
 
     /**
