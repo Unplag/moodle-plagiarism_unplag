@@ -165,11 +165,11 @@ class unplag_archive {
             }
 
             $format = pathinfo($name, PATHINFO_EXTENSION);
-            if (!\plagiarism_unplag::is_supported_extension($format)){
+            if (!\plagiarism_unplag::is_supported_extension($format)) {
                 continue;
             }
 
-            if ($supportedcount >= $maxsupportedcount){
+            if ($supportedcount >= $maxsupportedcount) {
                 break;
             }
 
