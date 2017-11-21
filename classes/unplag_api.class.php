@@ -73,7 +73,7 @@ class unplag_api {
         }
 
         $postdata = array(
-            'format'    => $format,
+            'format'    => strtolower($format),
             'file_data' => base64_encode($content),
             'name'      => $filename,
             'options'   => array(
