@@ -72,15 +72,15 @@ class unplag_api {
             $content = stream_get_contents($content);
         }
 
-        $postdata = array(
-            'format'    => $format,
+        $postdata = [
+            'format'    => strtolower($format),
             'file_data' => base64_encode($content),
             'name'      => $filename,
-            'options'   => array(
+            'options'   => [
                 'utoken'        => unplag_core::get_external_token($cmid, $owner),
                 'submission_id' => $cmid,
-            ),
-        );
+            ],
+        ];
 
         $content = null;
 
@@ -105,18 +105,18 @@ class unplag_api {
 
         $checktype = unplag_settings::get_assign_settings($file->cm, 'check_type');
 
-        $options = array();
+        $options = [];
         $this->advanced_check_options($file->cm, $options);
 
-        $postdata = array(
+        $postdata = [
             'type'         => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
             'file_id'      => $file->external_file_id,
             'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
             'options'      => $options,
-        );
+        ];
 
         if (unplag_settings::get_assign_settings($file->cm, 'exclude_citations')) {
-            $postdata = array_merge($postdata, array('exclude_citations' => 1, 'exclude_references' => 1));
+            $postdata = array_merge($postdata, ['exclude_citations' => 1, 'exclude_references' => 1]);
         }
 
         return unplag_api_request::instance()->http_post()->request(self::CHECK_CREATE, $postdata);
@@ -132,9 +132,9 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument $checkids');
         }
 
-        return unplag_api_request::instance()->http_get()->request(self::CHECK_PROGRESS, array(
+        return unplag_api_request::instance()->http_get()->request(self::CHECK_PROGRESS, [
             'id' => implode(',', $checkids),
-        ));
+        ]);
     }
 
     /**
@@ -147,9 +147,9 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument id');
         }
 
-        return unplag_api_request::instance()->http_get()->request(self::CHECK_GET, array(
+        return unplag_api_request::instance()->http_get()->request(self::CHECK_GET, [
             'id' => $id,
-        ));
+        ]);
     }
 
     /**
@@ -162,9 +162,9 @@ class unplag_api {
             throw new \InvalidArgumentException('Invalid argument check_id');
         }
 
-        return unplag_api_request::instance()->http_post()->request(self::CHECK_DELETE, array(
+        return unplag_api_request::instance()->http_post()->request(self::CHECK_DELETE, [
             'id' => $file->check_id,
-        ));
+        ]);
     }
 
     /**
@@ -174,13 +174,13 @@ class unplag_api {
      * @return mixed
      */
     public function user_create($user, $cancomment = false) {
-        $postdata = array(
+        $postdata = [
             'sys_id'    => $user->id,
             'email'     => $user->email,
             'firstname' => $user->firstname,
             'lastname'  => $user->lastname,
             'scope'     => $cancomment ? self::ACCESS_SCOPE_WRITE : self::ACCESS_SCOPE_READ,
-        );
+        ];
 
         return unplag_api_request::instance()->http_post()->request(self::USER_CREATE, $postdata);
     }

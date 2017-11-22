@@ -36,6 +36,8 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/constants.php');
 require_once(dirname(__FILE__) . '/autoloader.php');
 
+require_login();
+
 global $CFG;
 
 require_once($CFG->libdir . '/filelib.php');
@@ -48,26 +50,29 @@ class plagiarism_unplag {
     /**
      * @var array
      */
-    private static $supportedplagiarismmods = array(
+    private static $supportedplagiarismmods = [
         UNPLAG_MODNAME_ASSIGN, UNPLAG_MODNAME_WORKSHOP, UNPLAG_MODNAME_FORUM,
-    );
+    ];
     /**
      * @var array
      */
-    private static $supportedarchivemimetypes = array(
+    private static $supportedarchivemimetypes = [
         'application/zip',
-    );
-    /** @var array */
-    private static $supportedfilearea = array(
+    ];
+    /**
+     * @var array
+     */
+    private static $supportedfilearea = [
         UNPLAG_WORKSHOP_FILES_AREA,
         UNPLAG_DEFAULT_FILES_AREA,
         UNPLAG_FORUM_FILES_AREA,
         'submission_files',
         'submission_attachment',
         'attachment',
-    );
-
-    /* @var array */
+    ];
+    /**
+     * @var array
+     */
     private static $supportedextension = [
         'pdf',
         'odt',
@@ -120,7 +125,7 @@ class plagiarism_unplag {
      * @return bool
      */
     public static function is_supported_extension($ext) {
-        return in_array($ext, self::$supportedextension);
+        return in_array(strtolower($ext), self::$supportedextension);
     }
 
     /**
@@ -148,7 +153,7 @@ class plagiarism_unplag {
             $obj = (array) $obj;
         }
         if (is_array($obj)) {
-            $new = array();
+            $new = [];
             foreach ($obj as $key => $val) {
                 $new[$key] = self::object_to_array($val);
             }
@@ -222,7 +227,7 @@ class plagiarism_unplag {
         $records = $DB->get_records_list(UNPLAG_FILES_TABLE, 'id', $data->ids);
 
         if ($records) {
-            $checkstatusforids = array();
+            $checkstatusforids = [];
 
             foreach ($records as $record) {
                 $progressinfo = unplag_progress::get_file_progress_info($record, $data->cid, $checkstatusforids);
@@ -254,7 +259,7 @@ class plagiarism_unplag {
         global $DB;
 
         if (self::access_granted($token)) {
-            $record = $DB->get_record(UNPLAG_FILES_TABLE, array('identifier' => $token));
+            $record = $DB->get_record(UNPLAG_FILES_TABLE, ['identifier' => $token]);
             $rawjson = file_get_contents('php://input');
             $respcheck = unplag_core::parse_json($rawjson);
             if ($record && isset($respcheck->check)) {
