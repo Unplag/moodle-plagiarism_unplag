@@ -31,13 +31,19 @@ use plagiarism_unplag\classes\task\unplag_upload_and_check_task;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
+use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
-define('ARCHIVE_IS_EMPTY', 'Archive is empty or contains document(s) with no text');
-define('ARCHIVE_CANT_BE_OPEN', 'Can\'t open zip archive');
+if (!defined('ARCHIVE_IS_EMPTY')) {
+    define('ARCHIVE_IS_EMPTY', 'Archive is empty or contains document(s) with no text');
+}
+
+if (!defined('ARCHIVE_CANT_BE_OPEN')) {
+    define('ARCHIVE_CANT_BE_OPEN', 'Can\'t open zip archive');
+}
 
 /**
  * Class unplag_archive
@@ -47,6 +53,11 @@ define('ARCHIVE_CANT_BE_OPEN', 'Can\'t open zip archive');
  *
  */
 class unplag_archive {
+
+    const DEFAULT_SUPPORTED_FILES_COUNT = 10;
+    const MIN_SUPPORTED_FILES_COUNT = 1;
+    const MAX_SUPPORTED_FILES_COUNT = 100;
+
     /**
      * @var \stored_file
      */
@@ -103,9 +114,26 @@ class unplag_archive {
         }
 
         try {
-            $this->process_archive_files($ziparch, $archiveinternalfile->id);
+            $maxsupportedcount = unplag_settings::get_assign_settings(
+                $this->unplagcore->cmid,
+                unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
+            );
+
+            if ($maxsupportedcount < self::MIN_SUPPORTED_FILES_COUNT || $maxsupportedcount > self::MAX_SUPPORTED_FILES_COUNT) {
+                $maxsupportedcount = self::DEFAULT_SUPPORTED_FILES_COUNT;
+            }
+
+            $supportedcount = $this->process_archive_files($ziparch, $archiveinternalfile->id, $maxsupportedcount);
+            if ($supportedcount < 1) {
+                $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY);
+
+                return false;
+            }
         } catch (\Exception $e) {
             mtrace('Archive error ' . $e->getMessage());
+            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY);
+
+            return false;
         }
 
         $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
@@ -122,11 +150,13 @@ class unplag_archive {
      * @param \zip_archive $ziparch
      * @param null         $parentid
      * @param int          $maxsupportedcount Max supported processed files
+     *
+     * @return int
      */
-    private function process_archive_files(\zip_archive&$ziparch, $parentid = null, $maxsupportedcount = 10) {
+    private function process_archive_files(\zip_archive &$ziparch, $parentid = null, $maxsupportedcount = 10) {
         global $CFG;
 
-        $processed = array();
+        $processed = [];
         $supportedcount = 0;
         foreach ($ziparch as $file) {
             if ($file->is_directory) {
@@ -176,25 +206,27 @@ class unplag_archive {
             $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $parentid);
             $plagiarismentity->get_internal_file();
 
-            unplag_upload_and_check_task::add_task(array(
+            unplag_upload_and_check_task::add_task([
                 'tmpfile'    => $tmpfile,
                 'filename'   => $name,
                 'unplagcore' => $this->unplagcore,
                 'format'     => $format,
                 'parent_id'  => $parentid,
-            ));
+            ]);
 
             $supportedcount++;
         }
+
+        return $supportedcount;
     }
 
     public function restart_check() {
         global $DB;
 
         $internalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
-        $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($internalfile->id));
+        $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$internalfile->id]);
         if ($childs) {
-            foreach ((object)$childs as $child) {
+            foreach ((object) $childs as $child) {
                 if ($child->check_id) {
                     unplag_api::instance()->delete_check($child);
                 }
@@ -223,9 +255,9 @@ class unplag_archive {
         global $DB;
 
         $archivefile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-        $archivefile->errorresponse = json_encode(array(
-            array("message" => $reason),
-        ));
+        $archivefile->errorresponse = json_encode([
+            ["message" => $reason],
+        ]);
 
         $DB->update_record(UNPLAG_FILES_TABLE, $archivefile);
     }

@@ -119,3 +119,5 @@ $string['check_all_submitted_assignments'] = 'Manual check';
 $string['no_index_files'] = 'Draft assignment';
 $string['min_30_words'] = 'At least 30 words are required';
 $string['max_100000_words'] = 'File(s) should have no more than 100 000 words and be not larger than 70MB';
+$string['max_supported_archive_files_count'] = 'Max supported archive files';
+$string['max_supported_archive_files_count_help'] = 'The maximum number of supported files that will be extracted from the archives';

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * unplag_form.php
  *
@@ -23,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -113,19 +115,20 @@ class unplag_defaults_form extends moodleform {
     }
 
     // Define the form.
+
     /**
      * @throws coding_exception
      */
     public function definition() {
 
-        $defaultsforfield = function (MoodleQuickForm $mform, $setting, $defaultvalue) {
+        $defaultsforfield = function(MoodleQuickForm $mform, $setting, $defaultvalue) {
             if (!isset($mform->exportValues()[$setting]) || is_null($mform->exportValues()[$setting])) {
                 $mform->setDefault($setting, $defaultvalue);
             }
         };
 
-        $addyesnoelem = function (MoodleQuickForm $mform, $setting, $showhelpballoon = false) {
-            $ynoptions = array(get_string('no'), get_string('yes'));
+        $addyesnoelem = function(MoodleQuickForm $mform, $setting, $showhelpballoon = false) {
+            $ynoptions = [get_string('no'), get_string('yes')];
             $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), $ynoptions);
             if ($showhelpballoon) {
                 $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
@@ -134,6 +137,7 @@ class unplag_defaults_form extends moodleform {
 
         /** @var MoodleQuickForm $mform */
         $mform = &$this->_form;
+        $mform::registerRule('range', null, new unplag_form_rule_range());
 
         $mform->addElement('header', 'plagiarismdesc', plagiarism_unplag::trans('unplag'));
 
@@ -148,17 +152,17 @@ class unplag_defaults_form extends moodleform {
             $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
         }
 
-        if (!in_array($this->modname, array(UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP))) {
+        if (!in_array($this->modname, [UNPLAG_MODNAME_FORUM, UNPLAG_MODNAME_WORKSHOP])) {
             $addyesnoelem($mform, unplag_settings::CHECK_ALL_SUBMITTED_ASSIGNMENTS);
             $addyesnoelem($mform, unplag_settings::NO_INDEX_FILES);
         }
 
         $setting = unplag_settings::CHECK_TYPE;
-        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), array(
+        $mform->addElement('select', $setting, plagiarism_unplag::trans($setting), [
             UNPLAG_CHECK_TYPE_WEB__LIBRARY => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_WEB__LIBRARY),
             UNPLAG_CHECK_TYPE_WEB          => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_WEB),
             UNPLAG_CHECK_TYPE_MY_LIBRARY   => plagiarism_unplag::trans(UNPLAG_CHECK_TYPE_MY_LIBRARY),
-        ));
+        ]);
 
         $addyesnoelem($mform, unplag_settings::SHOW_STUDENT_SCORE, true);
         $addyesnoelem($mform, unplag_settings::SHOW_STUDENT_REPORT, true);
@@ -172,8 +176,50 @@ class unplag_defaults_form extends moodleform {
         $addyesnoelem($mform, $setting);
         $defaultsforfield($mform, $setting, 1);
 
+        $setting = unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT;
+        $mform->addElement('text', $setting, plagiarism_unplag::trans($setting));
+        $mform->setType($setting, PARAM_TEXT);
+        $defaultsforfield($mform, $setting, 10);
+        $mform->addRule(unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT, null, 'required', null, 'server');
+
+        $min = unplag_archive::MIN_SUPPORTED_FILES_COUNT;
+        $max = unplag_archive::MAX_SUPPORTED_FILES_COUNT;
+        $mform->addRule(
+            unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT,
+            "Invalid value range. Allowed $min-$max",
+            'range',
+            ['min' => $min, 'max' => $max],
+            'server',
+            true
+        );
+        $mform->addHelpButton($setting, $setting, 'plagiarism_unplag');
+
         if (!$this->internalusage) {
             $this->add_action_buttons(true);
         }
+    }
+}
+
+/**
+ * Class unplag_form_rule_range
+ *
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class unplag_form_rule_range extends HTML_QuickForm_Rule {
+    /**
+     * validate
+     *
+     * @param int        $value Value to check
+     * @param array|null $options
+     *
+     * @return bool true if value in valid range
+     */
+    public function validate($value, $options = null) {
+        if ($value < $options['min'] || $value > $options['max']) {
+            return false;
+        }
+
+        return true;
     }
 }
