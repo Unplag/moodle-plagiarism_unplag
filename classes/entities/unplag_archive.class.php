@@ -94,7 +94,7 @@ class unplag_archive {
         $tmpzipfile = tempnam($CFG->tempdir, 'unicheck_zip');
         $this->file->copy_content_to($tmpzipfile);
         if (!$ziparch->open($tmpzipfile, \file_archive::OPEN)) {
-            $this->invalid_response($archiveinternalfile, ARCHIVE_CANT_BE_OPEN);
+            $this->invalid_response($archiveinternalfile, ARCHIVE_CANT_BE_OPEN, $tmpzipfile);
 
             return false;
         }
@@ -108,7 +108,7 @@ class unplag_archive {
         }
 
         if (!$fileexist) {
-            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY);
+            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY, $tmpzipfile);
 
             return false;
         }
@@ -125,13 +125,13 @@ class unplag_archive {
 
             $supportedcount = $this->process_archive_files($ziparch, $archiveinternalfile->id, $maxsupportedcount);
             if ($supportedcount < 1) {
-                $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY);
+                $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY, $tmpzipfile);
 
                 return false;
             }
         } catch (\Exception $e) {
             mtrace('Archive error ' . $e->getMessage());
-            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY);
+            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY, $tmpzipfile);
 
             return false;
         }
@@ -142,6 +142,7 @@ class unplag_archive {
         $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
 
         $ziparch->close();
+        $this->unlink($tmpzipfile);
 
         return true;
     }
@@ -159,6 +160,10 @@ class unplag_archive {
         $processed = [];
         $supportedcount = 0;
         foreach ($ziparch as $file) {
+            if ($supportedcount >= $maxsupportedcount) {
+                break;
+            }
+
             if ($file->is_directory) {
                 continue;
             }
@@ -196,11 +201,8 @@ class unplag_archive {
 
             $format = pathinfo($name, PATHINFO_EXTENSION);
             if (!\plagiarism_unplag::is_supported_extension($format)) {
+                $this->unlink($tmpfile);
                 continue;
-            }
-
-            if ($supportedcount >= $maxsupportedcount) {
-                break;
             }
 
             $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $parentid);
@@ -248,10 +250,11 @@ class unplag_archive {
     }
 
     /**
-     * @param \stdClass $archivefile
-     * @param string    $reason
+     * @param $archivefile
+     * @param $reason
+     * @param $archivefilepath
      */
-    private function invalid_response($archivefile, $reason) {
+    private function invalid_response($archivefile, $reason, $archivefilepath) {
         global $DB;
 
         $archivefile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
@@ -260,5 +263,7 @@ class unplag_archive {
         ]);
 
         $DB->update_record(UNPLAG_FILES_TABLE, $archivefile);
+
+        $this->unlink($archivefilepath);
     }
 }
