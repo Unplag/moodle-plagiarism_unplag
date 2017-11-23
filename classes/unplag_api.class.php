@@ -88,7 +88,21 @@ class unplag_api {
             $postdata['options']['no_index'] = $noindex;
         }
 
-        return unplag_api_request::instance()->http_post()->request(self::FILE_UPLOAD, $postdata);
+        $response = unplag_api_request::instance()->http_post()->request(self::FILE_UPLOAD, $postdata);
+        if (!is_object($response)) {
+            $response = (object) [
+                "result" => false,
+                "errors" => [
+                    [
+                        "message"      => \plagiarism_unplag::trans('unknownwarning'),
+                        "error_code"   => "invalid_response",
+                        "extra_params" => null
+                    ]
+                ]
+            ];
+        }
+
+        return $response;
     }
 
     /**
