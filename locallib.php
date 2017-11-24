@@ -36,8 +36,6 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/constants.php');
 require_once(dirname(__FILE__) . '/autoloader.php');
 
-require_login();
-
 global $CFG;
 
 require_once($CFG->libdir . '/filelib.php');
