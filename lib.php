@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * lib.php - Contains Plagiarism plugin specific functions called by Modules.
  *
@@ -23,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\helpers\unplag_linkarray;
 use plagiarism_unplag\classes\task\unplag_bulk_check_assign_files;
 use plagiarism_unplag\classes\unplag_assign;
@@ -44,6 +46,7 @@ require_once(dirname(__FILE__) . '/locallib.php');
 
 // There is a new UNPLAG API - The Integration Service - we only currently use this to verify the receiver address.
 // If we convert the existing calls to send file/get score we should move this to a config setting.
+
 /**
  * Class plagiarism_plugin_unplag
  */
@@ -52,7 +55,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @return string[]
      */
     public static function default_plagin_options() {
-        return array('unplag_use', 'unplag_enable_mod_assign', 'unplag_enable_mod_forum', 'unplag_enable_mod_workshop');
+        return ['unplag_use', 'unplag_enable_mod_assign', 'unplag_enable_mod_forum', 'unplag_enable_mod_workshop'];
     }
 
     /**
@@ -107,19 +110,27 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
 
         if (isset($data->use_unplag)) {
             // First get existing values.
-            $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $data->coursemodule), '', 'name, id');
+            $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => $data->coursemodule], '', 'name, id');
             // Array of possible plagiarism config options.
             foreach (self::config_options() as $element) {
                 if ($element == unplag_settings::SENSITIVITY_SETTING_NAME
-                    && (!is_numeric($data->$element)
-                        || $data->$element < 0
-                        || $data->$element > 100)
+                    && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
                 ) {
                     if (isset($existingelements[$element])) {
                         continue;
                     }
 
                     $data->$element = 0;
+                }
+
+                if ($element == unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
+                    && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
+                ) {
+                    if (isset($existingelements[$element])) {
+                        continue;
+                    }
+
+                    $data->$element = unplag_archive::DEFAULT_SUPPORTED_FILES_COUNT;
                 }
 
                 $newelement = new stdClass();
@@ -139,10 +150,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         // Plugin is enabled.
         if ($data->use_unplag == 1) {
             if ($data->modulename == UNPLAG_MODNAME_ASSIGN && $data->check_all_submitted_assignments == 1) {
-                unplag_bulk_check_assign_files::add_task(array(
+                unplag_bulk_check_assign_files::add_task([
                     'contextid' => $data->gradingman->get_context()->id,
                     'cmid'      => $data->coursemodule,
-                ));
+                ]);
             }
         }
     }

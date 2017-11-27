@@ -180,7 +180,6 @@ class unplag_defaults_form extends moodleform {
         $mform->addElement('text', $setting, plagiarism_unplag::trans($setting));
         $mform->setType($setting, PARAM_TEXT);
         $defaultsforfield($mform, $setting, 10);
-        $mform->addRule(unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT, null, 'required', null, 'server');
 
         $min = unplag_archive::MIN_SUPPORTED_FILES_COUNT;
         $max = unplag_archive::MAX_SUPPORTED_FILES_COUNT;
