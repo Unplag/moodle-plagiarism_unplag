@@ -84,10 +84,10 @@ abstract class unplag_plagiarism_entity {
 
         if ($result && $plagiarismfile->parent_id) {
             $hasgoodchild = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                array(
+                [
                     $plagiarismfile->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED,
                     UNPLAG_STATUSCODE_PENDING,
-                ));
+                ]);
 
             if (!$hasgoodchild) {
                 $parentplagiarismfile = unplag_stored_file::get_unplag_file($plagiarismfile->parent_id);
@@ -136,7 +136,7 @@ abstract class unplag_plagiarism_entity {
      */
     public function new_plagiarismfile($data) {
 
-        foreach (array('cm', 'userid', 'identifier', 'filename') as $key) {
+        foreach (['cm', 'userid', 'identifier', 'filename'] as $key) {
             if (empty($data[$key])) {
                 print_error($key . ' value is empty');
 

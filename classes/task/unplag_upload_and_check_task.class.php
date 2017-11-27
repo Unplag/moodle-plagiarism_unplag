@@ -24,11 +24,13 @@
 
 namespace plagiarism_unplag\classes\task;
 
+use plagiarism_unplag\classes\entities\unplag_archive;
+use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
-use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
+use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -42,29 +44,98 @@ if (!defined('MOODLE_INTERNAL')) {
  *
  */
 class unplag_upload_and_check_task extends unplag_abstract_task {
+
+    /**
+     * @var unplag_core
+     */
+    protected $ucore;
+
+    /**
+     * @var object
+     */
+    protected $internalfile;
+
     public function execute() {
         $data = $this->get_custom_data();
-        if (file_exists($data->tmpfile)) {
-            $ucore = new unplag_core($data->unplagcore->cmid, $data->unplagcore->userid);
 
-            if ((bool) unplag_assign::get_by_cmid($ucore->cmid)->teamsubmission) {
-                $ucore->enable_teamsubmission();
-            }
+        $this->ucore = new unplag_core($data->ucore->cmid, $data->ucore->userid);
 
-            $content = file_get_contents($data->tmpfile);
-            $plagiarismentity = new unplag_content($ucore, $content, $data->filename, $data->format, $data->parent_id);
-
-            unset($content, $ucore);
-
-            if (!unlink($data->tmpfile)) {
-                mtrace('Error deleting ' . $data->tmpfile);
-            }
-
-            unplag_check_helper::upload_and_run_detection($plagiarismentity);
-
-            unset($internalfile, $plagiarismentity, $checkresp);
-        } else {
-            mtrace('file ' . $data->tmpfile . 'not exist');
+        if ((bool) unplag_assign::get_by_cmid($this->ucore->cmid)->teamsubmission) {
+            $this->ucore->enable_teamsubmission();
         }
+
+        $file = get_file_storage()->get_file_by_hash($data->pathnamehash);
+        $this->internalfile = $this->ucore->get_plagiarism_entity($file)->get_internal_file();
+
+        try {
+            $maxsupportedcount = unplag_settings::get_assign_settings(
+                $this->ucore->cmid,
+                unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
+            );
+
+            if ($maxsupportedcount < unplag_archive::MIN_SUPPORTED_FILES_COUNT ||
+                $maxsupportedcount > unplag_archive::MAX_SUPPORTED_FILES_COUNT) {
+                $maxsupportedcount = unplag_archive::DEFAULT_SUPPORTED_FILES_COUNT;
+            }
+
+            $supportedcount = 0;
+            foreach ((new unplag_archive($file, $this->ucore))->extract() as $item) {
+                if ($supportedcount > $maxsupportedcount) {
+                    unplag_archive::unlink($item['path']);
+                    continue;
+                }
+
+                $this->process_archive_item($item);
+                $supportedcount++;
+            }
+
+            if ($supportedcount < 1) {
+                throw new unplag_exception(ARCHIVE_IS_EMPTY);
+            }
+        } catch (\Exception $e) {
+            $this->invalid_response($e->getMessage());
+            mtrace('Archive error ' . $e->getMessage());
+        }
+
+        unset($this->ucore, $file);
+    }
+
+    /**
+     * Check response validation
+     *
+     * @param string $reason
+     */
+    private function invalid_response($reason) {
+        global $DB;
+
+        $this->internalfile->statuscode = UNICHECK_STATUSCODE_INVALID_RESPONSE;
+        $this->internalfile->errorresponse = json_encode([
+            ["message" => $reason],
+        ]);
+
+        $DB->update_record(UNICHECK_FILES_TABLE, $this->internalfile);
+    }
+
+    /**
+     * process_archive_item
+     *
+     * @param array $item
+     */
+    protected function process_archive_item(array $item) {
+        $content = file_get_contents($item['path']);
+        $plagiarismentity = new unplag_content(
+            $this->ucore,
+            $content,
+            $item['filename'],
+            $item['format'],
+            $this->internalfile->id
+        );
+        $plagiarismentity->get_internal_file();
+
+        unplag_check_helper::upload_and_run_detection($plagiarismentity);
+
+        unset($plagiarismentity, $content);
+
+        unplag_archive::unlink($item['path']);
     }
 }

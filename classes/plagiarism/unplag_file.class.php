@@ -50,22 +50,22 @@ class unplag_file extends unplag_plagiarism_entity {
      * @var array
      */
     private $mimetypes = [
-            'application/pdf'                                                           => 'pdf',
-            'application/vnd.oasis.opendocument.text'                                   => 'odt',
-            'application/vnd.oasis.opendocument.presentation'                           => 'odp',
-            'application/msword'                                                        => 'doc',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'   => 'docx',
-            'text/html'                                                                 => 'html',
-            'text/plain'                                                                => 'txt',
-            'text/rtf'                                                                  => 'rtf',
-            'text/x-rtf'                                                                => 'rtf',
-            'text/richtext'                                                             => 'rtf',
-            'text/mspowerpoint'                                                         => 'ppt',
-            'text/powerpoint'                                                           => 'ppt',
-            'text/vnd.ms-powerpoint'                                                    => 'ppt',
-            'text/x-mspowerpoint'                                                       => 'ppt',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
-            'application/x-iwork-pages-sffpages'                                        => 'pages'
+        'application/pdf'                                                           => 'pdf',
+        'application/vnd.oasis.opendocument.text'                                   => 'odt',
+        'application/vnd.oasis.opendocument.presentation'                           => 'odp',
+        'application/msword'                                                        => 'doc',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'   => 'docx',
+        'text/html'                                                                 => 'html',
+        'text/plain'                                                                => 'txt',
+        'text/rtf'                                                                  => 'rtf',
+        'text/x-rtf'                                                                => 'rtf',
+        'text/richtext'                                                             => 'rtf',
+        'text/mspowerpoint'                                                         => 'ppt',
+        'text/powerpoint'                                                           => 'ppt',
+        'text/vnd.ms-powerpoint'                                                    => 'ppt',
+        'text/x-mspowerpoint'                                                       => 'ppt',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
+        'application/x-iwork-pages-sffpages'                                        => 'pages'
     ];
 
     /**
@@ -98,9 +98,9 @@ class unplag_file extends unplag_plagiarism_entity {
         $plagiarismfile = null;
         try {
             $filedata = [
-                    'cm'         => $this->cmid(),
-                    'userid'     => $this->userid(),
-                    'identifier' => $this->stored_file()->get_pathnamehash(),
+                'cm'         => $this->cmid(),
+                'userid'     => $this->userid(),
+                'identifier' => $this->stored_file()->get_pathnamehash(),
             ];
 
             if ($this->core->is_teamsubmission_mode()) {
@@ -112,10 +112,10 @@ class unplag_file extends unplag_plagiarism_entity {
 
             if (empty($plagiarismfile)) {
                 $plagiarismfile = $this->new_plagiarismfile([
-                        'cm'         => $this->cmid(),
-                        'userid'     => $this->userid(),
-                        'identifier' => $this->stored_file()->get_pathnamehash(),
-                        'filename'   => $this->stored_file()->get_filename(),
+                    'cm'         => $this->cmid(),
+                    'userid'     => $this->userid(),
+                    'identifier' => $this->stored_file()->get_pathnamehash(),
+                    'filename'   => $this->stored_file()->get_filename(),
                 ]);
 
                 if (\plagiarism_unplag::is_archive($this->stored_file())) {
@@ -175,11 +175,11 @@ class unplag_file extends unplag_plagiarism_entity {
         }
 
         return [
-                $this->stored_file()->get_content_file_handle(),
-                $this->stored_file()->get_filename(),
-                $format,
-                $this->cmid(),
-                unplag_core::get_user($this->stored_file()->get_userid()),
+            $this->stored_file()->get_content_file_handle(),
+            $this->stored_file()->get_filename(),
+            $format,
+            $this->cmid(),
+            unplag_core::get_user($this->stored_file()->get_userid()),
         ];
     }
 }

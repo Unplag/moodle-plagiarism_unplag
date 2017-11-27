@@ -65,9 +65,6 @@ class unplag_api {
      * @return \stdClass
      */
     public function upload_file(&$content, $filename, $format = 'html', $cmid, $owner = null) {
-
-        set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
-
         if (is_resource($content)) {
             $content = stream_get_contents($content);
         }

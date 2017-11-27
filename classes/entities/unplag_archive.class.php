@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_plagiarism_entity.class.php
+ * unplag_archive.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -25,13 +25,13 @@
 
 namespace plagiarism_unplag\classes\entities;
 
+use plagiarism_unplag\classes\entities\extractors\unplag_extractor_interface;
+use plagiarism_unplag\classes\entities\extractors\unplag_zip_extractor;
 use plagiarism_unplag\classes\exception\unplag_exception;
-use plagiarism_unplag\classes\plagiarism\unplag_content;
 use plagiarism_unplag\classes\task\unplag_upload_and_check_task;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
-use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -59,13 +59,28 @@ class unplag_archive {
     const MAX_SUPPORTED_FILES_COUNT = 100;
 
     /**
+     * ZIP_MIMETYPE
+     */
+    const ZIP_MIMETYPE = 'application/zip';
+
+    /**
      * @var \stored_file
      */
     private $file;
     /**
      * @var unplag_core
      */
-    private $unplagcore;
+    private $core;
+
+    /**
+     * @var unplag_extractor_interface
+     */
+    private $extractor;
+
+    /**
+     * @var object
+     */
+    private $archive;
 
     /**
      * unplag_archive constructor.
@@ -77,7 +92,30 @@ class unplag_archive {
      */
     public function __construct(\stored_file $file, unplag_core $core) {
         $this->file = $file;
-        $this->unplagcore = $core;
+        $this->core = $core;
+
+        $this->archive = $this->core->get_plagiarism_entity($this->file)->get_internal_file();
+
+        switch ($file->get_mimetype()) {
+            case self::ZIP_MIMETYPE:
+                $this->extractor = new unplag_zip_extractor($file);
+                break;
+            default:
+                throw new unplag_exception('Unsupported mimetype');
+        }
+    }
+
+    /**
+     * Extract each file
+     *
+     * @return \Generator
+     */
+    public function extract() {
+        try {
+            return $this->extractor->extract();
+        } catch (\Exception $ex) {
+            $this->invalid_response($ex->getMessage());
+        }
     }
 
     /**
@@ -85,147 +123,23 @@ class unplag_archive {
      */
     public function run_checks() {
         global $DB;
-        global $CFG;
 
-        $archiveinternalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
+        unplag_upload_and_check_task::add_task([
+            'pathnamehash' => $this->file->get_pathnamehash(),
+            'ucore'        => $this->core,
+        ]);
 
-        $ziparch = new \zip_archive();
-
-        $tmpzipfile = tempnam($CFG->tempdir, 'unicheck_zip');
-        $this->file->copy_content_to($tmpzipfile);
-        if (!$ziparch->open($tmpzipfile, \file_archive::OPEN)) {
-            $this->invalid_response($archiveinternalfile, ARCHIVE_CANT_BE_OPEN, $tmpzipfile);
-
-            return false;
-        }
-
-        $fileexist = false;
-        foreach ($ziparch as $file) {
-            if (!$file->is_directory) {
-                $fileexist = true;
-                break;
-            }
-        }
-
-        if (!$fileexist) {
-            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY, $tmpzipfile);
-
-            return false;
-        }
-
-        try {
-            $maxsupportedcount = unplag_settings::get_assign_settings(
-                $this->unplagcore->cmid,
-                unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
-            );
-
-            if ($maxsupportedcount < self::MIN_SUPPORTED_FILES_COUNT || $maxsupportedcount > self::MAX_SUPPORTED_FILES_COUNT) {
-                $maxsupportedcount = self::DEFAULT_SUPPORTED_FILES_COUNT;
-            }
-
-            $supportedcount = $this->process_archive_files($ziparch, $archiveinternalfile->id, $maxsupportedcount);
-            if ($supportedcount < 1) {
-                $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY, $tmpzipfile);
-
-                return false;
-            }
-        } catch (\Exception $e) {
-            mtrace('Archive error ' . $e->getMessage());
-            $this->invalid_response($archiveinternalfile, ARCHIVE_IS_EMPTY, $tmpzipfile);
-
-            return false;
-        }
-
-        $archiveinternalfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
-        $archiveinternalfile->errorresponse = null;
-
-        $DB->update_record(UNPLAG_FILES_TABLE, $archiveinternalfile);
-
-        $ziparch->close();
-        $this->unlink($tmpzipfile);
+        $this->archive->statuscode = UNICHECK_STATUSCODE_ACCEPTED;
+        $this->archive->errorresponse = null;
+        $DB->update_record(UNICHECK_FILES_TABLE, $this->archive);
 
         return true;
-    }
-
-    /**
-     * @param \zip_archive $ziparch
-     * @param null         $parentid
-     * @param int          $maxsupportedcount Max supported processed files
-     *
-     * @return int
-     */
-    private function process_archive_files(\zip_archive &$ziparch, $parentid = null, $maxsupportedcount = 10) {
-        global $CFG;
-
-        $processed = [];
-        $supportedcount = 0;
-        foreach ($ziparch as $file) {
-            if ($supportedcount >= $maxsupportedcount) {
-                break;
-            }
-
-            if ($file->is_directory) {
-                continue;
-            }
-
-            $name = fix_utf8($file->pathname);
-            $tmpfile = tempnam($CFG->tempdir, 'unplag_unzip');
-
-            if (!$fp = fopen($tmpfile, 'wb')) {
-                $this->unlink($tmpfile);
-                $processed[$name] = 'Can not write temp file';
-                continue;
-            }
-
-            if ($name === '' or array_key_exists($name, $processed)) {
-                $this->unlink($tmpfile);
-                continue;
-            }
-
-            if (!$fz = $ziparch->get_stream($file->index)) {
-                $this->unlink($tmpfile);
-                $processed[$name] = 'Can not read file from zip archive';
-                continue;
-            }
-
-            $bytescopied = stream_copy_to_stream($fz, $fp);
-
-            fclose($fz);
-            fclose($fp);
-
-            if ($bytescopied != $file->size) {
-                $this->unlink($tmpfile);
-                $processed[$name] = 'Can not read file from zip archive';
-                continue;
-            }
-
-            $format = pathinfo($name, PATHINFO_EXTENSION);
-            if (!\plagiarism_unplag::is_supported_extension($format)) {
-                $this->unlink($tmpfile);
-                continue;
-            }
-
-            $plagiarismentity = new unplag_content($this->unplagcore, null, $name, $format, $parentid);
-            $plagiarismentity->get_internal_file();
-
-            unplag_upload_and_check_task::add_task([
-                'tmpfile'    => $tmpfile,
-                'filename'   => $name,
-                'unplagcore' => $this->unplagcore,
-                'format'     => $format,
-                'parent_id'  => $parentid,
-            ]);
-
-            $supportedcount++;
-        }
-
-        return $supportedcount;
     }
 
     public function restart_check() {
         global $DB;
 
-        $internalfile = $this->unplagcore->get_plagiarism_entity($this->file)->get_internal_file();
+        $internalfile = $this->core->get_plagiarism_entity($this->file)->get_internal_file();
         $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$internalfile->id]);
         if ($childs) {
             foreach ((object) $childs as $child) {
@@ -243,27 +157,23 @@ class unplag_archive {
     /**
      * @param $file
      */
-    private function unlink($file) {
+    public static function unlink($file) {
         if (!unlink($file)) {
             mtrace('Error deleting ' . $file);
         }
     }
 
     /**
-     * @param $archivefile
      * @param $reason
-     * @param $archivefilepath
      */
-    private function invalid_response($archivefile, $reason, $archivefilepath) {
+    private function invalid_response($reason) {
         global $DB;
 
-        $archivefile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-        $archivefile->errorresponse = json_encode([
+        $this->archive->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
+        $this->archive->errorresponse = json_encode([
             ["message" => $reason],
         ]);
 
-        $DB->update_record(UNPLAG_FILES_TABLE, $archivefile);
-
-        $this->unlink($archivefilepath);
+        $DB->update_record(UNPLAG_FILES_TABLE, $this->archive);
     }
 }
