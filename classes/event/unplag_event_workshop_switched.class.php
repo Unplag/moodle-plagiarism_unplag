@@ -75,8 +75,7 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
      */
     private function handle_file_plagiarism($file) {
         $this->unplagcore->userid = $file->get_userid();
-        $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
 
-        return unplag_check_helper::upload_and_run_detection($plagiarismentity);
+        return unplag_check_helper::add_upload_and_check_task($file, $this->unplagcore);
     }
 }

@@ -39,7 +39,7 @@ class unplag_api {
     const ACCESS_SCOPE_READ = 'r';
     const CHECK_PROGRESS = 'check/progress';
     const CHECK_GET = 'check/get';
-    const FILE_UPLOAD = 'file/upload';
+    const FILE_UPLOAD = 'file/async_upload';
     const CHECK_CREATE = 'check/create';
     const CHECK_DELETE = 'check/delete';
     const USER_CREATE = 'user/create';
@@ -56,24 +56,29 @@ class unplag_api {
     }
 
     /**
-     * @param string|resource $content
-     * @param string          $filename
-     * @param string          $format
-     * @param integer         $cmid
-     * @param object|null     $owner
-     *
-     * @return \stdClass
+     * @param        $content
+     * @param        $filename
+     * @param string $format
+     * @param        $cmid
+     * @param null   $owner
+     * @param        $internalfile
+     * @return object|\stdClass
      */
-    public function upload_file(&$content, $filename, $format = 'html', $cmid, $owner = null) {
+    public function upload_file(&$content, $filename, $format = 'html', $cmid, $owner = null, $internalfile) {
+        global $CFG;
+
         if (is_resource($content)) {
             $content = stream_get_contents($content);
         }
 
         $postdata = [
-            'format'    => strtolower($format),
-            'file_data' => base64_encode($content),
-            'name'      => $filename,
-            'options'   => [
+            'format'       => strtolower($format),
+            'file_data'    => base64_encode($content),
+            'name'         => $filename,
+            'callback_url' => sprintf(
+                '%1$s%2$s?token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $internalfile->identifier
+            ),
+            'options'      => [
                 'utoken'        => unplag_core::get_external_token($cmid, $owner),
                 'submission_id' => $cmid,
             ],
@@ -122,7 +127,7 @@ class unplag_api {
         $postdata = [
             'type'         => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
             'file_id'      => $file->external_file_id,
-            'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
+            'callback_url' => sprintf('%1$s%2$s?token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
             'options'      => $options,
         ];
 

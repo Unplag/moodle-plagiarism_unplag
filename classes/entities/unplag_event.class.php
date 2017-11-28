@@ -53,12 +53,7 @@ class unplag_event {
     public function process(base $event) {
         $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
 
-        file_put_contents('/tmp/moodle.log', print_r([
-            'event_name' => $event->eventname
-        ], true), FILE_APPEND);
-
         if (self::is_upload_event($event)) {
-
             switch ($event->component) {
                 case 'assignsubmission_onlinetext':
                     unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);

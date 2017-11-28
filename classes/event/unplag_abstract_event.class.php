@@ -22,9 +22,12 @@
  * @copyright   UKU Group, LTD, https://www.unplag.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
+use plagiarism_unplag\classes\helpers\unplag_response;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
@@ -43,7 +46,7 @@ abstract class unplag_abstract_event {
     /** @var */
     protected static $instance;
     /** @var array */
-    protected $tasks = array();
+    protected $tasks = [];
     /** @var unplag_core */
     protected $unplagcore;
 
@@ -96,7 +99,7 @@ abstract class unplag_abstract_event {
                 $internalfile = $plagiarismentity->get_internal_file();
                 if (isset($internalfile->external_file_id) && !isset($internalfile->check_id)) {
                     $checkresp = unplag_api::instance()->run_check($internalfile);
-                    $plagiarismentity->handle_check_response($checkresp);
+                    unplag_response::handle_check_response($checkresp, $internalfile);
                 }
             }
         }

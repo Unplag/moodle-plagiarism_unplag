@@ -20,8 +20,8 @@ use context_module;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
+use plagiarism_unplag\classes\task\unplag_check_starter;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -75,17 +75,15 @@ class unplag_core {
 
     /**
      * @param $id
-     *
-     * @return null
-     * @throws \coding_exception
+     * @return bool
      */
     public static function resubmit_file($id) {
         global $DB;
 
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
-        if (in_array($plagiarismfile->statuscode, array(UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED))) {
+        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
+        if (in_array($plagiarismfile->statuscode, [UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED])) {
             // Sanity Check.
-            return null;
+            return false;
         }
 
         $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
@@ -98,14 +96,20 @@ class unplag_core {
                 $unplagarchive = new unplag_archive($file, $ucore);
                 $unplagarchive->restart_check();
 
-                return;
+                return true;
             }
 
             $plagiarismentity = $ucore->get_plagiarism_entity($file);
             $internalfile = $plagiarismentity->get_internal_file();
 
-            unplag_check_helper::run_plagiarism_detection($plagiarismentity, $internalfile);
+            unplag_check_starter::add_task([
+                unplag_check_starter::PLUGIN_FILE_ID_KEY => $internalfile->id
+            ]);
+
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -141,11 +145,11 @@ class unplag_core {
     public static function get_file_by_hash($contextid, $contenthash) {
         global $DB;
 
-        $filerecord = $DB->get_records('files', array(
+        $filerecord = $DB->get_records('files', [
             'contextid'   => $contextid,
             'component'   => UNPLAG_PLAGIN_NAME,
             'contenthash' => $contenthash,
-        ), 'id desc', '*', 0, 1);
+        ], 'id desc', '*', 0, 1);
 
         if (!$filerecord) {
             return null;
@@ -158,12 +162,12 @@ class unplag_core {
         global $DB;
 
         $users = $DB->get_records_sql(sprintf('SELECT user_id
-            FROM {%s}
-            JOIN {%s} ON (user_id = userid)
+            FROM {%S}
+            JOIN {%S} ON (user_id = userid)
             GROUP BY user_id', UNPLAG_USER_DATA_TABLE, UNPLAG_FILES_TABLE));
 
         foreach ($users as $user) {
-            $user = $DB->get_record('user', array('id' => $user->user_id));
+            $user = $DB->get_record('user', ['id' => $user->user_id]);
             if ($user) {
                 unplag_api::instance()->user_create($user);
             }
@@ -185,7 +189,7 @@ class unplag_core {
             return false;
         }
 
-        $filerecord = array(
+        $filerecord = [
             'component' => UNPLAG_PLAGIN_NAME,
             'filearea'  => $event->objecttable,
             'contextid' => $event->contextid,
@@ -197,7 +201,7 @@ class unplag_core {
             'userid'    => $USER->id,
             'license'   => 'allrightsreserved',
             'author'    => $USER->firstname . ' ' . $USER->lastname,
-        );
+        ];
 
         /** @var \stored_file $storedfile */
         $storedfile = get_file_storage()->get_file(
@@ -240,7 +244,7 @@ class unplag_core {
 
         $user = $user ? $user : self::get_user();
 
-        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, array('user_id' => $user->id));
+        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, ['user_id' => $user->id]);
 
         if ($storeduser) {
             return $storeduser->external_token;
@@ -287,11 +291,11 @@ class unplag_core {
     private function delete_old_file_from_content(\stored_file $storedfile) {
         global $DB;
 
-        $DB->delete_records(UNPLAG_FILES_TABLE, array(
+        $DB->delete_records(UNPLAG_FILES_TABLE, [
             'cm'         => $this->cmid,
             'userid'     => $storedfile->get_userid(),
             'identifier' => $storedfile->get_pathnamehash(),
-        ));
+        ]);
 
         $storedfile->delete();
     }
@@ -321,7 +325,7 @@ class unplag_core {
         global $USER, $DB;
 
         if ($uid !== null) {
-            return $DB->get_record('user', array('id' => $uid));
+            return $DB->get_record('user', ['id' => $uid]);
         }
 
         return $USER;

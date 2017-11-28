@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_upload_and_check_task.class.php
+ * unplag_upload_task.class.php
  *
  * @package     plagiarism_unplag
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
@@ -26,7 +26,6 @@ namespace plagiarism_unplag\classes\task;
 
 use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\exception\unplag_exception;
-use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
@@ -37,13 +36,16 @@ if (!defined('MOODLE_INTERNAL')) {
 }
 
 /**
- * Class unplag_upload_and_check_task
+ * Class unplag_upload_task
  *
  * @package   plagiarism_unplag\classes\task
  * @namespace plagiarism_unplag\classes\task
  *
  */
-class unplag_upload_and_check_task extends unplag_abstract_task {
+class unplag_upload_task extends unplag_abstract_task {
+
+    const PATHNAME_HASH = 'pathnamehash';
+    const UCORE_KEY = 'ucore';
 
     /**
      * @var unplag_core
@@ -57,6 +59,13 @@ class unplag_upload_and_check_task extends unplag_abstract_task {
 
     public function execute() {
         $data = $this->get_custom_data();
+        if (!is_object($data)) {
+            return;
+        }
+
+        if (!property_exists($data, self::UCORE_KEY) || !property_exists($data, self::PATHNAME_HASH)) {
+            return;
+        }
 
         $this->ucore = new unplag_core($data->ucore->cmid, $data->ucore->userid);
 
@@ -66,6 +75,13 @@ class unplag_upload_and_check_task extends unplag_abstract_task {
 
         $file = get_file_storage()->get_file_by_hash($data->pathnamehash);
         $this->internalfile = $this->ucore->get_plagiarism_entity($file)->get_internal_file();
+
+        if (!\plagiarism_unplag::is_archive($file)) {
+            $this->process_single_file($file);
+            unset($this->ucore, $file);
+
+            return;
+        }
 
         try {
             $maxsupportedcount = unplag_settings::get_assign_settings(
@@ -117,8 +133,6 @@ class unplag_upload_and_check_task extends unplag_abstract_task {
     }
 
     /**
-     * process_archive_item
-     *
      * @param array $item
      */
     protected function process_archive_item(array $item) {
@@ -131,11 +145,18 @@ class unplag_upload_and_check_task extends unplag_abstract_task {
             $this->internalfile->id
         );
         $plagiarismentity->get_internal_file();
-
-        unplag_check_helper::upload_and_run_detection($plagiarismentity);
+        $plagiarismentity->upload_file_on_unplag_server();
 
         unset($plagiarismentity, $content);
 
         unplag_archive::unlink($item['path']);
+    }
+
+    /**
+     * @param \stored_file $file
+     */
+    protected function process_single_file(\stored_file $file) {
+        $plagiarismentity = $this->ucore->get_plagiarism_entity($file);
+        $plagiarismentity->upload_file_on_unplag_server();
     }
 }

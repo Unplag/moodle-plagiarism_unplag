@@ -32,7 +32,7 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_stored_file
  *
- * @package plagiarism_unplag\classes\helpers
+ * @package   plagiarism_unplag\classes\helpers
  * @namespace plagiarism_unplag\classes\helpers
  *
  */
@@ -51,10 +51,10 @@ class unplag_stored_file extends \stored_file {
      *
      * @return array
      */
-    public static function get_childs($id) {
+    public static function get_plagiarism_file_childs_by_id($id) {
         global $DB;
 
-        return $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($id));
+        return $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$id]);
     }
 
     /**
@@ -62,9 +62,19 @@ class unplag_stored_file extends \stored_file {
      *
      * @return mixed
      */
-    public static function get_unplag_file($id) {
+    public static function get_plagiarism_file_by_id($id) {
         global $DB;
 
-        return $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
+        return $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
+    }
+
+    /**
+     * @param $identifier
+     * @return mixed
+     */
+    public static function get_plagiarism_file_by_identifier($identifier) {
+        global $DB;
+
+        return $DB->get_record(UNPLAG_FILES_TABLE, ['identifier' => $identifier], '*', MUST_EXIST);
     }
 }

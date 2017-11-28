@@ -16,10 +16,10 @@
 
 namespace plagiarism_unplag\classes\helpers;
 
+use plagiarism_unplag\classes\task\unplag_upload_task;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
-use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_settings;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -42,14 +42,14 @@ class unplag_check_helper {
      * @param \stdClass $check
      * @param int       $progress
      */
-    public static function check_complete(\stdClass&$record, \stdClass $check, $progress = 100) {
+    public static function check_complete(\stdClass &$record, \stdClass $check, $progress = 100) {
         global $DB;
 
         if ($progress == 100) {
             $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
         }
 
-        $record->similarityscore = (float)$check->report->similarity;
+        $record->similarityscore = (float) $check->report->similarity;
         $record->reporturl = $check->report->view_url;
         $record->reportediturl = $check->report->view_edit_url;
         $record->progress = round($progress, 0, PHP_ROUND_HALF_DOWN);
@@ -62,9 +62,9 @@ class unplag_check_helper {
         }
 
         if ($updated && $record->parent_id !== null) {
-            $parentrecord = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $record->parent_id));
+            $parentrecord = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $record->parent_id]);
             $childs = $DB->get_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                array($record->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED, UNPLAG_STATUSCODE_PENDING));
+                [$record->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED, UNPLAG_STATUSCODE_PENDING]);
 
             $similarity = 0;
             $parentprogress = 0;
@@ -74,18 +74,18 @@ class unplag_check_helper {
             }
 
             $parentprogress = round($parentprogress / count($childs), 2, PHP_ROUND_HALF_DOWN);
-            $reporturl = new \moodle_url('/plagiarism/unplag/reports.php', array(
+            $reporturl = new \moodle_url('/plagiarism/unplag/reports.php', [
                 'cmid' => $parentrecord->cm,
                 'pf'   => $parentrecord->id,
-            ));
+            ]);
 
-            $parentcheck = array(
-                'report' => array(
+            $parentcheck = [
+                'report' => [
                     'similarity'    => round($similarity / count($childs), 2, PHP_ROUND_HALF_DOWN),
-                    'view_url'      => (string)$reporturl->out_as_local_url(),
-                    'view_edit_url' => (string)$reporturl->out_as_local_url(),
-                ),
-            );
+                    'view_url'      => (string) $reporturl->out_as_local_url(),
+                    'view_edit_url' => (string) $reporturl->out_as_local_url(),
+                ],
+            ];
 
             $parentcheck = json_decode(json_encode($parentcheck));
             self::check_complete($parentrecord, $parentcheck, $parentprogress);
@@ -93,51 +93,31 @@ class unplag_check_helper {
     }
 
     /**
-     * @param unplag_plagiarism_entity $plagiarismentity
-     *
+     * @param \stored_file $file
+     * @param unplag_core  $ucore
      * @return bool
      */
-    public static function upload_and_run_detection($plagiarismentity) {
-        if (!$plagiarismentity) {
-            return false;
-        }
-
-        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-        if ($internalfile->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
-            return false;
-        }
-
-        if (isset($internalfile->check_id)) {
-            print_error('File with uuid' . $internalfile->identifier . ' already sent to Unplag');
-        } else {
-            $checkresp = unplag_api::instance()->run_check($internalfile);
-            $plagiarismentity->handle_check_response($checkresp);
-            mtrace('file ' . $internalfile->identifier . ' send to Unplag');
-        }
-
-        return true;
+    public static function add_upload_and_check_task(\stored_file $file, unplag_core $ucore) {
+        return unplag_upload_task::add_task([
+            unplag_upload_task::PATHNAME_HASH => $file->get_pathnamehash(),
+            unplag_upload_task::UCORE_KEY     => $ucore,
+        ]);
     }
 
     /**
-     * @param unplag_plagiarism_entity $plagiarismentity
-     * @param                          $internalfile
+     * @param \stdClass $plagiarismfile
      */
-    public static function run_plagiarism_detection($plagiarismentity, $internalfile) {
-        if (!$plagiarismentity) {
-            return;
-        }
-
-        if (isset($internalfile->external_file_id)) {
-            if ($internalfile->check_id) {
-                unplag_api::instance()->delete_check($internalfile);
+    public static function run_plagiarism_detection(\stdClass $plagiarismfile) {
+        if (isset($plagiarismfile->external_file_id)) {
+            if ($plagiarismfile->check_id) {
+                unplag_api::instance()->delete_check($plagiarismfile);
             }
 
             unplag_notification::success('plagiarism_run_success', true);
 
-            $checkresp = unplag_api::instance()->run_check($internalfile);
-            $plagiarismentity->handle_check_response($checkresp);
+            unplag_response::handle_check_response(unplag_api::instance()->run_check($plagiarismfile), $plagiarismfile);
         } else {
-            $error = unplag_core::parse_json($internalfile->errorresponse);
+            $error = unplag_core::parse_json($plagiarismfile->errorresponse);
             unplag_notification::error('Can\'t run check: ' . $error[0]->message, false);
         }
     }

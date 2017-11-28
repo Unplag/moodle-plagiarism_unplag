@@ -28,7 +28,7 @@ namespace plagiarism_unplag\classes\entities;
 use plagiarism_unplag\classes\entities\extractors\unplag_extractor_interface;
 use plagiarism_unplag\classes\entities\extractors\unplag_zip_extractor;
 use plagiarism_unplag\classes\exception\unplag_exception;
-use plagiarism_unplag\classes\task\unplag_upload_and_check_task;
+use plagiarism_unplag\classes\task\unplag_upload_task;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
@@ -124,9 +124,9 @@ class unplag_archive {
     public function run_checks() {
         global $DB;
 
-        unplag_upload_and_check_task::add_task([
-            'pathnamehash' => $this->file->get_pathnamehash(),
-            'ucore'        => $this->core,
+        unplag_upload_task::add_task([
+            unplag_upload_task::PATHNAME_HASH => $this->file->get_pathnamehash(),
+            unplag_upload_task::UCORE_KEY     => $this->core,
         ]);
 
         $this->archive->statuscode = UNICHECK_STATUSCODE_ACCEPTED;

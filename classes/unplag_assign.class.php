@@ -21,7 +21,7 @@ use coding_exception;
 use context_module;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\helpers\unplag_check_helper;
+use plagiarism_unplag\classes\task\unplag_check_starter;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -67,8 +67,8 @@ class unplag_assign {
     public static function check_submitted_assignment($id) {
         global $DB;
 
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
-        if (in_array($plagiarismfile->statuscode, array(UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED))) {
+        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
+        if (in_array($plagiarismfile->statuscode, [UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED])) {
             // Sanity Check.
             return;
         }
@@ -106,7 +106,7 @@ class unplag_assign {
 
         $sql = 'SELECT COUNT(id) FROM {assign_submission} WHERE id = ? AND status = ?';
 
-        return (bool) $DB->count_records_sql($sql, array($id, 'draft'));
+        return (bool) $DB->count_records_sql($sql, [$id, 'draft']);
     }
 
     /**
@@ -117,7 +117,7 @@ class unplag_assign {
     public static function get($id) {
         global $DB;
 
-        return $DB->get_record(self::DB_NAME, array('id' => $id), '*', MUST_EXIST);
+        return $DB->get_record(self::DB_NAME, ['id' => $id], '*', MUST_EXIST);
     }
 
     /**
@@ -144,7 +144,10 @@ class unplag_assign {
         } else {
             $plagiarismentity = $ucore->get_plagiarism_entity($file);
             $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-            unplag_check_helper::run_plagiarism_detection($plagiarismentity, $internalfile);
+
+            unplag_check_starter::add_task([
+                unplag_check_starter::PLUGIN_FILE_ID_KEY => $internalfile->id
+            ]);
         }
     }
 }
