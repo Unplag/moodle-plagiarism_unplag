@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,6 +27,7 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag\classes\entities\unplag_archive;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -36,6 +37,7 @@ if (!defined('MOODLE_INTERNAL')) {
 
 /**
  * Class unplag_event_group_submition
+ *
  * @package plagiarism_unplag\classes\event
  */
 class unplag_event_group_submition extends unplag_abstract_event {
@@ -69,13 +71,13 @@ class unplag_event_group_submition extends unplag_abstract_event {
             $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile);
             $internalfile = $plagiarismentity->get_internal_file();
 
-            if ($internalfile->statuscode == UNPLAG_STATUSCODE_PROCESSED) {
+            if ($internalfile->state == unplag_file_state::CHECKED) {
                 continue;
             }
 
             if (\plagiarism_unplag::is_archive($assignfile)) {
                 $unplagarchive = new unplag_archive($assignfile, $unplagcore);
-                $unplagarchive->run_checks();
+                $unplagarchive->upload();
 
                 continue;
             }

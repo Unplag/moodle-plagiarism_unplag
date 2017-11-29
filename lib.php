@@ -20,7 +20,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -44,7 +44,7 @@ require_once($CFG->libdir . '/accesslib.php');
 require_once(dirname(__FILE__) . '/autoloader.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 
-// There is a new UNPLAG API - The Integration Service - we only currently use this to verify the receiver address.
+// There is a new UNICHECK API - The Integration Service - we only currently use this to verify the receiver address.
 // If we convert the existing calls to send file/get score we should move this to a config setting.
 
 /**
@@ -180,7 +180,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $modname = 'unplag_enable_' . $modulename;
 
         if (!$plagiarismsettings || empty($plagiarismsettings[$modname])) {
-            return false; // Return if unplag is not enabled for the module.
+            return false; // Return if UNICHECK is not enabled for the module.
         }
 
         return true;

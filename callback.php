@@ -20,7 +20,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Aleksandr Kostylev <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -48,7 +48,7 @@ try {
     $callback->handle($body, $token);
 } catch (\Exception $exception) {
     http_response_code(400);
-    echo $exception->getMessage();
+    throw $exception;
 }
 
 die;

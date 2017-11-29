@@ -27,7 +27,7 @@ if (!defined('MOODLE_INTERNAL')) {
  * @subpackage  plagiarism
  * @namespace plagiarism_unplag\classes
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_language {

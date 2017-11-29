@@ -18,7 +18,7 @@
  *
  * @package     plagiarism_unplag
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -49,7 +49,6 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
         $data = $this->get_custom_data();
 
         $assignfiles = unplag_assign::get_area_files($data->contextid);
-
         if (empty($assignfiles)) {
             return;
         }
@@ -79,12 +78,12 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
      */
     private function handle_archive($contextid) {
         if (!is_null(unplag_core::get_file_by_hash($contextid, $this->assignfile->get_pathnamehash()))) {
-            mtrace('... archive already sent to Unplag');
+            mtrace('... archive already sent to Unicheck');
 
             return;
         }
 
-        (new unplag_archive($this->assignfile, $this->ucore))->run_checks();
+        (new unplag_archive($this->assignfile, $this->ucore))->upload();
         mtrace('... archive send to Unicheck');
     }
 
@@ -95,12 +94,12 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
         $plagiarismentity = $this->ucore->get_plagiarism_entity($this->assignfile);
         $internalfile = $plagiarismentity->upload_file_on_unplag_server();
         if (isset($internalfile->check_id)) {
-            mtrace('... file already sent to Unplag');
+            mtrace('... file already sent to Unicheck');
         } else {
             if ($internalfile->external_file_id) {
                 $checkresp = unplag_api::instance()->run_check($internalfile);
                 unplag_response::handle_check_response($checkresp, $internalfile);
-                mtrace('... file send to Unplag');
+                mtrace('... file send to Unicheck');
             }
         }
     }

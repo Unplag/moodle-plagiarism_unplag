@@ -57,7 +57,7 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         $field = new xmldb_field('similarityscore', XMLDB_TYPE_NUMBER, '5,2', null, null, null, null, null);
         $dbman->change_field_type($table, $field);
 
-        // Unplag savepoint reached.
+        // Unicheck savepoint reached.
         upgrade_plugin_savepoint(true, 2016041600, 'plagiarism', 'unplag');
     }
 
@@ -79,7 +79,7 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Unplag savepoint reached.
+        // Unicheck savepoint reached.
         upgrade_plugin_savepoint(true, 2016100500, 'plagiarism', 'unplag');
     }
 
@@ -95,14 +95,54 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         $table->add_field('external_user_id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
         $table->add_field('external_token', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null, null, null);
 
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'), null, null);
-        $table->add_key('user_id', XMLDB_KEY_FOREIGN, array('user_id'), 'user', 'id');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id'], null, null);
+        $table->add_key('user_id', XMLDB_KEY_FOREIGN, ['user_id'], 'user', 'id');
 
         $dbman->create_table($table);
     }
 
     if ($oldversion < 2017012300) {
         unplag_core::migrate_users_access();
+    }
+
+    if ($oldversion < 2017112900) {
+
+        $table = new xmldb_table('plagiarism_unplag_files');
+
+        $field = new xmldb_field('state', XMLDB_TYPE_CHAR, '63', null, XMLDB_NOTNULL, null, 'CREATED', 'reportediturl');
+        // Conditionally launch add field type.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+
+            $files = $DB->get_recordset('plagiarism_unplag_files', null, 'id asc', '*');
+            foreach ($files as $file) {
+                switch ($file->statuscode) {
+                    case 200:
+                        $file->state = 'CHECKED';
+                        break;
+                    case 202:
+                        if ($file->check_id) {
+                            $file->state = 'CHECKING';
+
+                            break;
+                        }
+
+                        $file->state = 'UPLOADED';
+                        break;
+                    case 'pending':
+                        $file->state = 'CREATED';
+                        break;
+                    default:
+                        $file->state = 'HAS_ERROR';
+                        break;
+                }
+                $DB->update_record('plagiarism_unplag_files', $file);
+            }
+            $files->close(); // Don't forget to close the recordset!
+        }
+
+        // Unicheck savepoint reached.
+        upgrade_plugin_savepoint(true, 2017112900, 'plagiarism', 'unplag');
     }
 
     return true;

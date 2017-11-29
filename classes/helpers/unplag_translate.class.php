@@ -27,7 +27,7 @@ if (!defined('MOODLE_INTERNAL')) {
  * @subpackage  plagiarism
  * @namespace   plagiarism_unplag\classes\helpers
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait unplag_translate {
@@ -57,8 +57,11 @@ trait unplag_translate {
             }
         }
 
-        $error = isset($error['extra_params']) ? self::trans($error['extra_params']) : $error['message'];
+        $message = $error['message'];
+        if (isset($error['extra_params']) && !is_array($error['extra_params'])) {
+            $message = self::trans($error['extra_params']);
+        }
 
-        return isset($translates->{$error}) ? $translates->{$error} : $error;
+        return isset($translates->{$message}) ? $translates->{$message} : $error['message'];
     }
 }

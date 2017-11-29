@@ -18,7 +18,7 @@
  *
  * @package     plagiarism_unplag
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -56,7 +56,7 @@ class unplag_check_starter extends unplag_abstract_task {
             return;
         }
 
-        $file = unplag_stored_file::get_plagiarism_file_by_id($data->plugin_file_id);
+        $file = unplag_stored_file::find_plagiarism_file_by_id($data->plugin_file_id);
         if (!$file) {
             mtrace("File not found. Skipped. Plugin file id: {$data->plugin_file_id}");
 

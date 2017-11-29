@@ -27,7 +27,7 @@ if (!defined('MOODLE_INTERNAL')) {
  * @subpackage  plagiarism
  * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_settings {
@@ -100,7 +100,7 @@ class unplag_settings {
         if (isset($settings['unplag_use']) && $settings['unplag_use']) {
             // Now check to make sure required settings are set!
             if (empty($settings['unplag_api_secret'])) {
-                throw new \coding_exception('UNPLAG API Secret not set!');
+                throw new \coding_exception('UNICHECK API Secret not set!');
             }
 
             return self::get_settings_item($settings, $key);

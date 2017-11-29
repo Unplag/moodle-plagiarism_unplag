@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -66,6 +66,17 @@ class unplag_stored_file extends \stored_file {
         global $DB;
 
         return $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return mixed
+     */
+    public static function find_plagiarism_file_by_id($id) {
+        global $DB;
+
+        return $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*');
     }
 
     /**

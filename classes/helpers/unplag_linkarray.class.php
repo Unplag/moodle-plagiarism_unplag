@@ -16,8 +16,8 @@
 
 namespace plagiarism_unplag\classes\helpers;
 
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_assign;
-use plagiarism_unplag\classes\unplag_plagiarism_entity;
 use plagiarism_unplag\classes\unplag_workshop;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -31,7 +31,7 @@ if (!defined('MOODLE_INTERNAL')) {
  * @subpackage  plagiarism
  * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_linkarray {
@@ -87,22 +87,20 @@ class unplag_linkarray {
         $tmpl = null;
         $inciterator = false;
 
-        switch ($fileobj->statuscode) {
-            case UNPLAG_STATUSCODE_PROCESSED:
+        switch ($fileobj->state) {
+            case unplag_file_state::CHECKED:
                 $tmpl = 'view_tmpl_processed.php';
                 break;
-            case UNPLAG_STATUSCODE_ACCEPTED:
-                if (isset($fileobj->check_id) || $fileobj->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
-                    $tmpl = 'view_tmpl_accepted.php';
-                    $inciterator = true;
-                } else {
-                    $tmpl = 'view_tmpl_unknownwarning.php';
-                }
+            case unplag_file_state::UPLOADING:
+            case unplag_file_state::UPLOADED:
+            case unplag_file_state::CHECKING:
+                $tmpl = 'view_tmpl_accepted.php';
+                $inciterator = true;
                 break;
-            case UNPLAG_STATUSCODE_INVALID_RESPONSE:
+            case unplag_file_state::HAS_ERROR:
                 $tmpl = 'view_tmpl_invalid_response.php';
                 break;
-            case UNPLAG_STATUSCODE_PENDING:
+            case unplag_file_state::CREATED:
                 if (self::is_pending($cm, $fileobj) && self::is_submission_submitted($linkarray)) {
                     $tmpl = 'view_tmpl_can_check.php';
                     $inciterator = true;

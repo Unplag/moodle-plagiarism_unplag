@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,7 +29,7 @@ if (!defined('MOODLE_INTERNAL')) {
 
 define('UNPLAG_PLAGIN_NAME', 'plagiarism_unplag');
 define('UNPLAG_DOMAIN', 'https://corp.unicheck.com/');
-define('UNPLAG_API_URL', 'https://corpapi.unicheck.com/api/v2/');
+define('UNPLAG_API_URL', 'https://un16.mytheverona.com/api/v2/');
 define('UNPLAG_CALLBACK_URL', '/plagiarism/unplag/callback.php');
 
 define('UNPLAG_PROJECT_PATH', dirname(__FILE__) . '/');
@@ -46,14 +46,6 @@ define('UNPLAG_CONFIG_TABLE', 'plagiarism_unplag_config');
 define('UNPLAG_CHECK_TYPE_WEB', 'web');
 define('UNPLAG_CHECK_TYPE_MY_LIBRARY', 'my_library');
 define('UNPLAG_CHECK_TYPE_WEB__LIBRARY', 'web_and_my_library');
-
-define('UNPLAG_STATUSCODE_PENDING', 'pending');
-define('UNPLAG_STATUSCODE_PROCESSED', 200);
-define('UNPLAG_STATUSCODE_ACCEPTED', 202);
-define('UNPLAG_STATUSCODE_UNSUPPORTED', 415);
-define('UNPLAG_STATUSCODE_INVALID_RESPONSE', 613); // Invalid response received from UNPLAG.
-
-define('UNPLAG_UPLOAD_TIME_LIMIT', 5 * 60); // Time limit for upload file.
 
 define('UNPLAG_WORKSHOP_SETUP_PHASE', 10);
 define('UNPLAG_WORKSHOP_SUBMISSION_PHASE', 20);

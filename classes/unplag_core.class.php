@@ -21,7 +21,7 @@ use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
-use plagiarism_unplag\classes\task\unplag_check_starter;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -34,7 +34,7 @@ if (!defined('MOODLE_INTERNAL')) {
  * @subpackage  plagiarism
  * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_core {
@@ -81,7 +81,9 @@ class unplag_core {
         global $DB;
 
         $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
-        if (in_array($plagiarismfile->statuscode, [UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED])) {
+        if (in_array($plagiarismfile->state,
+            [unplag_file_state::UPLOADED, unplag_file_state::CHECKING, unplag_file_state::CHECKED])
+        ) {
             // Sanity Check.
             return false;
         }
@@ -102,9 +104,7 @@ class unplag_core {
             $plagiarismentity = $ucore->get_plagiarism_entity($file);
             $internalfile = $plagiarismentity->get_internal_file();
 
-            unplag_check_starter::add_task([
-                unplag_check_starter::PLUGIN_FILE_ID_KEY => $internalfile->id
-            ]);
+            unplag_adhoc::check($internalfile);
 
             return true;
         }

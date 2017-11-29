@@ -13,40 +13,32 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
- * ajax.php
+ * unplag_file_state.class.php - SDK for working with UNICHECK api.
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define('AJAX_SCRIPT', true);
+namespace plagiarism_unplag\classes\services\storage;
 
-require_once(dirname(__FILE__) . '/../../config.php');
-require_once(dirname(__FILE__) . '/locallib.php');
-
-$action = required_param('action', PARAM_ALPHAEXT);
-$data = optional_param('data', array(), PARAM_RAW);
-$token = optional_param('token', '', PARAM_RAW);
-
-if (!$token) {
-    require_login();
-    require_sesskey();
-}
-$unplag = new plagiarism_unplag();
-if (!is_callable(array($unplag, $action))) {
-    echo json_encode('Called method does not exists');
-
-    return null;
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
 }
 
-if ($token) {
-    $data = $token;
+/**
+ * Class unplag_file_state
+ *
+ * @package plagiarism_unplag\classes
+ */
+class unplag_file_state {
+    const CREATED = 'CREATED';
+    const UPLOADING = 'UPLOADING';
+    const UPLOADED = 'UPLOADED';
+    const CHECKING = 'CHECKING';
+    const CHECKED = 'CHECKED';
+    const HAS_ERROR = 'HAS_ERROR';
 }
-
-echo $unplag->{$action}($data);
-die;

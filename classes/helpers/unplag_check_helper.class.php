@@ -16,7 +16,7 @@
 
 namespace plagiarism_unplag\classes\helpers;
 
-use plagiarism_unplag\classes\task\unplag_upload_task;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
@@ -33,7 +33,7 @@ if (!defined('MOODLE_INTERNAL')) {
  * @subpackage  plagiarism
  * @namespace   plagiarism_unplag\classes\helpers
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_check_helper {
@@ -46,7 +46,7 @@ class unplag_check_helper {
         global $DB;
 
         if ($progress == 100) {
-            $record->statuscode = UNPLAG_STATUSCODE_PROCESSED;
+            $record->state = unplag_file_state::CHECKED;
         }
 
         $record->similarityscore = (float) $check->report->similarity;
@@ -63,8 +63,8 @@ class unplag_check_helper {
 
         if ($updated && $record->parent_id !== null) {
             $parentrecord = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $record->parent_id]);
-            $childs = $DB->get_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                [$record->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED, UNPLAG_STATUSCODE_PENDING]);
+            $childs = $DB->get_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND state not in (?)",
+                [$record->parent_id, unplag_file_state::HAS_ERROR]);
 
             $similarity = 0;
             $parentprogress = 0;
@@ -90,18 +90,6 @@ class unplag_check_helper {
             $parentcheck = json_decode(json_encode($parentcheck));
             self::check_complete($parentrecord, $parentcheck, $parentprogress);
         }
-    }
-
-    /**
-     * @param \stored_file $file
-     * @param unplag_core  $ucore
-     * @return bool
-     */
-    public static function add_upload_and_check_task(\stored_file $file, unplag_core $ucore) {
-        return unplag_upload_task::add_task([
-            unplag_upload_task::PATHNAME_HASH => $file->get_pathnamehash(),
-            unplag_upload_task::UCORE_KEY     => $ucore,
-        ]);
     }
 
     /**

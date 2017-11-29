@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
@@ -78,7 +78,7 @@ class backup_plagiarism_unplag_plugin extends backup_plagiarism_plugin {
 
         // Connect the visible container ASAP.
         $plugin->add_child($pluginwrapper);
-        // Save id from unplag course.
+        // Save id from UNICHECK course.
         $unplagconfigs = new backup_nested_element('unplag_configs');
         $unplagconfig = new backup_nested_element('unplag_config', array('id'), array('plugin', 'name', 'value'));
         $pluginwrapper->add_child($unplagconfigs);

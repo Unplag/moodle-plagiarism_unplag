@@ -19,14 +19,14 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace plagiarism_unplag\classes;
 
 use plagiarism_unplag\classes\helpers\unplag_response;
-use plagiarism_unplag\classes\helpers\unplag_stored_file;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -70,39 +70,6 @@ abstract class unplag_plagiarism_entity {
     }
 
     /**
-     * @param \stdClass $response
-     *
-     * @return bool
-     */
-    protected function store_file_errors(\stdClass $response) {
-        global $DB;
-
-        $plagiarismfile = $this->get_internal_file();
-        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-        $plagiarismfile->errorresponse = json_encode($response->errors);
-
-        $result = $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
-
-        if ($result && $plagiarismfile->parent_id) {
-            $hasgoodchild = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                [
-                    $plagiarismfile->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED,
-                    UNPLAG_STATUSCODE_PENDING,
-                ]);
-
-            if (!$hasgoodchild) {
-                $parentplagiarismfile = unplag_stored_file::get_plagiarism_file_by_id($plagiarismfile->parent_id);
-                $parentplagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-                $parentplagiarismfile->errorresponse = json_encode($response->errors);
-
-                $DB->update_record(UNPLAG_FILES_TABLE, $parentplagiarismfile);
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * @param $data
      *
      * @return null|\stdClass
@@ -122,7 +89,7 @@ abstract class unplag_plagiarism_entity {
         $plagiarismfile->userid = $data['userid'];
         $plagiarismfile->identifier = $data['identifier'];
         $plagiarismfile->filename = $data['filename'];
-        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
+        $plagiarismfile->state = unplag_file_state::CREATED;
         $plagiarismfile->attempt = 0;
         $plagiarismfile->progress = 0;
         $plagiarismfile->timesubmitted = time();
@@ -143,7 +110,7 @@ abstract class unplag_plagiarism_entity {
         }
 
         // Check if $internalfile actually needs to be submitted.
-        if ($internalfile->statuscode !== UNPLAG_STATUSCODE_PENDING) {
+        if ($internalfile->state !== unplag_file_state::UPLOADING) {
             return $internalfile;
         }
 

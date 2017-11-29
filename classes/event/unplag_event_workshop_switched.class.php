@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,7 +27,7 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag;
-use plagiarism_unplag\classes\helpers\unplag_check_helper;
+use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -76,6 +76,6 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
     private function handle_file_plagiarism($file) {
         $this->unplagcore->userid = $file->get_userid();
 
-        return unplag_check_helper::add_upload_and_check_task($file, $this->unplagcore);
+        return unplag_adhoc::upload($file, $this->unplagcore);
     }
 }

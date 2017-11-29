@@ -32,7 +32,7 @@ use plagiarism_plugin_unplag;
  * @subpackage  plagiarism
  * @namespace   plagiarism_unplag\classes\event
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_validator {
@@ -65,7 +65,7 @@ class unplag_event_validator {
 
             $plagiarismvalues = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, array('cm' => $cmid), '', 'name, value');
             if (empty($plagiarismvalues['use_unplag'])) {
-                // Unplag not in use for this cm - return.
+                // Unicheck not in use for this cm - return.
                 return false;
             }
 

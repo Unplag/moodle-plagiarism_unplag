@@ -17,6 +17,7 @@
 namespace plagiarism_unplag\classes\helpers;
 
 use plagiarism_unplag\classes\exception\unplag_exception;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
@@ -31,7 +32,7 @@ if (!defined('MOODLE_INTERNAL')) {
  * @subpackage  plagiarism
  * @namespace plagiarism_unplag\classes\helpers
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_progress {
@@ -106,11 +107,8 @@ class unplag_progress {
 
             foreach ($checkstatusforids as $recordid => $checkids) {
                 if (count($checkids) > 0) {
-                    $childscount = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                        [
-                            $recordid, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED,
-                            UNPLAG_STATUSCODE_PENDING
-                        ]) ?: 1;
+                    $childscount = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode not in (?)",
+                        [$recordid, unplag_file_state::HAS_ERROR]) ?: 1;
 
                     $progress = 0;
 
@@ -136,7 +134,7 @@ class unplag_progress {
         if ($fileobj->progress == 100 && $cid) {
             return require(dirname(__FILE__) . '/../../views/view_tmpl_processed.php');
         } else {
-            if ($fileobj->statuscode == UNPLAG_STATUSCODE_INVALID_RESPONSE) {
+            if ($fileobj->state == unplag_file_state::HAS_ERROR) {
                 return require(dirname(__FILE__) . '/../../views/view_tmpl_invalid_response.php');
             }
         }

@@ -18,15 +18,17 @@
  *
  * @package     plagiarism_unplag
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace plagiarism_unplag\classes\task;
 
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
@@ -122,14 +124,12 @@ class unplag_upload_task extends unplag_abstract_task {
      * @param string $reason
      */
     private function invalid_response($reason) {
-        global $DB;
-
-        $this->internalfile->statuscode = UNICHECK_STATUSCODE_INVALID_RESPONSE;
+        $this->internalfile->state = unplag_file_state::HAS_ERROR;
         $this->internalfile->errorresponse = json_encode([
             ["message" => $reason],
         ]);
 
-        $DB->update_record(UNICHECK_FILES_TABLE, $this->internalfile);
+        unplag_file_provider::save($this->internalfile);
     }
 
     /**
@@ -144,7 +144,10 @@ class unplag_upload_task extends unplag_abstract_task {
             $item['format'],
             $this->internalfile->id
         );
-        $plagiarismentity->get_internal_file();
+        $internalfile = $plagiarismentity->get_internal_file();
+        $internalfile->state = unplag_file_state::UPLOADING;
+        unplag_file_provider::save($internalfile);
+
         $plagiarismentity->upload_file_on_unplag_server();
 
         unset($plagiarismentity, $content);

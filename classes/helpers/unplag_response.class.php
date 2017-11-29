@@ -19,11 +19,14 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace plagiarism_unplag\classes\helpers;
+
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -43,34 +46,37 @@ class unplag_response {
      * @return bool
      */
     public static function handle_check_response(\stdClass $response, \stdClass $plagiarismfile) {
-        global $DB;
-
-        if ($response->result === true) {
-            $check = $response->check;
-            $plagiarismfile->attempt = 0; // Reset attempts for status checks.
-            $plagiarismfile->check_id = $check->id;
-            $plagiarismfile->statuscode = UNICHECK_STATUSCODE_ACCEPTED;
-            $plagiarismfile->errorresponse = null;
-
-            return $DB->update_record(UNICHECK_FILES_TABLE, $plagiarismfile);
-        } else {
+        if (!$response->result) {
             return self::store_errors($response->errors, $plagiarismfile);
         }
+
+        if ($response->check->id) {
+            $plagiarismfile->attempt = 0; // Reset attempts for status checks.
+            $plagiarismfile->check_id = $response->check->id;
+            $plagiarismfile->state = unplag_file_state::CHECKED;
+            $plagiarismfile->errorresponse = null;
+        }
+
+        return unplag_file_provider::save($plagiarismfile);
     }
 
     /**
      * @param \stdClass $response
      * @param \stdClass $plagiarismfile
+     * @return bool
      */
     public static function process_after_upload(\stdClass $response, \stdClass $plagiarismfile) {
-        global $DB;
-
-        if ($response->result) {
-            $plagiarismfile->external_file_id = $response->file->id;
-            $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
-        } else {
-            self::store_errors($response->errors, $plagiarismfile);
+        if (!$response->result) {
+            return self::store_errors($response->errors, $plagiarismfile);
         }
+
+        if ($response->file->id) {
+            $plagiarismfile->external_file_id = $response->file->id;
+            $plagiarismfile->state = unplag_file_state::UPLOADED;
+            $plagiarismfile->errorresponse = null;
+        }
+
+        return unplag_file_provider::save($plagiarismfile);
     }
 
     /**
@@ -81,24 +87,22 @@ class unplag_response {
     private static function store_errors(array $errors, \stdClass $plagiarismfile) {
         global $DB;
 
-        $plagiarismfile->statuscode = UNICHECK_STATUSCODE_INVALID_RESPONSE;
+        $plagiarismfile->state = unplag_file_state::HAS_ERROR;
         $plagiarismfile->errorresponse = json_encode($errors);
 
-        $result = $DB->update_record(UNICHECK_FILES_TABLE, $plagiarismfile);
+        $result = unplag_file_provider::save($plagiarismfile);
 
         if ($result && $plagiarismfile->parent_id) {
-            $hasgoodchild = $DB->count_records_select(UNICHECK_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                [
-                    $plagiarismfile->parent_id, UNICHECK_STATUSCODE_PROCESSED, UNICHECK_STATUSCODE_ACCEPTED,
-                    UNICHECK_STATUSCODE_PENDING,
-                ]);
+            $hasgoodchild = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND state not in (?)",
+                [$plagiarismfile->parent_id, unplag_file_state::HAS_ERROR]
+            );
 
             if (!$hasgoodchild) {
                 $parentplagiarismfile = unplag_stored_file::get_plagiarism_file_by_id($plagiarismfile->parent_id);
-                $parentplagiarismfile->statuscode = UNICHECK_STATUSCODE_INVALID_RESPONSE;
+                $parentplagiarismfile->state = unplag_file_state::HAS_ERROR;
                 $parentplagiarismfile->errorresponse = json_encode($errors);
 
-                $DB->update_record(UNICHECK_FILES_TABLE, $parentplagiarismfile);
+                unplag_file_provider::save($parentplagiarismfile);
             }
         }
 

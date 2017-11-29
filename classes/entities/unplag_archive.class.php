@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,8 +27,10 @@ namespace plagiarism_unplag\classes\entities;
 
 use plagiarism_unplag\classes\entities\extractors\unplag_extractor_interface;
 use plagiarism_unplag\classes\entities\extractors\unplag_zip_extractor;
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\exception\unplag_exception;
-use plagiarism_unplag\classes\task\unplag_upload_task;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
+use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
@@ -121,19 +123,8 @@ class unplag_archive {
     /**
      * @return bool
      */
-    public function run_checks() {
-        global $DB;
-
-        unplag_upload_task::add_task([
-            unplag_upload_task::PATHNAME_HASH => $this->file->get_pathnamehash(),
-            unplag_upload_task::UCORE_KEY     => $this->core,
-        ]);
-
-        $this->archive->statuscode = UNICHECK_STATUSCODE_ACCEPTED;
-        $this->archive->errorresponse = null;
-        $DB->update_record(UNICHECK_FILES_TABLE, $this->archive);
-
-        return true;
+    public function upload() {
+        return unplag_adhoc::upload($this->file, $this->core);
     }
 
     public function restart_check() {
@@ -150,7 +141,7 @@ class unplag_archive {
 
             unplag_notification::success('plagiarism_run_success', true);
 
-            $this->run_checks();
+            $this->upload();
         }
     }
 
@@ -167,13 +158,11 @@ class unplag_archive {
      * @param $reason
      */
     private function invalid_response($reason) {
-        global $DB;
-
-        $this->archive->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
+        $this->archive->state = unplag_file_state::HAS_ERROR;
         $this->archive->errorresponse = json_encode([
             ["message" => $reason],
         ]);
 
-        $DB->update_record(UNPLAG_FILES_TABLE, $this->archive);
+        unplag_file_provider::save($this->archive);
     }
 }
