@@ -26,10 +26,18 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class restore_plagiarism_unplag_plugin
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_plagiarism_unplag_plugin extends restore_plagiarism_plugin {
     /**
-     * @param $data
+     * process_unplagconfig
+     *
+     * @param array $data
      */
     public function process_unplagconfig($data) {
         $data = (object) $data;
@@ -38,7 +46,9 @@ class restore_plagiarism_unplag_plugin extends restore_plagiarism_plugin {
     }
 
     /**
-     * @param $data
+     * process_unplagconfigmod
+     *
+     * @param array $data
      */
     public function process_unplagconfigmod($data) {
         global $DB;
@@ -50,7 +60,9 @@ class restore_plagiarism_unplag_plugin extends restore_plagiarism_plugin {
     }
 
     /**
-     * @param $data
+     * define_module_plugin_structure
+     *
+     * @param array $data
      */
     public function process_unplagfiles($data) {
         global $DB;
@@ -66,7 +78,7 @@ class restore_plagiarism_unplag_plugin extends restore_plagiarism_plugin {
      * Returns the paths to be handled by the plugin at question level.
      */
     protected function define_course_plugin_structure() {
-        $paths = array();
+        $paths = [];
 
         // Add own format stuff.
         $elename = 'unplagconfig';
@@ -80,7 +92,7 @@ class restore_plagiarism_unplag_plugin extends restore_plagiarism_plugin {
      * Returns the paths to be handled by the plugin at module level.
      */
     protected function define_module_plugin_structure() {
-        $paths = array();
+        $paths = [];
 
         // Add own format stuff.
         $elename = 'unplagconfigmod';

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_file_state.class.php - SDK for working with UNICHECK api.
+ * unplag_file_state.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -32,13 +32,35 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_file_state
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_file_state {
+    /**
+     * CREATED
+     */
     const CREATED = 'CREATED';
+    /**
+     * UPLOADING
+     */
     const UPLOADING = 'UPLOADING';
+    /**
+     * UPLOADED
+     */
     const UPLOADED = 'UPLOADED';
+    /**
+     * CHECKING
+     */
     const CHECKING = 'CHECKING';
+    /**
+     * CHECKED
+     */
     const CHECKED = 'CHECKED';
+    /**
+     * HAS_ERROR
+     */
     const HAS_ERROR = 'HAS_ERROR';
 }

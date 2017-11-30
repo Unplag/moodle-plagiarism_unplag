@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_adhoc.class.php - SDK for working with UNICHECK api.
+ * unplag_adhoc.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -37,11 +37,17 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_adhoc
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_adhoc {
 
     /**
+     * Add task to upload queue
+     *
      * @param \stored_file $file
      * @param unplag_core  $ucore
      * @return bool
@@ -60,6 +66,8 @@ class unplag_adhoc {
     }
 
     /**
+     * Add task to check queue
+     *
      * @param \stdClass $plagiarismfile
      * @return bool
      */

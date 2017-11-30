@@ -24,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_api;
@@ -82,7 +83,7 @@ if (!$table->is_downloading($download, $exportfilename)) {
                 unplag_check_helper::check_complete($plagiarismfile, $response->check);
             } else {
                 $plagiarismfile->errorresponse = json_encode($response->errors);
-                $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+                unplag_file_provider::save($plagiarismfile);
             }
 
             if (in_array($plagiarismfile->state, [unplag_file_state::UPLOADED, unplag_file_state::CHECKING])) {
@@ -163,7 +164,7 @@ foreach ($unplagfiles as $tf) {
             $tf->userid,
             $tf->cm . ' ' . $tf->moduletype,
             $tf->identifier,
-            $tf->statuscode,
+            $tf->state,
             $tf->attempt,
             $tf->errorresponse,
         ];

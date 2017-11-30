@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_language.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes;
 
@@ -23,9 +32,8 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_language
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace plagiarism_unplag\classes
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -35,22 +43,24 @@ class unplag_language {
     /**
      * @var array
      */
-    private static $supportedlanguage = array(
-            'en' => 'en_EN',
-            'es' => 'es_ES',
-            'es_mx' => 'es_ES',
-            'es_ve' => 'es_ES',
-            'uk' => 'uk_UA',
-            'nl' => 'nl_BE',
-            'tr' => 'tr_TR',
-            'fr' => 'fr_FR',
-            'fr_ca' => 'fr_FR'
-    );
+    private static $supportedlanguage = [
+        'en'    => 'en_EN',
+        'es'    => 'es_ES',
+        'es_mx' => 'es_ES',
+        'es_ve' => 'es_ES',
+        'uk'    => 'uk_UA',
+        'nl'    => 'nl_BE',
+        'tr'    => 'tr_TR',
+        'fr'    => 'fr_FR',
+        'fr_ca' => 'fr_FR'
+    ];
 
     /**
+     * Get plugin language
+     *
      * @return array|bool|mixed
      */
-    public static function get_unplag_language() {
+    public static function get_plugin_language() {
 
         if (isset(self::$supportedlanguage[current_language()])) {
             $language = self::$supportedlanguage[current_language()];
@@ -62,17 +72,19 @@ class unplag_language {
     }
 
     /**
-     * @param $url
-     * @param int $showlangpicker
+     * Inject language key to URL
+     *
+     * @param string $url
+     * @param int    $showlangpicker
      */
     public static function inject_language_to_url(&$url, $showlangpicker = 0) {
         if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
-            $language = self::get_unplag_language();
+            $language = self::get_plugin_language();
             $parsedurl = parse_url($url);
 
             if ($parsedurl) {
                 $url = $parsedurl['scheme'] . '://' . $parsedurl['host'] . $parsedurl['path'];
-                $slugs = array();
+                $slugs = [];
                 if (!empty($parsedurl['query'])) {
                     parse_str(html_entity_decode($parsedurl['query']), $slugs);
                 }

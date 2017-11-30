@@ -39,25 +39,28 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
-if (!defined('ARCHIVE_IS_EMPTY')) {
-    define('ARCHIVE_IS_EMPTY', 'Archive is empty or contains document(s) with no text');
-}
-
-if (!defined('ARCHIVE_CANT_BE_OPEN')) {
-    define('ARCHIVE_CANT_BE_OPEN', 'Can\'t open zip archive');
-}
-
 /**
  * Class unplag_archive
  *
- * @package   plagiarism_unplag\classes\entities
- * @namespace plagiarism_unplag\classes\entities
- *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_archive {
 
+    /**
+     * DEFAULT_SUPPORTED_FILES_COUNT
+     */
     const DEFAULT_SUPPORTED_FILES_COUNT = 10;
+    /**
+     * MIN_SUPPORTED_FILES_COUNT
+     */
     const MIN_SUPPORTED_FILES_COUNT = 1;
+    /**
+     * MAX_SUPPORTED_FILES_COUNT
+     */
     const MAX_SUPPORTED_FILES_COUNT = 100;
 
     /**
@@ -103,7 +106,7 @@ class unplag_archive {
                 $this->extractor = new unplag_zip_extractor($file);
                 break;
             default:
-                throw new unplag_exception('Unsupported mimetype');
+                throw new unplag_exception(unplag_exception::UNSUPPORTED_MIMETYPE);
         }
     }
 
@@ -121,12 +124,17 @@ class unplag_archive {
     }
 
     /**
+     * Upload archive for check
+     *
      * @return bool
      */
     public function upload() {
         return unplag_adhoc::upload($this->file, $this->core);
     }
 
+    /**
+     * Restart check
+     */
     public function restart_check() {
         global $DB;
 
@@ -146,7 +154,9 @@ class unplag_archive {
     }
 
     /**
-     * @param $file
+     * Delete
+     *
+     * @param string $file
      */
     public static function unlink($file) {
         if (!unlink($file)) {
@@ -155,7 +165,9 @@ class unplag_archive {
     }
 
     /**
-     * @param $reason
+     * Handle invalid response
+     *
+     * @param string $reason
      */
     private function invalid_response($reason) {
         $this->archive->state = unplag_file_state::HAS_ERROR;

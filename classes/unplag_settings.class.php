@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_settings.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes;
 
@@ -23,40 +32,74 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_settings
  *
- * @package     plagiarism_unplag\classes
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_settings {
+    /**
+     * SENSITIVITY_SETTING_NAME
+     */
     const SENSITIVITY_SETTING_NAME = 'similarity_sensitivity';
+    /**
+     * USE_UNPLAG
+     */
     const USE_UNPLAG = 'use_unplag';
+    /**
+     * SHOW_STUDENT_SCORE
+     */
     const SHOW_STUDENT_SCORE = 'unplag_show_student_score';
+    /**
+     * SHOW_STUDENT_REPORT
+     */
     const SHOW_STUDENT_REPORT = 'unplag_show_student_report';
+    /**
+     * DRAFT_SUBMIT
+     */
     const DRAFT_SUBMIT = 'unplag_draft_submit';
+    /**
+     * CHECK_TYPE
+     */
     const CHECK_TYPE = 'check_type';
+    /**
+     * EXCLUDE_CITATIONS
+     */
     const EXCLUDE_CITATIONS = 'exclude_citations';
+    /**
+     * EXCLUDE_SELF_PLAGIARISM
+     */
     const EXCLUDE_SELF_PLAGIARISM = 'exclude_self_plagiarism';
+    /**
+     * CHECK_ALL_SUBMITTED_ASSIGNMENTS
+     */
     const CHECK_ALL_SUBMITTED_ASSIGNMENTS = 'check_all_submitted_assignments';
+    /**
+     * NO_INDEX_FILES
+     */
     const NO_INDEX_FILES = 'no_index_files';
+    /**
+     * MAX_SUPPORTED_ARCHIVE_FILES_COUNT
+     */
     const MAX_SUPPORTED_ARCHIVE_FILES_COUNT = 'max_supported_archive_files_count';
 
     /**
-     * @param      $cmid
+     * Get assign settings
+     *
+     * @param int  $cmid
      * @param null $name
      *
-     * @param      $assoc
+     * @param bool $assoc
      *
      * @return \stdClass|array
      */
     public static function get_assign_settings($cmid, $name = null, $assoc = null) {
         global $DB;
 
-        $condition = array(
+        $condition = [
             'cm' => $cmid,
-        );
+        ];
 
         if (isset($name)) {
             $condition['name'] = $name;
@@ -110,8 +153,10 @@ class unplag_settings {
     }
 
     /**
-     * @param      $settings
-     * @param null $key
+     * Get item settings
+     *
+     * @param array $settings
+     * @param null  $key
      *
      * @return null
      */

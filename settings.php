@@ -52,7 +52,7 @@ $currenttab = 'unplagsettings';
 require_once(dirname(__FILE__) . '/views/view_tabs.php');
 
 if (($data = $mform->get_data()) && confirm_sesskey()) {
-    foreach (plagiarism_plugin_unplag::default_plagin_options() as $option) {
+    foreach (plagiarism_plugin_unplag::default_plugin_options() as $option) {
         if (!isset($data->$option)) {
             $data->$option = 0;
         }

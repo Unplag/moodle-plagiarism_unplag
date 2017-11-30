@@ -13,18 +13,27 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * events.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
-$observers = array(
+$observers = [
     /*
      * Event Handlers
     */
-        array(
-                'eventname' => '*',
-                'includefile' => '/plagiarism/unplag/locallib.php',
-                'callback' => 'plagiarism_unplag::event_handler',
-        ),
-);
+    [
+        'eventname'   => '*',
+        'includefile' => '/plagiarism/unplag/locallib.php',
+        'callback'    => 'plagiarism_unplag::event_handler',
+    ],
+];

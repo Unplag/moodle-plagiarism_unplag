@@ -25,8 +25,7 @@
 namespace plagiarism_unplag\classes\task;
 
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\helpers\unplag_response;
-use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -37,7 +36,11 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_bulk_check_assign_files
  *
- * @package plagiarism_unplag\classes\task
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_bulk_check_assign_files extends unplag_abstract_task {
     /** @var  unplag_core */
@@ -45,6 +48,9 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
     /** @var  \stored_file */
     private $assignfile;
 
+    /**
+     * Execute of adhoc task
+     */
     public function execute() {
         $data = $this->get_custom_data();
 
@@ -95,12 +101,13 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
         $internalfile = $plagiarismentity->upload_file_on_unplag_server();
         if (isset($internalfile->check_id)) {
             mtrace('... file already sent to Unicheck');
-        } else {
-            if ($internalfile->external_file_id) {
-                $checkresp = unplag_api::instance()->run_check($internalfile);
-                unplag_response::handle_check_response($checkresp, $internalfile);
-                mtrace('... file send to Unicheck');
-            }
+
+            return;
+        }
+
+        if ($internalfile->external_file_id) {
+            unplag_adhoc::check($internalfile);
+            mtrace('... file send to Unicheck');
         }
     }
 }

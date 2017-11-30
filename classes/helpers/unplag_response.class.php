@@ -35,12 +35,17 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_response
  *
- * @package   plagiarism_unplag\classes\helpers
- * @namespace plagiarism_unplag\classes\helpers
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 class unplag_response {
     /**
+     * handle_check_response
+     *
      * @param \stdClass $response
      * @param \stdClass $plagiarismfile
      * @return bool
@@ -51,16 +56,23 @@ class unplag_response {
         }
 
         if ($response->check->id) {
+            $progress = 100 * $response->check->progress;
+            if ($progress === 100) {
+                return unplag_check_helper::check_complete($plagiarismfile, $response->check, $progress);
+            }
+
             $plagiarismfile->attempt = 0; // Reset attempts for status checks.
             $plagiarismfile->check_id = $response->check->id;
-            $plagiarismfile->state = unplag_file_state::CHECKED;
             $plagiarismfile->errorresponse = null;
+            $plagiarismfile->state = unplag_file_state::CHECKING;
         }
 
         return unplag_file_provider::save($plagiarismfile);
     }
 
     /**
+     * process_after_upload
+     *
      * @param \stdClass $response
      * @param \stdClass $plagiarismfile
      * @return bool
@@ -70,21 +82,22 @@ class unplag_response {
             return self::store_errors($response->errors, $plagiarismfile);
         }
 
+        $plagiarismfile->external_file_uuid = $response->file->uuid;
         if ($response->file->id) {
-            $plagiarismfile->external_file_id = $response->file->id;
-            $plagiarismfile->state = unplag_file_state::UPLOADED;
-            $plagiarismfile->errorresponse = null;
+            return unplag_upload_helper::upload_complete($plagiarismfile, $response->file);
         }
 
         return unplag_file_provider::save($plagiarismfile);
     }
 
     /**
+     * store_errors
+     *
      * @param array     $errors
      * @param \stdClass $plagiarismfile
      * @return bool
      */
-    private static function store_errors(array $errors, \stdClass $plagiarismfile) {
+    public static function store_errors(array $errors, \stdClass $plagiarismfile) {
         global $DB;
 
         $plagiarismfile->state = unplag_file_state::HAS_ERROR;
@@ -98,7 +111,7 @@ class unplag_response {
             );
 
             if (!$hasgoodchild) {
-                $parentplagiarismfile = unplag_stored_file::get_plagiarism_file_by_id($plagiarismfile->parent_id);
+                $parentplagiarismfile = unplag_file_provider::get_by_id($plagiarismfile->parent_id);
                 $parentplagiarismfile->state = unplag_file_state::HAS_ERROR;
                 $parentplagiarismfile->errorresponse = json_encode($errors);
 

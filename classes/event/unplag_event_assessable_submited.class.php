@@ -41,16 +41,22 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
 /**
  * Class unplag_event_file_submited
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_assessable_submited extends unplag_abstract_event {
     /**
-     * @param unplag_core $unplagcore
+     * handle event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
+    public function handle_event(unplag_core $core, base $event) {
 
-        $this->unplagcore = $unplagcore;
+        $this->ucore = $core;
 
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
         $submissionid = (!empty($submission->id) ? $submission->id : false);
@@ -67,15 +73,17 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
     }
 
     /**
+     * handle_file_plagiarism
+     *
      * @param \stored_file $file
      *
      * @return bool
      */
     private function handle_file_plagiarism(\stored_file $file) {
         if (\plagiarism_unplag::is_archive($file)) {
-            return (new unplag_archive($file, $this->unplagcore))->upload();
+            return (new unplag_archive($file, $this->ucore))->upload();
         }
 
-        return unplag_adhoc::upload($file, $this->unplagcore);
+        return unplag_adhoc::upload($file, $this->ucore);
     }
 }

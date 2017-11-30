@@ -40,13 +40,21 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_upload_task
  *
- * @package   plagiarism_unplag\classes\task
- * @namespace plagiarism_unplag\classes\task
- *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_upload_task extends unplag_abstract_task {
 
+    /**
+     * Key of pathname hash data parameter
+     */
     const PATHNAME_HASH = 'pathnamehash';
+    /**
+     * Key of ucore data parameter
+     */
     const UCORE_KEY = 'ucore';
 
     /**
@@ -59,6 +67,9 @@ class unplag_upload_task extends unplag_abstract_task {
      */
     protected $internalfile;
 
+    /**
+     * Execute of adhoc task
+     */
     public function execute() {
         $data = $this->get_custom_data();
         if (!is_object($data)) {
@@ -108,7 +119,7 @@ class unplag_upload_task extends unplag_abstract_task {
             }
 
             if ($supportedcount < 1) {
-                throw new unplag_exception(ARCHIVE_IS_EMPTY);
+                throw new unplag_exception(unplag_exception::ARCHIVE_IS_EMPTY);
             }
         } catch (\Exception $e) {
             $this->invalid_response($e->getMessage());
@@ -133,6 +144,8 @@ class unplag_upload_task extends unplag_abstract_task {
     }
 
     /**
+     * Process archive item
+     *
      * @param array $item
      */
     protected function process_archive_item(array $item) {
@@ -156,6 +169,8 @@ class unplag_upload_task extends unplag_abstract_task {
     }
 
     /**
+     * Process single stored file
+     *
      * @param \stored_file $file
      */
     protected function process_single_file(\stored_file $file) {

@@ -35,26 +35,32 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_event_onlinetext_submited
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_onlinetext_submited extends unplag_abstract_event {
     /**
-     * @param unplag_core $unplagcore
+     * handle_event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
+    public function handle_event(unplag_core $core, base $event) {
         if (empty($event->other['content'])) {
             return;
         }
 
-        $file = $unplagcore->create_file_from_content($event);
+        $file = $core->create_file_from_content($event);
 
         if (self::is_submition_draft($event)) {
             return;
         }
 
         if ($file) {
-            $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
+            $plagiarismentity = $core->get_plagiarism_entity($file);
             $plagiarismentity->upload_file_on_unplag_server();
             $this->add_after_handle_task($plagiarismentity);
         }

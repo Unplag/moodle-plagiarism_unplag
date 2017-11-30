@@ -36,21 +36,27 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_event_file_submited
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_file_submited extends unplag_abstract_event {
     /**
-     * @param unplag_core $unplagcore
+     * handle event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
+    public function handle_event(unplag_core $core, base $event) {
         if (self::is_submition_draft($event) ||
             !isset($event->other['pathnamehashes']) || empty($event->other['pathnamehashes'])
         ) {
             return;
         }
 
-        $this->unplagcore = $unplagcore;
+        $this->ucore = $core;
 
         foreach ($event->other['pathnamehashes'] as $pathnamehash) {
             $this->add_after_handle_task($this->handle_uploaded_file($pathnamehash));
@@ -60,7 +66,9 @@ class unplag_event_file_submited extends unplag_abstract_event {
     }
 
     /**
-     * @param $pathnamehash
+     * handle_uploaded_file
+     *
+     * @param string $pathnamehash
      *
      * @return null|unplag_plagiarism_entity
      */
@@ -69,7 +77,7 @@ class unplag_event_file_submited extends unplag_abstract_event {
         if ($file->is_directory()) {
             return null;
         }
-        $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
+        $plagiarismentity = $this->ucore->get_plagiarism_entity($file);
         $plagiarismentity->upload_file_on_unplag_server();
 
         return $plagiarismentity;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_file_provider.class.php
+ * unplag_upload_helper.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -23,14 +23,17 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace plagiarism_unplag\classes\entities\providers;
+namespace plagiarism_unplag\classes\helpers;
+
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
 /**
- * Class unplag_file_provider
+ * Class unplag_upload_helper
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -38,65 +41,38 @@ if (!defined('MOODLE_INTERNAL')) {
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class unplag_file_provider {
-
+class unplag_upload_helper {
     /**
-     * Update plagiarism file
+     * upload_complete
      *
-     * @param \stdClass $file
+     * @param \stdClass $plagiarismfile
+     * @param \stdClass $responsefile
      * @return bool
      */
-    public static function save(\stdClass $file) {
+    public static function upload_complete(\stdClass &$plagiarismfile, \stdClass $responsefile) {
         global $DB;
 
-        return $DB->update_record(UNPLAG_FILES_TABLE, $file);
-    }
+        $plagiarismfile->external_file_id = $responsefile->id;
+        $plagiarismfile->state = unplag_file_state::UPLOADED;
+        $plagiarismfile->errorresponse = null;
 
-    /**
-     * Get plagiarism file by id
-     *
-     * @param int $id
-     * @return mixed
-     */
-    public static function get_by_id($id) {
-        global $DB;
+        $updated = unplag_file_provider::save($plagiarismfile);
+        if (!$updated) {
+            return false;
+        }
 
-        return $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
-    }
+        if ($plagiarismfile->parent_id !== null) {
+            $parentrecord = unplag_file_provider::get_by_id($plagiarismfile->parent_id);
+            $childs = $DB->get_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND state in (?)",
+                [$plagiarismfile->parent_id, unplag_file_state::UPLOADING]);
 
-    /**
-     * Find plagiarism file by id
-     *
-     * @param int $id
-     * @return mixed
-     */
-    public static function find_by_id($id) {
-        global $DB;
+            if (!count($childs)) {
+                $parentrecord->state = unplag_file_state::UPLOADED;
+                $plagiarismfile->errorresponse = null;
+                unplag_file_provider::save($parentrecord);
+            }
+        }
 
-        return $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id]);
-    }
-
-    /**
-     * Find plagiarism file by check id
-     *
-     * @param int $checkid
-     * @return mixed
-     */
-    public static function find_by_check_id($checkid) {
-        global $DB;
-
-        return $DB->get_record(UNPLAG_FILES_TABLE, ['check_id' => $checkid]);
-    }
-
-    /**
-     * Find plagiarism files by ids
-     *
-     * @param array $ids
-     * @return array
-     */
-    public static function find_by_ids($ids) {
-        global $DB;
-
-        return $DB->get_records_list(UNPLAG_FILES_TABLE, 'id', $ids);
+        return $updated;
     }
 }

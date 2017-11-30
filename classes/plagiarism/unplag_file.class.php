@@ -36,8 +36,11 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_file
  *
- * @package   plagiarism_unplag\classes\plagiarism
- * @namespace plagiarism_unplag\classes\plagiarism
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 class unplag_file extends unplag_plagiarism_entity {
@@ -86,6 +89,8 @@ class unplag_file extends unplag_plagiarism_entity {
     }
 
     /**
+     * Get internal file
+     *
      * @return object
      */
     public function get_internal_file() {
@@ -138,6 +143,8 @@ class unplag_file extends unplag_plagiarism_entity {
     }
 
     /**
+     * Get stored file
+     *
      * @return \stored_file
      */
     public function stored_file() {
@@ -145,7 +152,10 @@ class unplag_file extends unplag_plagiarism_entity {
     }
 
     /**
-     * @param $mimetype
+     * Convert mimetype to ext
+     *
+     * @param string $mimetype
+     *
      * @return string|null
      */
     public function mimetype_to_format($mimetype) {
@@ -153,6 +163,8 @@ class unplag_file extends unplag_plagiarism_entity {
     }
 
     /**
+     * Prepare file for upload
+     *
      * @return array
      */
     protected function build_upload_data() {

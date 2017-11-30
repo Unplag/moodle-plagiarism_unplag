@@ -13,31 +13,48 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * OAuthUtil.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\library\OAuth;
+
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
 
 /**
  * Class OAuthUtil
  *
- * @package plagiarism_unplag\library\OAuth
+ * @package     plagiarism_unplag
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class OAuthUtil {
     /**
-     * @param      $header
-     * @param bool $only_allow_oauth_parameters
+     * split_header
+     *
+     * @param string $header
+     * @param bool   $onlyallowoauthparameters
      *
      * @return array
      */
-    public static function split_header($header, $only_allow_oauth_parameters = true) {
+    public static function split_header($header, $onlyallowoauthparameters = true) {
         $pattern = '/(([-_a-z]*)=("([^"]*)"|([^,]*)),?)/';
         $offset = 0;
         $params = array();
         while (preg_match($pattern, $header, $matches, PREG_OFFSET_CAPTURE, $offset) > 0) {
             $match = $matches[0];
-            $header_name = $matches[2][0];
-            $header_content = (isset($matches[5])) ? $matches[5][0] : $matches[4][0];
-            if (preg_match('/^oauth_/', $header_name) || !$only_allow_oauth_parameters) {
-                $params[$header_name] = OAuthUtil::urldecode_rfc3986($header_content);
+            $headername = $matches[2][0];
+            $headercontent = (isset($matches[5])) ? $matches[5][0] : $matches[4][0];
+            if (preg_match('/^oauth_/', $headername) || !$onlyallowoauthparameters) {
+                $params[$headername] = self::urldecode_rfc3986($headercontent);
             }
             $offset = $match[1] + strlen($match[0]);
         }
@@ -47,27 +64,29 @@ class OAuthUtil {
 
         return $params;
     }
-    // This decode function isn't taking into consideration the above
-    // modifications to the encoding process. However, this method doesn't
-    // seem to be used anywhere so leaving it as is.
 
     /**
-     * @param $string
+     * This decode function isn't taking into consideration the above
+     * modifications to the encoding process. However, this method doesn't
+     * seem to be used anywhere so leaving it as is.
+     *
+     * @param string $string
      *
      * @return string
      */
     public static function urldecode_rfc3986($string) {
         return urldecode($string);
     }
-    // Utility function for turning the Authorization: header into
-    // parameters, has to do some unescaping
-    // Can filter out any non-oauth parameters if needed (default behaviour).
 
     /**
+     * Utility function for turning the Authorization: header into
+     * parameters, has to do some unescaping
+     * Can filter out any non-oauth parameters if needed (default behaviour).
+     *
      * @return array|false
      */
     public static function get_headers() {
-        $headers = OAuthUtil::get_headers_internal();
+        $headers = self::get_headers_internal();
         if (!is_array($headers)) {
             return $headers;
         }
@@ -78,8 +97,9 @@ class OAuthUtil {
         return $headers;
     }
 
-    // Helper to try to sort out headers for people who aren't running apache.
     /**
+     * Helper to try to sort out headers for people who aren't running apache.
+     *
      * @return array|false
      */
     public static function get_headers_internal() {
@@ -97,9 +117,9 @@ class OAuthUtil {
                 // letter of every word that is not an initial HTTP and strip HTTP
                 // code from przemek.
                 $key = str_replace(
-                        " ",
-                        "-",
-                        ucwords(strtolower(str_replace("_", " ", substr($key, 5))))
+                    " ",
+                    "-",
+                    ucwords(strtolower(str_replace("_", " ", substr($key, 5))))
                 );
                 $out[$key] = $value;
             }
@@ -107,10 +127,12 @@ class OAuthUtil {
 
         return $out;
     }
-    // Helper to deal with proxy configurations that "eat" the Authorization:
-    // header on our behalf - fall back to the alternate Authorization header.
+
     /**
-     * @param $input
+     * Helper to deal with proxy configurations that "eat" the Authorization:
+     * header on our behalf - fall back to the alternate Authorization header.
+     *
+     * @param array $input
      *
      * @return array
      */
@@ -119,33 +141,34 @@ class OAuthUtil {
             return array();
         }
         $pairs = explode('&', $input);
-        $parsed_parameters = array();
+        $parsedparameters = array();
         foreach ($pairs as $pair) {
             $split = explode('=', $pair, 2);
-            $parameter = OAuthUtil::urldecode_rfc3986($split[0]);
-            $value = isset($split[1]) ? OAuthUtil::urldecode_rfc3986($split[1]) : '';
-            if (isset($parsed_parameters[$parameter])) {
+            $parameter = self::urldecode_rfc3986($split[0]);
+            $value = isset($split[1]) ? self::urldecode_rfc3986($split[1]) : '';
+            if (isset($parsedparameters[$parameter])) {
                 // We have already recieved parameter(s) with this name, so add to the list
                 // of parameters with this name.
-                if (is_scalar($parsed_parameters[$parameter])) {
+                if (is_scalar($parsedparameters[$parameter])) {
                     // This is the first duplicate, so transform scalar (string) into an array
                     // so we can add the duplicates.
-                    $parsed_parameters[$parameter] = array($parsed_parameters[$parameter]);
+                    $parsedparameters[$parameter] = array($parsedparameters[$parameter]);
                 }
-                $parsed_parameters[$parameter][] = $value;
+                $parsedparameters[$parameter][] = $value;
             } else {
-                $parsed_parameters[$parameter] = $value;
+                $parsedparameters[$parameter] = $value;
             }
         }
 
-        return $parsed_parameters;
+        return $parsedparameters;
     }
-    // This function takes a input like a=b&a=c&d=e and returns the parsed
-    // parameters like this
-    // array('a' => array('b','c'), 'd' => 'e')
 
     /**
-     * @param $params
+     * This function takes a input like a=b&a=c&d=e and returns the parsed
+     * parameters like this
+     * array('a' => array('b','c'), 'd' => 'e')
+     *
+     * @param array $params
      *
      * @return string
      */
@@ -154,32 +177,34 @@ class OAuthUtil {
             return '';
         }
         // Urlencode both keys and values.
-        $keys = OAuthUtil::urlencode_rfc3986(array_keys($params));
-        $values = OAuthUtil::urlencode_rfc3986(array_values($params));
+        $keys = self::urlencode_rfc3986(array_keys($params));
+        $values = self::urlencode_rfc3986(array_values($params));
         $params = array_combine($keys, $values);
         // Parameters are sorted by name, using lexicographical byte value ordering.
-        // Ref: Spec: 9.1.1 (1)
+        // Ref: Spec: 9.1.1 (1) .
         uksort($params, 'strcmp');
         $pairs = array();
         foreach ($params as $parameter => $value) {
             if (is_array($value)) {
                 // If two or more parameters share the same name, they are sorted by their value
-                // Ref: Spec: 9.1.1 (1)
+                // Ref: Spec: 9.1.1 (1) .
                 natsort($value);
-                foreach ($value as $duplicate_value) {
-                    $pairs[] = $parameter . '=' . $duplicate_value;
+                foreach ($value as $duplicatevalue) {
+                    $pairs[] = $parameter . '=' . $duplicatevalue;
                 }
             } else {
                 $pairs[] = $parameter . '=' . $value;
             }
         }
         // For each parameter, the name is separated from the corresponding value by an '=' character (ASCII code 61)
-        // Each name-value pair is separated by an '&' character (ASCII code 38)
+        // Each name-value pair is separated by an '&' character (ASCII code 38).
         return implode('&', $pairs);
     }
 
     /**
-     * @param $input
+     * urlencode_rfc3986
+     *
+     * @param mixed $input
      *
      * @return array|mixed|string
      */
@@ -189,9 +214,9 @@ class OAuthUtil {
         } else {
             if (is_scalar($input)) {
                 return str_replace(
-                        '+',
-                        ' ',
-                        str_replace('%7E', '~', rawurlencode($input))
+                    '+',
+                    ' ',
+                    str_replace('%7E', '~', rawurlencode($input))
                 );
             } else {
                 return '';

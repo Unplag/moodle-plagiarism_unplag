@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_exception.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes\exception;
 
@@ -23,9 +32,8 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class UnplagException
  *
- * @package plagiarism_unplag\classes\exception
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace plagiarism_unplag\classes\exception
  *
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
@@ -33,13 +41,15 @@ if (!defined('MOODLE_INTERNAL')) {
  */
 class unplag_exception extends \Exception {
     /**
-     * UnplagException constructor.
-     *
-     * @param string $errors
+     * ARCHIVE_IS_EMPTY
      */
-    public function __construct($errors) {
-        $errors = array_shift($errors);
-
-        throw new \InvalidArgumentException($errors->message);
-    }
+    const ARCHIVE_IS_EMPTY = 'Archive is empty or contains document(s) with no text';
+    /**
+     * ARCHIVE_CANT_BE_OPEN
+     */
+    const ARCHIVE_CANT_BE_OPEN = 'Can\'t open zip archive';
+    /**
+     * UNSUPPORTED_MIMETYPE
+     */
+    const UNSUPPORTED_MIMETYPE = 'Unsupported mimetype';
 }

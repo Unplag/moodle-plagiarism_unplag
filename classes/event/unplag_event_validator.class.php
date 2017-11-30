@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_event_validator.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes\event;
 
@@ -28,9 +37,8 @@ use plagiarism_plugin_unplag;
 /**
  * Class unplag_event_validator
  *
- * @package     plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace   plagiarism_unplag\classes\event
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -48,6 +56,8 @@ class unplag_event_validator {
     );
 
     /**
+     * validate_event
+     *
      * @param base $event
      *
      * @return bool
@@ -81,7 +91,9 @@ class unplag_event_validator {
     }
 
     /**
-     * @param $component
+     * is_allowed_component
+     *
+     * @param string $component
      *
      * @return bool
      */
@@ -90,7 +102,9 @@ class unplag_event_validator {
     }
 
     /**
-     * @param $cmid
+     * is_mod_enabled
+     *
+     * @param int $cmid
      *
      * @return bool
      */

@@ -24,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\helpers\unplag_stored_file;
 use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_core;
@@ -46,7 +47,7 @@ $modulecontext = context_module::instance($cmid);
 $pageparams = ['cmid' => $cmid, 'pf' => $pf];
 $cpf = optional_param('cpf', null, PARAM_INT); // Plagiarism child file id.
 if ($cpf !== null) {
-    $current = unplag_stored_file::get_plagiarism_file_by_id($cpf);
+    $current = unplag_file_provider::get_by_id($cpf);
     $currenttab = 'unplag_file_id_' . $current->id;
     $pageparams['cpf'] = $cpf;
 } else {

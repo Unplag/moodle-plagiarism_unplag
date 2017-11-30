@@ -13,9 +13,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_check_helper.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes\helpers;
 
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
@@ -29,18 +39,20 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_check_helper
  *
- * @package     plagiarism_unplag\classes\helpers
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace   plagiarism_unplag\classes\helpers
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_check_helper {
     /**
+     * check_complete
+     *
      * @param \stdClass $record
      * @param \stdClass $check
      * @param int       $progress
+     * @return bool
      */
     public static function check_complete(\stdClass &$record, \stdClass $check, $progress = 100) {
         global $DB;
@@ -54,7 +66,7 @@ class unplag_check_helper {
         $record->reportediturl = $check->report->view_edit_url;
         $record->progress = round($progress, 0, PHP_ROUND_HALF_DOWN);
 
-        $updated = $DB->update_record(UNPLAG_FILES_TABLE, $record);
+        $updated = unplag_file_provider::save($record);
 
         $emailstudents = unplag_settings::get_assign_settings($record->cm, 'unplag_studentemail');
         if ($updated && !empty($emailstudents)) {
@@ -90,9 +102,13 @@ class unplag_check_helper {
             $parentcheck = json_decode(json_encode($parentcheck));
             self::check_complete($parentrecord, $parentcheck, $parentprogress);
         }
+
+        return $updated;
     }
 
     /**
+     * run_plagiarism_detection
+     *
      * @param \stdClass $plagiarismfile
      */
     public static function run_plagiarism_detection(\stdClass $plagiarismfile) {

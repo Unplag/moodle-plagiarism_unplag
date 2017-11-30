@@ -13,12 +13,22 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_core.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes;
 
 use context_module;
 use core\event\base;
 use plagiarism_unplag;
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
 use plagiarism_unplag\classes\services\storage\unplag_file_state;
@@ -30,9 +40,8 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_core
  *
- * @package     plagiarism_unplag\classes
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -56,8 +65,8 @@ class unplag_core {
     /**
      * unplag_core constructor.
      *
-     * @param $cmid
-     * @param $userid
+     * @param int $cmid
+     * @param int $userid
      */
     public function __construct($cmid, $userid) {
         $this->cmid = $cmid;
@@ -65,7 +74,9 @@ class unplag_core {
     }
 
     /**
-     * @param $data
+     * Convert array to json
+     *
+     * @param array $data
      *
      * @return string
      */
@@ -74,13 +85,15 @@ class unplag_core {
     }
 
     /**
-     * @param $id
-     * @return bool
+     * resubmit_file
+     *
+     * @param int $id
+     *
+     * @return null
+     * @throws \coding_exception
      */
     public static function resubmit_file($id) {
-        global $DB;
-
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
+        $plagiarismfile = unplag_file_provider::get_by_id($id);
         if (in_array($plagiarismfile->state,
             [unplag_file_state::UPLOADED, unplag_file_state::CHECKING, unplag_file_state::CHECKED])
         ) {
@@ -113,7 +126,9 @@ class unplag_core {
     }
 
     /**
-     * @param      $file
+     * get_plagiarism_entity
+     *
+     * @param  \stored_file $file
      *
      * @return null|unplag_file|unplag_plagiarism_entity
      */
@@ -128,7 +143,9 @@ class unplag_core {
     }
 
     /**
-     * @param $data
+     * parse_json
+     *
+     * @param string $data
      *
      * @return mixed
      */
@@ -137,8 +154,10 @@ class unplag_core {
     }
 
     /**
-     * @param $contextid
-     * @param $contenthash
+     * get_file_by_hash
+     *
+     * @param int    $contextid
+     * @param string $contenthash
      *
      * @return null|\stored_file
      */
@@ -158,6 +177,9 @@ class unplag_core {
         return get_file_storage()->get_file_instance(array_shift($filerecord));
     }
 
+    /**
+     * migrate_users_access
+     */
     public static function migrate_users_access() {
         global $DB;
 
@@ -175,6 +197,8 @@ class unplag_core {
     }
 
     /**
+     * create_file_from_content
+     *
      * @param base $event
      *
      * @return bool|\stored_file
@@ -217,7 +241,9 @@ class unplag_core {
     }
 
     /**
-     * @param $content
+     * Get content hash
+     *
+     * @param mixed $content
      *
      * @return string
      */
@@ -226,6 +252,8 @@ class unplag_core {
     }
 
     /**
+     * inject_comment_token
+     *
      * @param string $url
      * @param int    $cmid
      */
@@ -234,7 +262,9 @@ class unplag_core {
     }
 
     /**
-     * @param             $cmid
+     * get_external_token
+     *
+     * @param int         $cmid
      * @param null|object $user
      *
      * @return mixed
@@ -262,10 +292,14 @@ class unplag_core {
                 return $externaluserdata->external_token;
             }
         }
+
+        return null;
     }
 
     /**
-     * @param $cmid
+     * is_teacher
+     *
+     * @param int $cmid
      *
      * @return bool
      */
@@ -274,8 +308,10 @@ class unplag_core {
     }
 
     /**
-     * @param $cmid
-     * @param $permission
+     * Check capability
+     *
+     * @param string $permission
+     * @param int    $cmid
      *
      * @return bool
      */
@@ -286,6 +322,8 @@ class unplag_core {
     }
 
     /**
+     * delete_old_file_from_content
+     *
      * @param \stored_file $storedfile
      */
     private function delete_old_file_from_content(\stored_file $storedfile) {
@@ -301,6 +339,8 @@ class unplag_core {
     }
 
     /**
+     * enable_teamsubmission
+     *
      * @return $this
      */
     public function enable_teamsubmission() {
@@ -310,6 +350,8 @@ class unplag_core {
     }
 
     /**
+     * is_teamsubmission_mode
+     *
      * @return bool
      */
     public function is_teamsubmission_mode() {
@@ -317,6 +359,8 @@ class unplag_core {
     }
 
     /**
+     * Get user
+     *
      * @param null|int $uid
      *
      * @return object

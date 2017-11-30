@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_callback.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes;
 
@@ -28,15 +37,16 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_callback
  *
- * @package     plagiarism_unplag\classes
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace   plagiarism_unplag\classes
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_callback {
     /**
+     * Handle callback
+     *
      * @param \stdClass $body
      * @param string    $token
      *
@@ -60,49 +70,48 @@ class unplag_callback {
     }
 
     /**
-     * @param \stdClass $body
-     * @param           $token
-     * @throws InvalidArgumentException
+     * file_upload_success
      *
-     * @used-by handle
+     * @param \stdClass $body
+     * @param  string   $identifier
+     * @throws InvalidArgumentException
      */
-    private function file_upload_success(\stdClass $body, $token) {
+    private function file_upload_success(\stdClass $body, $identifier) {
         if (!isset($body->file)) {
             throw new InvalidArgumentException('File data does not exist');
         }
 
-        $internalfile = unplag_stored_file::get_plagiarism_file_by_identifier($token);
+        $internalfile = unplag_stored_file::get_plagiarism_file_by_identifier($identifier);
 
         unplag_response::process_after_upload($body, $internalfile);
-
         unplag_adhoc::check($internalfile);
     }
 
     /**
-     * @param \stdClass $body
-     * @param           $token
+     * file_upload_error
      *
-     * @used-by handle
+     * @param \stdClass $body
+     * @param string    $identifier
      */
-    private function file_upload_error(\stdClass $body, $token) {
-        $internalfile = unplag_stored_file::get_plagiarism_file_by_identifier($token);
+    private function file_upload_error(\stdClass $body, $identifier) {
+        $internalfile = unplag_stored_file::get_plagiarism_file_by_identifier($identifier);
 
         unplag_response::process_after_upload($body, $internalfile);
     }
 
     /**
-     * @param \stdClass $body
-     * @param           $token
-     * @throws InvalidArgumentException
+     * similarity_check_finish
      *
-     * @used-by handle
+     * @param \stdClass $body
+     * @param string    $identifier
+     * @throws InvalidArgumentException
      */
-    private function similarity_check_finish(\stdClass $body, $token) {
+    private function similarity_check_finish(\stdClass $body, $identifier) {
         if (!isset($body->check)) {
             throw new InvalidArgumentException('Check data does not exist');
         }
 
-        $internalfile = unplag_stored_file::get_plagiarism_file_by_identifier($token);
+        $internalfile = unplag_stored_file::get_plagiarism_file_by_identifier($identifier);
         $progress = 100 * $body->check->progress;
         unplag_check_helper::check_complete($internalfile, $body->check, $progress);
     }

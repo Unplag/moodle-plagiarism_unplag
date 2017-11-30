@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_translate.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes\helpers;
 
@@ -23,17 +32,18 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_translate
  *
- * @package     plagiarism_unplag\classes\helpers
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace   plagiarism_unplag\classes\helpers
  * @author      Vadim Titov <v.titov@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait unplag_translate {
     /**
-     * @param      $message
-     * @param null $param
+     * Translate
+     *
+     * @param string $message
+     * @param null   $param
      *
      * @return string
      */
@@ -42,7 +52,9 @@ trait unplag_translate {
     }
 
     /**
-     * @param $error
+     * Translate api error response
+     *
+     * @param array $error
      *
      * @return string
      */

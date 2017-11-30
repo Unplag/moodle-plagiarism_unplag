@@ -32,16 +32,48 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_api
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_api {
+    /**
+     * ACCESS_SCOPE_WRITE
+     */
     const ACCESS_SCOPE_WRITE = 'w';
+    /**
+     * ACCESS_SCOPE_READ
+     */
     const ACCESS_SCOPE_READ = 'r';
+    /**
+     * CHECK_PROGRESS
+     */
     const CHECK_PROGRESS = 'check/progress';
+    /**
+     * CHECK_GET
+     */
     const CHECK_GET = 'check/get';
+    /**
+     * FILE_UPLOAD
+     */
     const FILE_UPLOAD = 'file/async_upload';
+    /**
+     * TRACK_UPLOAD
+     */
+    const TRACK_UPLOAD = 'file/trackfileupload';
+    /**
+     * CHECK_CREATE
+     */
     const CHECK_CREATE = 'check/create';
+    /**
+     * CHECK_DELETE
+     */
     const CHECK_DELETE = 'check/delete';
+    /**
+     * USER_CREATE
+     */
     const USER_CREATE = 'user/create';
     /**
      * @var null|unplag_api
@@ -49,6 +81,8 @@ class unplag_api {
     private static $instance = null;
 
     /**
+     * Get instance
+     *
      * @return null|static
      */
     final public static function instance() {
@@ -56,13 +90,16 @@ class unplag_api {
     }
 
     /**
-     * @param        $content
-     * @param        $filename
-     * @param string $format
-     * @param        $cmid
-     * @param null   $owner
-     * @param        $internalfile
-     * @return object|\stdClass
+     * Upload file
+     *
+     * @param string|resource $content
+     * @param string          $filename
+     * @param string          $format
+     * @param integer         $cmid
+     * @param object|null     $owner
+     * @param \stdClass       $internalfile
+     *
+     * @return \stdClass
      */
     public function upload_file(&$content, $filename, $format = 'html', $cmid, $owner = null, $internalfile) {
         global $CFG;
@@ -108,6 +145,8 @@ class unplag_api {
     }
 
     /**
+     * Run check
+     *
      * @param \stdClass $file
      *
      * @return \stdClass
@@ -139,6 +178,8 @@ class unplag_api {
     }
 
     /**
+     * Get check progress
+     *
      * @param array $checkids
      *
      * @return mixed
@@ -154,7 +195,22 @@ class unplag_api {
     }
 
     /**
-     * @param $id
+     * Track file upload progress
+     *
+     * @param string $token
+     *
+     * @return mixed
+     */
+    public function get_file_upload_progress($token) {
+        return unplag_api_request::instance()->http_get()->request(self::TRACK_UPLOAD, [
+            'uuid' => $token
+        ]);
+    }
+
+    /**
+     * Get check data
+     *
+     * @param int $id
      *
      * @return \stdClass
      */
@@ -169,6 +225,8 @@ class unplag_api {
     }
 
     /**
+     * Delete check
+     *
      * @param \stdClass $file
      *
      * @return mixed
@@ -184,8 +242,10 @@ class unplag_api {
     }
 
     /**
-     * @param      $user
-     * @param bool $cancomment
+     * Create user
+     *
+     * @param object $user
+     * @param bool   $cancomment
      *
      * @return mixed
      */
@@ -202,8 +262,10 @@ class unplag_api {
     }
 
     /**
-     * @param $cmid
-     * @param $options
+     * Set advanced check options
+     *
+     * @param int   $cmid
+     * @param array $options
      */
     private function advanced_check_options($cmid, &$options) {
         $options['exclude_self_plagiarism'] = 1;

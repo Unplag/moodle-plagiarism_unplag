@@ -13,32 +13,51 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * OAuthConsumer.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\library\OAuth;
+
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
 
 /**
  * Class OAuthConsumer
  *
- * @package plagiarism_unplag\library\OAuth
+ * @package     plagiarism_unplag
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class OAuthConsumer {
+    /** @var string */
     public $key;
+    /** @var string */
     public $secret;
 
     /**
      * OAuthConsumer constructor.
      *
-     * @param      $key
-     * @param      $secret
-     * @param null $callback_url
+     * @param string $key
+     * @param string $secret
+     * @param null   $callbackurl
      */
-    public function __construct($key, $secret, $callback_url = null) {
+    public function __construct($key, $secret, $callbackurl = null) {
         $this->key = $key;
         $this->secret = $secret;
-        $this->callback_url = $callback_url;
+        $this->callback_url = $callbackurl;
     }
 
     /**
+     * To string
+     *
      * @return string
      */
     public function __toString() {

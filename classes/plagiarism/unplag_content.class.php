@@ -36,8 +36,11 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_content
  *
- * @package   plagiarism_unplag\classes\plagiarism
- * @namespace plagiarism_unplag\classes\plagiarism
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 class unplag_content extends unplag_plagiarism_entity {
@@ -63,7 +66,7 @@ class unplag_content extends unplag_plagiarism_entity {
      *
      * @param unplag_core $core
      * @param string      $content
-     * @param             $name
+     * @param string      $name
      * @param null        $ext
      * @param null        $parentid
      *
@@ -83,6 +86,8 @@ class unplag_content extends unplag_plagiarism_entity {
     }
 
     /**
+     * Get internal file
+     *
      * @return object
      */
     public function get_internal_file() {
@@ -94,11 +99,11 @@ class unplag_content extends unplag_plagiarism_entity {
 
         $plagiarismfile = null;
         try {
-            $filedata = array(
+            $filedata = [
                 'cm'         => $this->cmid(),
                 'userid'     => $this->userid(),
                 'identifier' => sha1($this->name . $this->cmid() . UNPLAG_DEFAULT_FILES_AREA . $this->parentid),
-            );
+            ];
 
             if ($this->core->is_teamsubmission_mode()) {
                 unset($filedata['userid']);
@@ -108,12 +113,12 @@ class unplag_content extends unplag_plagiarism_entity {
             $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, $filedata);
 
             if (empty($plagiarismfile)) {
-                $plagiarismfile = $this->new_plagiarismfile(array(
+                $plagiarismfile = $this->new_plagiarismfile([
                     'cm'         => $this->cmid(),
                     'userid'     => $this->userid(),
                     'identifier' => $filedata['identifier'],
                     'filename'   => $this->name,
-                ));
+                ]);
 
                 if ($this->parentid) {
                     $plagiarismfile->parent_id = $this->parentid;
@@ -135,6 +140,8 @@ class unplag_content extends unplag_plagiarism_entity {
     }
 
     /**
+     * Get content
+     *
      * @return string
      */
     public function get_content() {
@@ -142,6 +149,8 @@ class unplag_content extends unplag_plagiarism_entity {
     }
 
     /**
+     * Set content
+     *
      * @param string $content
      */
     public function set_content($content) {
@@ -149,15 +158,17 @@ class unplag_content extends unplag_plagiarism_entity {
     }
 
     /**
+     * Build upload data
+     *
      * @return array
      */
     protected function build_upload_data() {
-        return array(
+        return [
             $this->get_content(),
             $this->name,
             $this->ext,
             $this->cmid(),
             unplag_core::get_user($this->userid())
-        );
+        ];
     }
 }

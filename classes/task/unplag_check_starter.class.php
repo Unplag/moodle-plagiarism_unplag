@@ -24,8 +24,8 @@
 
 namespace plagiarism_unplag\classes\task;
 
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
-use plagiarism_unplag\classes\helpers\unplag_stored_file;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -34,11 +34,21 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_bulk_check_assign_files
  *
- * @package plagiarism_unplag\classes\task
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_check_starter extends unplag_abstract_task {
 
+    /**
+     * Key of plugin file id data parameter
+     */
     const PLUGIN_FILE_ID_KEY = 'plugin_file_id';
+    /**
+     * Key of ucore data parameter
+     */
     const UCORE_KEY = 'ucore';
 
     /**
@@ -46,6 +56,9 @@ class unplag_check_starter extends unplag_abstract_task {
      */
     protected $internalfile;
 
+    /**
+     * Execute of adhoc task
+     */
     public function execute() {
         $data = $this->get_custom_data();
         if (!is_object($data)) {
@@ -56,9 +69,15 @@ class unplag_check_starter extends unplag_abstract_task {
             return;
         }
 
-        $file = unplag_stored_file::find_plagiarism_file_by_id($data->plugin_file_id);
+        $file = unplag_file_provider::find_by_id($data->plugin_file_id);
         if (!$file) {
             mtrace("File not found. Skipped. Plugin file id: {$data->plugin_file_id}");
+
+            return;
+        }
+
+        if ($file->check_id) {
+            mtrace("File already checked. Skipped. Plugin file id: {$data->plugin_file_id}");
 
             return;
         }

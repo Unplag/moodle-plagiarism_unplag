@@ -14,6 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * upgrade.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylec <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 use plagiarism_unplag\classes\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -24,7 +34,15 @@ require_once(dirname(__FILE__) . '/../constants.php');
 require_once(dirname(__FILE__) . '/../autoloader.php');
 
 /**
- * @param $oldversion
+ * Plugin upgrades
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylec <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @param int $oldversion
  *
  * @return bool
  * @throws ddl_exception
@@ -99,10 +117,12 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         $table->add_key('user_id', XMLDB_KEY_FOREIGN, ['user_id'], 'user', 'id');
 
         $dbman->create_table($table);
+        upgrade_plugin_savepoint(true, 2016112200, 'plagiarism', 'unplag');
     }
 
     if ($oldversion < 2017012300) {
         unplag_core::migrate_users_access();
+        upgrade_plugin_savepoint(true, 2017012300, 'plagiarism', 'unplag');
     }
 
     if ($oldversion < 2017112900) {
@@ -139,6 +159,11 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
                 $DB->update_record('plagiarism_unplag_files', $file);
             }
             $files->close(); // Don't forget to close the recordset!
+        }
+
+        $field = new xmldb_field('external_file_uuid', XMLDB_TYPE_CHAR, '63', null, null, null, null, 'state');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
         }
 
         // Unicheck savepoint reached.

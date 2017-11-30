@@ -26,9 +26,7 @@
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
-use plagiarism_unplag\classes\helpers\unplag_check_helper;
-use plagiarism_unplag\classes\helpers\unplag_response;
-use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_plagiarism_entity;
@@ -40,7 +38,11 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_abstract_event
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class unplag_abstract_event {
     /** @var */
@@ -48,9 +50,11 @@ abstract class unplag_abstract_event {
     /** @var array */
     protected $tasks = [];
     /** @var unplag_core */
-    protected $unplagcore;
+    protected $ucore;
 
     /**
+     * Get instance
+     *
      * @return static
      */
     public static function instance() {
@@ -64,6 +68,8 @@ abstract class unplag_abstract_event {
     }
 
     /**
+     * is_submition_draft
+     *
      * @param base $event
      *
      * @return bool
@@ -86,7 +92,7 @@ abstract class unplag_abstract_event {
     }
 
     /**
-     *
+     * after_handle_event
      */
     protected function after_handle_event() {
         if (empty($this->tasks)) {
@@ -98,23 +104,26 @@ abstract class unplag_abstract_event {
             if ($plagiarismentity instanceof unplag_plagiarism_entity) {
                 $internalfile = $plagiarismentity->get_internal_file();
                 if (isset($internalfile->external_file_id) && !isset($internalfile->check_id)) {
-                    $checkresp = unplag_api::instance()->run_check($internalfile);
-                    unplag_response::handle_check_response($checkresp, $internalfile);
+                    unplag_adhoc::check($internalfile);
                 }
             }
         }
     }
 
     /**
-     * @param $plagiarismentity
+     * add_after_handle_task
+     *
+     * @param unplag_plagiarism_entity $plagiarismentity
      */
     protected function add_after_handle_task($plagiarismentity) {
         array_push($this->tasks, $plagiarismentity);
     }
 
     /**
-     * @param unplag_core $unplagcore
+     * handle_event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    abstract public function handle_event(unplag_core $unplagcore, base $event);
+    abstract public function handle_event(unplag_core $core, base $event);
 }

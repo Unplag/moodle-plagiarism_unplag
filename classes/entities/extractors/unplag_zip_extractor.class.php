@@ -72,7 +72,7 @@ class unplag_zip_extractor implements unplag_extractor_interface {
         $this->ziparch = new \zip_archive();
 
         if (!$this->ziparch->open($this->tmpzipfile, \file_archive::OPEN)) {
-            throw new unplag_exception(ARCHIVE_CANT_BE_OPEN);
+            throw new unplag_exception(unplag_exception::ARCHIVE_CANT_BE_OPEN);
         }
     }
 
@@ -86,7 +86,7 @@ class unplag_zip_extractor implements unplag_extractor_interface {
         global $CFG;
 
         if ($this->ziparch->count() == 0) {
-            throw new unplag_exception(ARCHIVE_IS_EMPTY);
+            throw new unplag_exception(unplag_exception::ARCHIVE_IS_EMPTY);
         }
 
         foreach ($this->ziparch as $file) {

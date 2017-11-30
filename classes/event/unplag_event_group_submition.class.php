@@ -38,14 +38,20 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_event_group_submition
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_group_submition extends unplag_abstract_event {
     /**
-     * @param unplag_core $unplagcore
+     * handle event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
+    public function handle_event(unplag_core $core, base $event) {
 
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
         if (!$submission) {
@@ -64,11 +70,11 @@ class unplag_event_group_submition extends unplag_abstract_event {
             return;
         }
 
-        $unplagcore->enable_teamsubmission();
+        $core->enable_teamsubmission();
 
         $assignfiles = unplag_assign::get_area_files($event->contextid);
         foreach ($assignfiles as $assignfile) {
-            $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile);
+            $plagiarismentity = $core->get_plagiarism_entity($assignfile);
             $internalfile = $plagiarismentity->get_internal_file();
 
             if ($internalfile->state == unplag_file_state::CHECKED) {
@@ -76,7 +82,7 @@ class unplag_event_group_submition extends unplag_abstract_event {
             }
 
             if (\plagiarism_unplag::is_archive($assignfile)) {
-                $unplagarchive = new unplag_archive($assignfile, $unplagcore);
+                $unplagarchive = new unplag_archive($assignfile, $core);
                 $unplagarchive->upload();
 
                 continue;
@@ -96,7 +102,9 @@ class unplag_event_group_submition extends unplag_abstract_event {
     }
 
     /**
-     * @param $assign
+     * all_users_confirm_submition
+     *
+     * @param mixed $assign
      *
      * @return bool
      */

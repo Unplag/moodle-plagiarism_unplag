@@ -35,10 +35,20 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_plagiarism_entity
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class unplag_plagiarism_entity {
+    /**
+     * TYPE_ARCHIVE
+     */
     const TYPE_ARCHIVE = 'archive';
+    /**
+     * TYPE_DOCUMENT
+     */
     const TYPE_DOCUMENT = 'document';
     /** @var unplag_core */
     protected $core;
@@ -46,16 +56,22 @@ abstract class unplag_plagiarism_entity {
     protected $plagiarismfile;
 
     /**
+     * get_internal_file
+     *
      * @return object
      */
     abstract public function get_internal_file();
 
     /**
+     * build_upload_data
+     *
      * @return array
      */
     abstract protected function build_upload_data();
 
     /**
+     * Get cmid
+     *
      * @return integer
      */
     protected function cmid() {
@@ -63,6 +79,8 @@ abstract class unplag_plagiarism_entity {
     }
 
     /**
+     * Get userid
+     *
      * @return integer
      */
     protected function userid() {
@@ -70,7 +88,9 @@ abstract class unplag_plagiarism_entity {
     }
 
     /**
-     * @param $data
+     * Create new plagiarismfile
+     *
+     * @param array $data
      *
      * @return null|\stdClass
      */
@@ -99,6 +119,8 @@ abstract class unplag_plagiarism_entity {
     }
 
     /**
+     * Upload file on server
+     *
      * @return object
      */
     public function upload_file_on_unplag_server() {

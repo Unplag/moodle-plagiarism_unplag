@@ -37,10 +37,14 @@ require_once($CFG->libdir . '/formslib.php');
 
 /**
  * Class unplag_setup_form
+ *
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_setup_form extends moodleform {
-    // Define the form.
     /**
+     * Define the form
+     *
      * @throws coding_exception
      */
     public function definition() {
@@ -85,6 +89,9 @@ class unplag_setup_form extends moodleform {
 
 /**
  * Class unplag_defaults_form
+ *
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_defaults_form extends moodleform {
     /** @var bool */
@@ -114,9 +121,9 @@ class unplag_defaults_form extends moodleform {
         }
     }
 
-    // Define the form.
-
     /**
+     * Define the form
+     *
      * @throws coding_exception
      */
     public function definition() {

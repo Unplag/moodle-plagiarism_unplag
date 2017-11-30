@@ -49,23 +49,26 @@ require_once(dirname(__FILE__) . '/locallib.php');
 
 /**
  * Class plagiarism_plugin_unplag
+ *
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class plagiarism_plugin_unplag extends plagiarism_plugin {
     /**
+     * Get default_plugin_options
+     *
      * @return string[]
      */
-    public static function default_plagin_options() {
+    public static function default_plugin_options() {
         return ['unplag_use', 'unplag_enable_mod_assign', 'unplag_enable_mod_forum', 'unplag_enable_mod_workshop'];
     }
 
     /**
      * Hook to allow plagiarism specific information to be displayed beside a submission.
      *
-     * @param $linkarray
+     * @param array $linkarray all relevant information for the plugin to generate a link.
      *
      * @return string
-     * @internal param array $linkarraycontains all relevant information for the plugin to generate a link.
-     *
      */
     public function get_links($linkarray) {
 
@@ -97,7 +100,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     *  hook to save plagiarism specific settings on a module settings page
+     * Hook to save plagiarism specific settings on a module settings page
      *
      * @param object $data - data from an mform submission.
      */
@@ -171,6 +174,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
+     * Checking whether module supported
+     *
      * @param string $modulename
      *
      * @return bool
@@ -192,12 +197,10 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
      * @param object $mform   - Moodle form
      * @param object $context - current context
      * @param string $modulename
-     *
-     * @return null
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
         if ($modulename && !self::is_enabled_module($modulename)) {
-            return null;
+            return;
         }
 
         $cmid = optional_param('update', 0, PARAM_INT); // Get cm as $this->_cm is not available here.
@@ -222,9 +225,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         } else { // Add plagiarism settings as hidden vars.
             $this->add_plagiarism_hidden_vars($plagiarismelements, $mform);
         }
+
+        return;
     }
 
     /**
+     * Disable elements if not use
+     *
      * @param array  $plagiarismelements
      * @param object $mform - Moodle form
      */
@@ -238,6 +245,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
+     * Add plagiarism hidden vars
+     *
      * @param array  $plagiarismelements
      * @param object $mform - Moodle form
      */
@@ -277,6 +286,9 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         return $outputhtml;
     }
 
+    /**
+     * Workaround MDL-52702 before version 3.1.
+     */
     public function cron() {
         // Do nothing.
         // Workaround MDL-52702 before version 3.1.

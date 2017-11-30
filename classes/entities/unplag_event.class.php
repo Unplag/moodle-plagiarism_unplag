@@ -41,13 +41,18 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_archive
  *
- * @package plagiarism_unplag\classes\entities
- * @namespace plagiarism_unplag\classes\entities
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 class unplag_event {
 
     /**
+     * Process event
+     *
      * @param base $event
      */
     public function process(base $event) {
@@ -86,6 +91,8 @@ class unplag_event {
     }
 
     /**
+     * Check is upload event detected
+     *
      * @param base $event
      *
      * @return bool
@@ -102,6 +109,8 @@ class unplag_event {
     }
 
     /**
+     * Check is assign submitted
+     *
      * @param base $event
      *
      * @return bool
@@ -111,6 +120,8 @@ class unplag_event {
     }
 
     /**
+     * Check is workshop swiched
+     *
      * @param base $event
      *
      * @return bool

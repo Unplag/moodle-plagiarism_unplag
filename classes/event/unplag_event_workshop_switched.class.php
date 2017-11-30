@@ -39,19 +39,25 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
 /**
  * Class unplag_event_file_submited
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_workshop_switched extends unplag_abstract_event {
     /**
-     * @param unplag_core $unplagcore
+     * handle event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
+    public function handle_event(unplag_core $core, base $event) {
 
         if (!empty($event->other['workshopphase'])
             && $event->other['workshopphase'] == UNPLAG_WORKSHOP_ASSESSMENT_PHASE
         ) { // Assessment phase.
-            $this->unplagcore = $unplagcore;
+            $this->ucore = $core;
 
             $unplagfiles = plagiarism_unplag::get_area_files($event->contextid, UNPLAG_WORKSHOP_FILES_AREA);
             $assignfiles = get_file_storage()->get_area_files($event->contextid,
@@ -69,13 +75,15 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
     }
 
     /**
+     * handle_file_plagiarism
+     *
      * @param \stored_file $file
      *
      * @return bool
      */
     private function handle_file_plagiarism($file) {
-        $this->unplagcore->userid = $file->get_userid();
+        $this->ucore->userid = $file->get_userid();
 
-        return unplag_adhoc::upload($file, $this->unplagcore);
+        return unplag_adhoc::upload($file, $this->ucore);
     }
 }
