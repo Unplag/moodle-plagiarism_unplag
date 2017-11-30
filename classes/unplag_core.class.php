@@ -31,7 +31,6 @@ use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
-use plagiarism_unplag\classes\services\storage\unplag_file_state;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -88,16 +87,11 @@ class unplag_core {
      * resubmit_file
      *
      * @param int $id
-     *
-     * @return null
-     * @throws \coding_exception
+     * @return bool
      */
     public static function resubmit_file($id) {
         $plagiarismfile = unplag_file_provider::get_by_id($id);
-        if (in_array($plagiarismfile->state,
-            [unplag_file_state::UPLOADED, unplag_file_state::CHECKING, unplag_file_state::CHECKED])
-        ) {
-            // Sanity Check.
+        if (!unplag_file_provider::can_start_check($plagiarismfile)) {
             return false;
         }
 

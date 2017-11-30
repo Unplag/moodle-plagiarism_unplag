@@ -246,9 +246,9 @@ class plagiarism_unplag {
      */
     public function track_progress($data) {
         $data = unplag_core::parse_json($data);
-        $resp = null;
+        $resp = [];
         $records = unplag_file_provider::find_by_ids($data->ids);
-        if ($records) {
+        if (!empty($records)) {
             $checkstatusforids = [];
             try {
                 foreach ($records as $record) {

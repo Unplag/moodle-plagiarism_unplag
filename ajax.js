@@ -22,20 +22,20 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 /** global: M */
-M.plagiarism_unplag = {
+M.plagiarismUnplag = {
     interval: null,
     items: []
 };
 
-M.plagiarism_unplag.init = function (Y, contextid) {
-    var handle_record = function (record) {
+M.plagiarismUnplag.init = function(Y, contextid) {
+    var handleRecord = function(record) {
         var existing = Y.one('.un_report.fid-' + record.file_id);
         if (!existing) {
             return;
         }
 
         if (record.progress === 100 || record.state === 'HAS_ERROR') {
-            var items = M.plagiarism_unplag.items;
+            var items = M.plagiarismUnplag.items;
             items.splice(items.indexOf(record.file_id), 1);
 
             existing.insert(record.content, 'after').remove();
@@ -44,11 +44,11 @@ M.plagiarism_unplag.init = function (Y, contextid) {
         }
     };
 
-    var track_progress = function (Y, items, contextid) {
+    var trackProgress = function(Y, items, contextid) {
 
         if (!items[0]) {
-            clearInterval(M.plagiarism_unplag.interval);
-            return false;
+            clearInterval(M.plagiarismUnplag.interval);
+            return;
         }
 
         var url = M.cfg.wwwroot + '/plagiarism/unplag/ajax.php';
@@ -66,16 +66,16 @@ M.plagiarism_unplag.init = function (Y, contextid) {
                 })
             },
             on: {
-                success: function (tid, response) {
+                success: function(tid, response) {
                     var jsondata = Y.JSON.parse(response.responseText);
                     if (!jsondata) {
                         return false;
                     }
 
-                    Y.each(jsondata, handle_record);
+                    Y.each(jsondata, handleRecord);
                 },
-                failure: function () {
-                    M.plagiarism_unplag.items = [];
+                failure: function() {
+                    M.plagiarismUnplag.items = [];
                 }
             }
         };
@@ -83,23 +83,23 @@ M.plagiarism_unplag.init = function (Y, contextid) {
         Y.io(url, callback);
     };
 
-    var collect_items = function () {
-        Y.all('.un_report .un_data').each(function (row) {
+    var collectItems = function() {
+        Y.all('.un_report .un_data').each(function(row) {
             var jsondata = Y.JSON.parse(row.getHTML());
-            M.plagiarism_unplag.items.push(jsondata.fid);
+            M.plagiarismUnplag.items.push(jsondata.fid);
         });
     };
 
-    var run_plagin = function () {
+    var runPlagin = function() {
 
-        collect_items();
+        collectItems();
 
-        if (M.plagiarism_unplag.items.length) {
-            M.plagiarism_unplag.interval = setInterval(function () {
-                track_progress(Y, M.plagiarism_unplag.items, contextid);
+        if (M.plagiarismUnplag.items.length) {
+            M.plagiarismUnplag.interval = setInterval(function() {
+                trackProgress(Y, M.plagiarismUnplag.items, contextid);
             }, 3000);
         }
     };
 
-    run_plagin();
+    runPlagin();
 };

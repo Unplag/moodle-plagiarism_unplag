@@ -29,7 +29,6 @@ use plagiarism_unplag\classes\entities\extractors\unplag_extractor_interface;
 use plagiarism_unplag\classes\entities\extractors\unplag_zip_extractor;
 use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\exception\unplag_exception;
-use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
@@ -119,7 +118,7 @@ class unplag_archive {
         try {
             return $this->extractor->extract();
         } catch (\Exception $ex) {
-            $this->invalid_response($ex->getMessage());
+            unplag_file_provider::to_error_state($this->archive, $ex->getMessage());
         }
     }
 
@@ -136,11 +135,9 @@ class unplag_archive {
      * Restart check
      */
     public function restart_check() {
-        global $DB;
-
         $internalfile = $this->core->get_plagiarism_entity($this->file)->get_internal_file();
-        $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$internalfile->id]);
-        if ($childs) {
+        $childs = unplag_file_provider::get_file_list_by_parent_id($internalfile->id);
+        if (count($childs)) {
             foreach ((object) $childs as $child) {
                 if ($child->check_id) {
                     unplag_api::instance()->delete_check($child);
@@ -162,19 +159,5 @@ class unplag_archive {
         if (!unlink($file)) {
             mtrace('Error deleting ' . $file);
         }
-    }
-
-    /**
-     * Handle invalid response
-     *
-     * @param string $reason
-     */
-    private function invalid_response($reason) {
-        $this->archive->state = unplag_file_state::HAS_ERROR;
-        $this->archive->errorresponse = json_encode([
-            ["message" => $reason],
-        ]);
-
-        unplag_file_provider::save($this->archive);
     }
 }

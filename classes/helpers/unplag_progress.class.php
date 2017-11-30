@@ -56,11 +56,9 @@ class unplag_progress {
      * @return array|bool
      */
     public static function get_check_progress_info($plagiarismfile, $cid, &$checkstatusforids) {
-        global $DB;
-
         $childs = [];
         if ($plagiarismfile->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
-            $childs = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$plagiarismfile->id]);
+            $childs = unplag_file_provider::get_file_list_by_parent_id($plagiarismfile->id);
         }
 
         if (empty($plagiarismfile->check_id) && empty($childs)) {
@@ -68,7 +66,7 @@ class unplag_progress {
         }
 
         if ($plagiarismfile->progress != 100) {
-            if ($childs) {
+            if (count($childs)) {
                 foreach ($childs as $child) {
                     if ($child->check_id) {
                         $checkstatusforids[$plagiarismfile->id][] = $child->check_id;
@@ -100,7 +98,7 @@ class unplag_progress {
 
         $trackedfiles = [$plagiarismfile];
         if ($plagiarismfile->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
-            $trackedfiles = $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$plagiarismfile->id]);
+            $trackedfiles = unplag_file_provider::get_file_list_by_parent_id($plagiarismfile->id);
         }
 
         foreach ($trackedfiles as $trackedfile) {

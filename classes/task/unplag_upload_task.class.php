@@ -122,25 +122,11 @@ class unplag_upload_task extends unplag_abstract_task {
                 throw new unplag_exception(unplag_exception::ARCHIVE_IS_EMPTY);
             }
         } catch (\Exception $e) {
-            $this->invalid_response($e->getMessage());
+            unplag_file_provider::to_error_state($this->internalfile, $e->getMessage());
             mtrace('Archive error ' . $e->getMessage());
         }
 
         unset($this->ucore, $file);
-    }
-
-    /**
-     * Check response validation
-     *
-     * @param string $reason
-     */
-    private function invalid_response($reason) {
-        $this->internalfile->state = unplag_file_state::HAS_ERROR;
-        $this->internalfile->errorresponse = json_encode([
-            ["message" => $reason],
-        ]);
-
-        unplag_file_provider::save($this->internalfile);
     }
 
     /**

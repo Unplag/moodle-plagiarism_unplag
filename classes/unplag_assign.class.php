@@ -29,8 +29,8 @@ use assign;
 use coding_exception;
 use context_module;
 use plagiarism_unplag;
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\services\storage\unplag_file_state;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -80,19 +80,13 @@ class unplag_assign {
      * @throws coding_exception
      */
     public static function check_submitted_assignment($id) {
-        global $DB;
-
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
-        if (in_array($plagiarismfile->state,
-            [unplag_file_state::UPLOADED, unplag_file_state::CHECKING, unplag_file_state::CHECKED])) {
-            // Sanity Check.
+        $plagiarismfile = unplag_file_provider::get_by_id($id);
+        if (!unplag_file_provider::can_start_check($plagiarismfile)) {
             return;
         }
 
         $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
-
         if (plagiarism_unplag::is_support_mod($cm->modname)) {
-
             $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
             if ($file->is_directory()) {
                 return;

@@ -41,7 +41,7 @@ if (!$iterator) {
             'requires' => array('json'),
     );
 
-    $PAGE->requires->js_init_call('M.plagiarism_unplag.init', array($linkarray['cmid']), true, $jsmodule);
+    $PAGE->requires->js_init_call('M.plagiarismUnplag.init', array($linkarray['cmid']), true, $jsmodule);
 }
 
 $htmlparts = array(sprintf('<div class="un_report fid-%1$s"><div class="un_data">{"fid":"%1$s"}</div>', $fileobj->id));

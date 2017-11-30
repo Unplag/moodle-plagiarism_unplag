@@ -25,6 +25,8 @@
 
 namespace plagiarism_unplag\classes\entities\providers;
 
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
+
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
@@ -98,5 +100,47 @@ class unplag_file_provider {
         global $DB;
 
         return $DB->get_records_list(UNPLAG_FILES_TABLE, 'id', $ids);
+    }
+
+    /**
+     * Can start check
+     *
+     * @param \stdClass $plagiarismfile
+     * @return bool
+     */
+    public static function can_start_check(\stdClass $plagiarismfile) {
+        if (in_array($plagiarismfile->state,
+            [unplag_file_state::UPLOADING, unplag_file_state::UPLOADED, unplag_file_state::CHECKING, unplag_file_state::CHECKED])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Set file to error state
+     *
+     * @param \stdClass $plagiarismfile
+     * @param  string   $reason
+     */
+    public static function to_error_state(\stdClass $plagiarismfile, $reason) {
+        $plagiarismfile->state = unplag_file_state::HAS_ERROR;
+        $plagiarismfile->errorresponse = json_encode([
+            ["message" => $reason],
+        ]);
+
+        self::save($plagiarismfile);
+    }
+
+    /**
+     * Get file list by parent id
+     *
+     * @param int $parentid
+     * @return array
+     */
+    public static function get_file_list_by_parent_id($parentid) {
+        global $DB;
+
+        return $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$parentid]);
     }
 }

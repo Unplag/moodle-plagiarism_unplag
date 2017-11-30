@@ -116,6 +116,10 @@ abstract class unplag_abstract_event {
      * @param unplag_plagiarism_entity $plagiarismentity
      */
     protected function add_after_handle_task($plagiarismentity) {
+        if (!$plagiarismentity instanceof unplag_plagiarism_entity) {
+            return;
+        }
+
         array_push($this->tasks, $plagiarismentity);
     }
 
