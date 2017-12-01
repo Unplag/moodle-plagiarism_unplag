@@ -29,6 +29,7 @@ use core\event\base;
 use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
+use stored_file;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -46,7 +47,7 @@ if (!defined('MOODLE_INTERNAL')) {
 abstract class unplag_abstract_event {
     /** @var */
     protected static $instance;
-    /** @var \stored_file[] */
+    /** @var stored_file[] */
     protected $tasks = [];
 
     /**
@@ -100,7 +101,7 @@ abstract class unplag_abstract_event {
         }
 
         foreach ($this->tasks as $storedfile) {
-            if (!$storedfile instanceof \stored_file) {
+            if (!$storedfile instanceof stored_file) {
                 continue;
             }
             $plagiarismentity = $ucore->get_plagiarism_entity($storedfile);
@@ -123,9 +124,9 @@ abstract class unplag_abstract_event {
     /**
      * add_after_handle_task
      *
-     * @param \stored_file $file
+     * @param stored_file $file
      */
-    protected function add_after_handle_task(\stored_file $file) {
+    protected function add_after_handle_task(stored_file $file) {
         array_push($this->tasks, $file);
     }
 

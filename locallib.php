@@ -165,7 +165,7 @@ class plagiarism_unplag {
      */
     public static function object_to_array($obj) {
         if (is_object($obj)) {
-            $obj = (array) $obj;
+            $obj = (array)$obj;
         }
         if (is_array($obj)) {
             $new = [];

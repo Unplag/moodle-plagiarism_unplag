@@ -27,6 +27,7 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag\classes\unplag_core;
+use stored_file;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -59,7 +60,7 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
             return;
         }
 
-        if ($file instanceof \stored_file) {
+        if ($file instanceof stored_file) {
             $this->add_after_handle_task($file);
         }
 

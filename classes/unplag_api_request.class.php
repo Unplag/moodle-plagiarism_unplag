@@ -185,7 +185,7 @@ class unplag_api_request {
     /**
      * get_request_data
      *
-     * @return string|array
+     * @return string
      */
     public function get_request_data() {
         return $this->requestdata;

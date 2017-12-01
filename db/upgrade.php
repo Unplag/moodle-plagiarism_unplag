@@ -125,7 +125,7 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2017012300, 'plagiarism', 'unplag');
     }
 
-    if ($oldversion < 2017112900) {
+    if ($oldversion < 2017120100) {
 
         $table = new xmldb_table('plagiarism_unplag_files');
 
@@ -167,7 +167,7 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         }
 
         // Unicheck savepoint reached.
-        upgrade_plugin_savepoint(true, 2017112900, 'plagiarism', 'unplag');
+        upgrade_plugin_savepoint(true, 2017120100, 'plagiarism', 'unplag');
     }
 
     return true;
