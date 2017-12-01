@@ -56,7 +56,9 @@ class unplag_event {
      * @param base $event
      */
     public function process(base $event) {
-        $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
+
+        $cm = get_coursemodule_from_id('', $event->get_context()->instanceid);
+        $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid, $cm->modname);
 
         if (self::is_upload_event($event)) {
             switch ($event->component) {

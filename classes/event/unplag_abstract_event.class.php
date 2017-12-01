@@ -29,7 +29,6 @@ use core\event\base;
 use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
-use plagiarism_unplag\classes\unplag_plagiarism_entity;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -47,10 +46,8 @@ if (!defined('MOODLE_INTERNAL')) {
 abstract class unplag_abstract_event {
     /** @var */
     protected static $instance;
-    /** @var array */
+    /** @var \stored_file[] */
     protected $tasks = [];
-    /** @var unplag_core */
-    protected $ucore;
 
     /**
      * Get instance
@@ -93,19 +90,32 @@ abstract class unplag_abstract_event {
 
     /**
      * after_handle_event
+     *
+     * @param unplag_core $ucore
      */
-    protected function after_handle_event() {
+    protected function after_handle_event(unplag_core $ucore) {
         if (empty($this->tasks)) {
             // Skip this file check cause assign is draft.
             return;
         }
 
-        foreach ($this->tasks as $plagiarismentity) {
-            if ($plagiarismentity instanceof unplag_plagiarism_entity) {
-                $internalfile = $plagiarismentity->get_internal_file();
-                if (isset($internalfile->external_file_id) && !isset($internalfile->check_id)) {
-                    unplag_adhoc::check($internalfile);
-                }
+        foreach ($this->tasks as $storedfile) {
+            if (!$storedfile instanceof \stored_file) {
+                continue;
+            }
+            $plagiarismentity = $ucore->get_plagiarism_entity($storedfile);
+            if (null === $plagiarismentity) {
+                continue;
+            }
+
+            $internalfile = $plagiarismentity->get_internal_file();
+            if (!isset($internalfile->external_file_uuid)) {
+                unplag_adhoc::upload($storedfile, $ucore);
+                continue;
+            }
+
+            if (!isset($internalfile->check_id)) {
+                unplag_adhoc::check($internalfile);
             }
         }
     }
@@ -113,14 +123,10 @@ abstract class unplag_abstract_event {
     /**
      * add_after_handle_task
      *
-     * @param unplag_plagiarism_entity $plagiarismentity
+     * @param \stored_file $file
      */
-    protected function add_after_handle_task($plagiarismentity) {
-        if (!$plagiarismentity instanceof unplag_plagiarism_entity) {
-            return;
-        }
-
-        array_push($this->tasks, $plagiarismentity);
+    protected function add_after_handle_task(\stored_file $file) {
+        array_push($this->tasks, $file);
     }
 
     /**

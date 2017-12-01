@@ -79,7 +79,7 @@ class unplag_zip_extractor implements unplag_extractor_interface {
     /**
      * Extract each file
      *
-     * @return \Generator
+     * @return array
      * @throws unplag_exception
      */
     public function extract() {
@@ -89,6 +89,7 @@ class unplag_zip_extractor implements unplag_extractor_interface {
             throw new unplag_exception(unplag_exception::ARCHIVE_IS_EMPTY);
         }
 
+        $extracted = [];
         foreach ($this->ziparch as $file) {
             if ($file->is_directory) {
                 continue;
@@ -123,12 +124,14 @@ class unplag_zip_extractor implements unplag_extractor_interface {
                 continue;
             }
 
-            yield [
+            $extracted[] = [
                 'path'     => $tmpfile,
                 'filename' => $name,
                 'format'   => $format,
             ];
         }
+
+        return $extracted;
     }
 
     /**

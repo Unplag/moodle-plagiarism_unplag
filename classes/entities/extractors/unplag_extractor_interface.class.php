@@ -25,8 +25,6 @@
 
 namespace plagiarism_unplag\classes\entities\extractors;
 
-use plagiarism_unplag\classes\exception\unplag_exception;
-
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
@@ -42,8 +40,7 @@ interface unplag_extractor_interface {
     /**
      * Extract each file
      *
-     * @return \Generator
-     * @throws unplag_exception
+     * @return array
      */
     public function extract();
 }

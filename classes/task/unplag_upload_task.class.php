@@ -80,9 +80,9 @@ class unplag_upload_task extends unplag_abstract_task {
             return;
         }
 
-        $this->ucore = new unplag_core($data->ucore->cmid, $data->ucore->userid);
-
-        if ((bool) unplag_assign::get_by_cmid($this->ucore->cmid)->teamsubmission) {
+        $this->ucore = new unplag_core($data->ucore->cmid, $data->ucore->userid, $data->ucore->modname);
+        if ($this->ucore->modname == UNPLAG_MODNAME_ASSIGN
+            && (bool)unplag_assign::get_by_cmid($this->ucore->cmid)->teamsubmission) {
             $this->ucore->enable_teamsubmission();
         }
 
@@ -108,7 +108,12 @@ class unplag_upload_task extends unplag_abstract_task {
             }
 
             $supportedcount = 0;
-            foreach ((new unplag_archive($file, $this->ucore))->extract() as $item) {
+            $extracted = (new unplag_archive($file, $this->ucore))->extract();
+            if (!count($extracted)) {
+                throw new unplag_exception(unplag_exception::ARCHIVE_IS_EMPTY);
+            }
+
+            foreach ($extracted as $item) {
                 if ($supportedcount > $maxsupportedcount) {
                     unplag_archive::unlink($item['path']);
                     continue;

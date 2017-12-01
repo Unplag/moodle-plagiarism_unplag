@@ -129,7 +129,7 @@ class unplag_api {
 
         $response = unplag_api_request::instance()->http_post()->request(self::FILE_UPLOAD, $postdata);
         if (!is_object($response)) {
-            $response = (object) [
+            $response = (object)[
                 "result" => false,
                 "errors" => [
                     [
@@ -182,7 +182,7 @@ class unplag_api {
      *
      * @param array $checkids
      *
-     * @return mixed
+     * @return \stdClass
      */
     public function get_check_progress(array $checkids) {
         if (empty($checkids)) {
@@ -199,7 +199,7 @@ class unplag_api {
      *
      * @param string $token
      *
-     * @return mixed
+     * @return \stdClass
      */
     public function get_file_upload_progress($token) {
         return unplag_api_request::instance()->http_get()->request(self::TRACK_UPLOAD, [

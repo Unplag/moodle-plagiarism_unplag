@@ -57,8 +57,6 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
         if (!empty($event->other['workshopphase'])
             && $event->other['workshopphase'] == UNPLAG_WORKSHOP_ASSESSMENT_PHASE
         ) { // Assessment phase.
-            $this->ucore = $core;
-
             $unplagfiles = plagiarism_unplag::get_area_files($event->contextid, UNPLAG_WORKSHOP_FILES_AREA);
             $assignfiles = get_file_storage()->get_area_files($event->contextid,
                 'mod_workshop', 'submission_attachment', false, null, false
@@ -68,22 +66,10 @@ class unplag_event_workshop_switched extends unplag_abstract_event {
 
             if (!empty($files)) {
                 foreach ($files as $file) {
-                    $this->handle_file_plagiarism($file);
+                    $core->userid = $file->get_userid();
+                    unplag_adhoc::upload($file, $core);
                 }
             }
         }
-    }
-
-    /**
-     * handle_file_plagiarism
-     *
-     * @param \stored_file $file
-     *
-     * @return bool
-     */
-    private function handle_file_plagiarism($file) {
-        $this->ucore->userid = $file->get_userid();
-
-        return unplag_adhoc::upload($file, $this->ucore);
     }
 }

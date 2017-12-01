@@ -106,7 +106,6 @@ if (!$table->is_downloading($download, $exportfilename)) {
 $heldevents = [];
 
 // Now do sorting if specified.
-$orderby = '';
 switch ($sort) {
     case 'name':
         $orderby = " ORDER BY u.firstname, u.lastname";
@@ -117,7 +116,7 @@ switch ($sort) {
     case 'status':
         $orderby = " ORDER BY t.errorresponse";
         break;
-    case 'id':
+    default:
         $orderby = " ORDER BY t.id";
         break;
 }
@@ -127,16 +126,22 @@ if (!empty($orderby) && ($dir == 'asc' || $dir == 'desc')) {
 }
 
 // Now show files in an error state.
-$sql = sprintf('SELECT t.*, %1$S, M.name AS moduletype, cm.course AS courseid, cm.instance AS cminstance
-    FROM {plagiarism_unplag_files} t, {USER} u, {modules} M, {course_modules} cm
-    WHERE M.id=cm.module AND cm.id=t.cm AND t.userid=u.id AND t.parent_id IS NULL AND t.type = \'%3$s\'
-    AND t.errorresponse IS NOT NULL
-    %2$S',
-    get_all_user_name_fields(true, 'u'), $orderby, unplag_plagiarism_entity::TYPE_DOCUMENT
-);
+$sql = "SELECT t.*, ?, m.name AS moduletype, cm.course AS courseid, cm.instance AS cminstance
+    FROM {plagiarism_unplag_files} t, {user} u, {modules} m, {course_modules} cm
+    WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id AND t.parent_id IS NULL AND t.type = ?
+    AND (t.errorresponse IS NOT NULL OR t.state = ?)
+   {$orderby}";
 
 $limit = 20;
-$unplagfiles = $DB->get_records_sql($sql, null, $page * $limit, $limit);
+$unplagfiles = $DB->get_records_sql(
+    $sql,
+    [
+        get_all_user_name_fields(true, 'u'), unplag_plagiarism_entity::TYPE_DOCUMENT,
+        unplag_file_state::HAS_ERROR
+    ],
+    $page * $limit,
+    $limit
+);
 
 $table->define_columns(['id', 'name', 'module', 'identifier', 'status', 'attempts', 'action']);
 $table->define_headers([

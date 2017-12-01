@@ -50,7 +50,7 @@ class unplag_api_request {
     private static $instance = null;
 
     /**
-     * @var  string
+     * @var  string|array
      */
     private $requestdata;
 
@@ -185,7 +185,7 @@ class unplag_api_request {
     /**
      * get_request_data
      *
-     * @return string
+     * @return string|array
      */
     public function get_request_data() {
         return $this->requestdata;

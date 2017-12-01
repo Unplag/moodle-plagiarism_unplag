@@ -92,7 +92,12 @@ class unplag_assign {
                 return;
             }
 
-            self::run_process_detection($file, $plagiarismfile);
+            $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid, $cm->modname);
+            if (plagiarism_unplag::is_archive($file)) {
+                (new unplag_archive($file, $ucore))->upload();
+            } else {
+                unplag_adhoc::upload($file, $ucore);
+            }
         }
     }
 
@@ -120,7 +125,7 @@ class unplag_assign {
 
         $sql = 'SELECT COUNT(id) FROM {assign_submission} WHERE id = ? AND status = ?';
 
-        return (bool) $DB->count_records_sql($sql, [$id, 'draft']);
+        return (bool)$DB->count_records_sql($sql, [$id, 'draft']);
     }
 
     /**
@@ -147,23 +152,5 @@ class unplag_assign {
         $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
 
         return self::get($cm->instance);
-    }
-
-    /**
-     * Run process detection
-     *
-     * @param \stored_file $file
-     * @param  object      $plagiarismfile
-     */
-    private static function run_process_detection(\stored_file $file, $plagiarismfile) {
-
-        $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
-
-        if (plagiarism_unplag::is_archive($file)) {
-            (new unplag_archive($file, $ucore))->upload();
-        } else {
-            $plagiarismentity = $ucore->get_plagiarism_entity($file);
-            unplag_adhoc::check($plagiarismentity->upload_file_on_unplag_server());
-        }
     }
 }

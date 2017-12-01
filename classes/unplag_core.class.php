@@ -62,14 +62,21 @@ class unplag_core {
     public $cmid = null;
 
     /**
+     * @var string
+     */
+    public $modname = null;
+
+    /**
      * unplag_core constructor.
      *
-     * @param int $cmid
-     * @param int $userid
+     * @param int    $cmid
+     * @param int    $userid
+     * @param string $modname
      */
-    public function __construct($cmid, $userid) {
+    public function __construct($cmid, $userid, $modname) {
         $this->cmid = $cmid;
         $this->userid = $userid;
+        $this->modname = $modname;
     }
 
     /**
@@ -97,26 +104,28 @@ class unplag_core {
 
         $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
 
-        if (plagiarism_unplag::is_support_mod($cm->modname)) {
-            $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
-            $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
+        if (!plagiarism_unplag::is_support_mod($cm->modname)) {
+            return false;
+        }
 
-            if (plagiarism_unplag::is_archive($file)) {
-                $unplagarchive = new unplag_archive($file, $ucore);
-                $unplagarchive->restart_check();
+        $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
+        $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid, $cm->modname);
 
-                return true;
-            }
-
-            $plagiarismentity = $ucore->get_plagiarism_entity($file);
-            $internalfile = $plagiarismentity->get_internal_file();
-
-            unplag_adhoc::check($internalfile);
+        if (plagiarism_unplag::is_archive($file)) {
+            $unplagarchive = new unplag_archive($file, $ucore);
+            $unplagarchive->restart_check();
 
             return true;
         }
 
-        return false;
+        if ($plagiarismfile->check_id) {
+            unplag_api::instance()->delete_check($plagiarismfile);
+        }
+        unplag_adhoc::upload($file, $ucore);
+
+        unplag_notification::success('plagiarism_run_success', true);
+
+        return true;
     }
 
     /**
@@ -194,17 +203,13 @@ class unplag_core {
      * create_file_from_content
      *
      * @param base $event
-     *
-     * @return bool|\stored_file
-     *
-     * @throws \file_exception
-     * @throws \stored_file_creation_exception
+     * @return null|\stored_file
      */
     public function create_file_from_content(base $event) {
         global $USER;
 
         if (empty($event->other['content'])) {
-            return false;
+            return null;
         }
 
         $filerecord = [

@@ -55,9 +55,6 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
      * @param base        $event
      */
     public function handle_event(unplag_core $core, base $event) {
-
-        $this->ucore = $core;
-
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
         $submissionid = (!empty($submission->id) ? $submission->id : false);
 
@@ -67,23 +64,13 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
         $files = array_merge($unplagfiles, $assignfiles);
         if (!empty($files)) {
             foreach ($files as $file) {
-                $this->handle_file_plagiarism($file);
+                if (\plagiarism_unplag::is_archive($file)) {
+                    (new unplag_archive($file, $core))->upload();
+                    continue;
+                }
+
+                unplag_adhoc::upload($file, $core);
             }
         }
-    }
-
-    /**
-     * handle_file_plagiarism
-     *
-     * @param \stored_file $file
-     *
-     * @return bool
-     */
-    private function handle_file_plagiarism(\stored_file $file) {
-        if (\plagiarism_unplag::is_archive($file)) {
-            return (new unplag_archive($file, $this->ucore))->upload();
-        }
-
-        return unplag_adhoc::upload($file, $this->ucore);
     }
 }

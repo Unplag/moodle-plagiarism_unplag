@@ -82,9 +82,10 @@ class unplag_progress {
         $info = [
             'file_id'  => $plagiarismfile->id,
             'state'    => $plagiarismfile->state,
-            'progress' => (int) $plagiarismfile->progress,
+            'progress' => (int)$plagiarismfile->progress,
             'content'  => self::gen_row_content_score($cid, $plagiarismfile),
         ];
+
         return $info;
     }
 

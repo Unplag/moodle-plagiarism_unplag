@@ -49,7 +49,7 @@ class unplag_upload_helper {
      * @param \stdClass $responsefile
      * @return bool
      */
-    public static function upload_complete(\stdClass &$plagiarismfile, \stdClass $responsefile) {
+    public static function upload_complete(\stdClass & $plagiarismfile, \stdClass $responsefile) {
         global $DB;
 
         $plagiarismfile->external_file_id = $responsefile->id;

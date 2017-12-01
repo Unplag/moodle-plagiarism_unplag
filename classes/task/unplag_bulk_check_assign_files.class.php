@@ -25,6 +25,7 @@
 namespace plagiarism_unplag\classes\task;
 
 use plagiarism_unplag\classes\entities\unplag_archive;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
@@ -64,7 +65,7 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
                 continue;
             }
 
-            $this->ucore = new unplag_core($data->cmid, $this->assignfile->get_userid());
+            $this->ucore = new unplag_core($data->cmid, $this->assignfile->get_userid(), $data->modname);
 
             $pattern = '%s with uuid ' . $this->assignfile->get_pathnamehash() . ' ready to send';
             if (\plagiarism_unplag::is_archive($this->assignfile)) {
@@ -84,8 +85,6 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
      */
     private function handle_archive($contextid) {
         if (!is_null(unplag_core::get_file_by_hash($contextid, $this->assignfile->get_pathnamehash()))) {
-            mtrace('... archive already sent to Unicheck');
-
             return;
         }
 
@@ -99,15 +98,25 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
     private function handle_non_archive() {
         $plagiarismentity = $this->ucore->get_plagiarism_entity($this->assignfile);
         $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-        if (isset($internalfile->check_id)) {
-            mtrace('... file already sent to Unicheck');
+        if (!$internalfile) {
+            mtrace("... Can't process stored file {$this->assignfile->get_id()}");
 
             return;
         }
 
-        if ($internalfile->external_file_id) {
-            unplag_adhoc::check($internalfile);
-            mtrace('... file send to Unicheck');
+        if (isset($internalfile->check_id)) {
+            return;
+        }
+
+        switch ($internalfile->state) {
+            case unplag_file_state::CREATED:
+                unplag_adhoc::upload($this->assignfile, $this->ucore);
+                mtrace('... file start uploading in Unicheck');
+                break;
+            case unplag_file_state::UPLOADED:
+                unplag_adhoc::check($internalfile);
+                mtrace('... file start checking in Unicheck');
+                break;
         }
     }
 }

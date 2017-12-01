@@ -61,12 +61,12 @@ class unplag_event_group_submition extends unplag_abstract_event {
         $assign = unplag_assign::get($submission->assignment);
 
         /* Only for team submission */
-        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool) $assign->teamsubmission) {
+        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool)$assign->teamsubmission) {
             return;
         }
 
         /* All users of group must confirm submission */
-        if ((bool) $assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
+        if ((bool)$assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
             return;
         }
 
@@ -77,7 +77,7 @@ class unplag_event_group_submition extends unplag_abstract_event {
             $plagiarismentity = $core->get_plagiarism_entity($assignfile);
             $internalfile = $plagiarismentity->get_internal_file();
 
-            if ($internalfile->state == unplag_file_state::CHECKED) {
+            if ($internalfile->state == unplag_file_state::CHECKED || $internalfile->check_id) {
                 continue;
             }
 
@@ -88,24 +88,18 @@ class unplag_event_group_submition extends unplag_abstract_event {
                 continue;
             }
 
-            if ($internalfile->check_id) {
-                continue;
-            }
-
             if ($internalfile->external_file_id == null) {
-                $plagiarismentity->upload_file_on_unplag_server();
-                $this->add_after_handle_task($plagiarismentity);
+                $this->add_after_handle_task($assignfile);
             }
         }
 
-        $this->after_handle_event();
+        $this->after_handle_event($core);
     }
 
     /**
      * all_users_confirm_submition
      *
-     * @param mixed $assign
-     *
+     * @param \stdClass $assign
      * @return bool
      */
     private function all_users_confirm_submition($assign) {

@@ -112,13 +112,15 @@ class unplag_archive {
     /**
      * Extract each file
      *
-     * @return \Generator
+     * @return array
+     *
+     * @throws unplag_exception
      */
     public function extract() {
         try {
             return $this->extractor->extract();
         } catch (\Exception $ex) {
-            unplag_file_provider::to_error_state($this->archive, $ex->getMessage());
+            throw new unplag_exception($ex->getMessage());
         }
     }
 
@@ -138,7 +140,7 @@ class unplag_archive {
         $internalfile = $this->core->get_plagiarism_entity($this->file)->get_internal_file();
         $childs = unplag_file_provider::get_file_list_by_parent_id($internalfile->id);
         if (count($childs)) {
-            foreach ((object) $childs as $child) {
+            foreach ((object)$childs as $child) {
                 if ($child->check_id) {
                     unplag_api::instance()->delete_check($child);
                 }

@@ -54,14 +54,14 @@ class unplag_check_helper {
      * @param int       $progress
      * @return bool
      */
-    public static function check_complete(\stdClass &$record, \stdClass $check, $progress = 100) {
+    public static function check_complete(\stdClass & $record, \stdClass $check, $progress = 100) {
         global $DB;
 
         if ($progress == 100) {
             $record->state = unplag_file_state::CHECKED;
         }
 
-        $record->similarityscore = (float) $check->report->similarity;
+        $record->similarityscore = (float)$check->report->similarity;
         $record->reporturl = $check->report->view_url;
         $record->reportediturl = $check->report->view_edit_url;
         $record->progress = round($progress, 0, PHP_ROUND_HALF_DOWN);
@@ -94,8 +94,8 @@ class unplag_check_helper {
             $parentcheck = [
                 'report' => [
                     'similarity'    => round($similarity / count($childs), 2, PHP_ROUND_HALF_DOWN),
-                    'view_url'      => (string) $reporturl->out_as_local_url(),
-                    'view_edit_url' => (string) $reporturl->out_as_local_url(),
+                    'view_url'      => (string)$reporturl->out_as_local_url(),
+                    'view_edit_url' => (string)$reporturl->out_as_local_url(),
                 ],
             ];
 
@@ -122,7 +122,9 @@ class unplag_check_helper {
             unplag_response::handle_check_response(unplag_api::instance()->run_check($plagiarismfile), $plagiarismfile);
         } else {
             $error = unplag_core::parse_json($plagiarismfile->errorresponse);
-            unplag_notification::error('Can\'t run check: ' . $error[0]->message, false);
+            if (isset($error[0]) && is_object($error[0])) {
+                unplag_notification::error('Can\'t run check: ' . $error[0]->message, false);
+            }
         }
     }
 }

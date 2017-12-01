@@ -59,12 +59,10 @@ class unplag_event_onlinetext_submited extends unplag_abstract_event {
             return;
         }
 
-        if ($file) {
-            $plagiarismentity = $core->get_plagiarism_entity($file);
-            $plagiarismentity->upload_file_on_unplag_server();
-            $this->add_after_handle_task($plagiarismentity);
+        if ($file instanceof \stored_file) {
+            $this->add_after_handle_task($file);
         }
 
-        $this->after_handle_event();
+        $this->after_handle_event($core);
     }
 }
