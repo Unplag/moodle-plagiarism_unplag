@@ -188,13 +188,12 @@ class unplag_progress {
         }
 
         switch ($fileobj->state) {
+            case unplag_file_state::UPLOADING:
             case unplag_file_state::UPLOADED:
             case unplag_file_state::CHECKING:
-                return require(dirname(__FILE__) . '/../../views/view_tmpl_checking.php');
-                break;
+                return require(dirname(__FILE__) . '/../../views/view_tmpl_progress.php');
             case unplag_file_state::HAS_ERROR:
                 return require(dirname(__FILE__) . '/../../views/view_tmpl_invalid_response.php');
-                break;
         }
 
         return '';

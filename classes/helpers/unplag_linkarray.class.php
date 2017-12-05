@@ -104,12 +104,9 @@ class unplag_linkarray {
                 $tmpl = 'view_tmpl_processed.php';
                 break;
             case unplag_file_state::UPLOADING:
-                $tmpl = 'view_tmpl_uploading.php';
-                $inciterator = true;
-                break;
             case unplag_file_state::UPLOADED:
             case unplag_file_state::CHECKING:
-                $tmpl = 'view_tmpl_checking.php';
+                $tmpl = 'view_tmpl_progress.php';
                 $inciterator = true;
                 break;
             case unplag_file_state::HAS_ERROR:
