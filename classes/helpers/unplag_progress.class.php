@@ -168,6 +168,14 @@ class unplag_progress {
                 }
             }
         }
+
+        if ($progresses->errors) {
+            foreach ($progresses->errors as $checkid => $error) {
+                $plagiarismfile = unplag_file_provider::find_by_check_id($checkid);
+                unplag_file_provider::to_error_state($plagiarismfile, $error->message);
+                $resp[$plagiarismfile->id]['content'] = self::gen_row_content_score($cid, $plagiarismfile);
+            }
+        }
     }
 
     /**
