@@ -61,10 +61,6 @@ class unplag_progress {
             $childs = unplag_file_provider::get_file_list_by_parent_id($plagiarismfile->id);
         }
 
-        if (empty($plagiarismfile->check_id) && empty($childs)) {
-            return false;
-        }
-
         if ($plagiarismfile->progress != 100) {
             if (count($childs)) {
                 foreach ($childs as $child) {
@@ -184,18 +180,24 @@ class unplag_progress {
      * @param int    $cid
      * @param object $fileobj
      *
-     * @return bool|mixed
+     * @return string
      */
     public static function gen_row_content_score($cid, $fileobj) {
         if ($fileobj->progress == 100 && $cid) {
             return require(dirname(__FILE__) . '/../../views/view_tmpl_processed.php');
-        } else {
-            if ($fileobj->state == unplag_file_state::HAS_ERROR) {
-                return require(dirname(__FILE__) . '/../../views/view_tmpl_invalid_response.php');
-            }
         }
 
-        return false;
+        switch ($fileobj->state) {
+            case unplag_file_state::UPLOADED:
+            case unplag_file_state::CHECKING:
+                return require(dirname(__FILE__) . '/../../views/view_tmpl_checking.php');
+                break;
+            case unplag_file_state::HAS_ERROR:
+                return require(dirname(__FILE__) . '/../../views/view_tmpl_invalid_response.php');
+                break;
+        }
+
+        return '';
     }
 
     /**
