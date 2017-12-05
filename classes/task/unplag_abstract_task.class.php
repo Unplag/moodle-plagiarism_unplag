@@ -55,4 +55,29 @@ abstract class unplag_abstract_task extends adhoc_task {
 
         return manager::queue_adhoc_task($task);
     }
+
+    /**
+     * Get modname of executed task
+     *
+     * @param \object $data
+     *
+     * @return null|string
+     */
+    protected function get_modname($data) {
+
+        if (isset($data->modname)) {
+            return $data->modname;
+        }
+
+        if (!isset($data->cmid)) {
+            return null;
+        }
+
+        $cm = get_coursemodule_from_id('', $data->cmid);
+        if (!$cm) {
+            return null;
+        }
+
+        return $cm->modname;
+    }
 }

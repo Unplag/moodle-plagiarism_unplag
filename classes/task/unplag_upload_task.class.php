@@ -80,8 +80,9 @@ class unplag_upload_task extends unplag_abstract_task {
             return;
         }
 
-        $this->ucore = new unplag_core($data->ucore->cmid, $data->ucore->userid, $data->ucore->modname);
-        if ($this->ucore->modname == UNPLAG_MODNAME_ASSIGN
+        $modname = $this->get_modname($data->ucore);
+        $this->ucore = new unplag_core($data->ucore->cmid, $data->ucore->userid, $modname);
+        if ($modname == UNPLAG_MODNAME_ASSIGN
             && (bool)unplag_assign::get_by_cmid($this->ucore->cmid)->teamsubmission) {
             $this->ucore->enable_teamsubmission();
         }

@@ -65,7 +65,7 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
                 continue;
             }
 
-            $this->ucore = new unplag_core($data->cmid, $this->assignfile->get_userid(), $data->modname);
+            $this->ucore = new unplag_core($data->cmid, $this->assignfile->get_userid(), $this->get_modname($data));
 
             $pattern = '%s with uuid ' . $this->assignfile->get_pathnamehash() . ' ready to send';
             if (\plagiarism_unplag::is_archive($this->assignfile)) {
