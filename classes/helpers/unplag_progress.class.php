@@ -91,8 +91,6 @@ class unplag_progress {
      * @param \stdClass $plagiarismfile
      */
     public static function track_upload(\stdClass $plagiarismfile) {
-        global $DB;
-
         $trackedfiles = [$plagiarismfile];
         if ($plagiarismfile->type == unplag_plagiarism_entity::TYPE_ARCHIVE) {
             $trackedfiles = unplag_file_provider::get_file_list_by_parent_id($plagiarismfile->id);

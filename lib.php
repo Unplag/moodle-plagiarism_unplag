@@ -107,46 +107,48 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     public function save_form_elements($data) {
         global $DB;
 
+        if (!plagiarism_unplag::is_support_mod($data->modulename) || !isset($data->use_unplag)) {
+            return;
+        }
+
         if (isset($data->submissiondrafts) && !$data->submissiondrafts) {
             $data->use_unplag = 0;
         }
 
-        if (isset($data->use_unplag)) {
-            // First get existing values.
-            $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => $data->coursemodule], '', 'name, id');
-            // Array of possible plagiarism config options.
-            foreach (self::config_options() as $element) {
-                if ($element == unplag_settings::SENSITIVITY_SETTING_NAME
-                    && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
-                ) {
-                    if (isset($existingelements[$element])) {
-                        continue;
-                    }
-
-                    $data->$element = 0;
-                }
-
-                if ($element == unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
-                    && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
-                ) {
-                    if (isset($existingelements[$element])) {
-                        continue;
-                    }
-
-                    $data->$element = unplag_archive::DEFAULT_SUPPORTED_FILES_COUNT;
-                }
-
-                $newelement = new stdClass();
-                $newelement->cm = $data->coursemodule;
-                $newelement->name = $element;
-                $newelement->value = (isset($data->$element) ? $data->$element : 0);
-
+        // First get existing values.
+        $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => $data->coursemodule], '', 'name, id');
+        // Array of possible plagiarism config options.
+        foreach (self::config_options() as $element) {
+            if ($element == unplag_settings::SENSITIVITY_SETTING_NAME
+                && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
+            ) {
                 if (isset($existingelements[$element])) {
-                    $newelement->id = $existingelements[$element];
-                    $DB->update_record(UNPLAG_CONFIG_TABLE, $newelement);
-                } else {
-                    $DB->insert_record(UNPLAG_CONFIG_TABLE, $newelement);
+                    continue;
                 }
+
+                $data->$element = 0;
+            }
+
+            if ($element == unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
+                && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
+            ) {
+                if (isset($existingelements[$element])) {
+                    continue;
+                }
+
+                $data->$element = unplag_archive::DEFAULT_SUPPORTED_FILES_COUNT;
+            }
+
+            $newelement = new stdClass();
+            $newelement->cm = $data->coursemodule;
+            $newelement->name = $element;
+            $newelement->value = (isset($data->$element) ? $data->$element : 0);
+
+            if (isset($existingelements[$element])) {
+                $newelement->id = $existingelements[$element];
+                $DB->update_record(UNPLAG_CONFIG_TABLE, $newelement);
+            } else {
+                $DB->insert_record(UNPLAG_CONFIG_TABLE, $newelement);
             }
         }
 
@@ -196,9 +198,9 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     /**
      * hook to add plagiarism specific settings to a module settings page
      *
-     * @param object $mform   - Moodle form
-     * @param object $context - current context
-     * @param string $modulename
+     * @param object  $mform   - Moodle form
+     * @param context $context - current context
+     * @param string  $modulename
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
         if ($modulename && !self::is_enabled_module($modulename)) {
