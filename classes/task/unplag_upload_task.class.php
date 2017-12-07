@@ -115,7 +115,7 @@ class unplag_upload_task extends unplag_abstract_task {
             }
 
             foreach ($extracted as $item) {
-                if ($supportedcount > $maxsupportedcount) {
+                if ($supportedcount >= $maxsupportedcount) {
                     unplag_archive::unlink($item['path']);
                     continue;
                 }
