@@ -46,8 +46,6 @@ if (!defined('MOODLE_INTERNAL')) {
 class unplag_bulk_check_assign_files extends unplag_abstract_task {
     /** @var  unplag_core */
     private $ucore;
-    /** @var  \stored_file */
-    private $assignfile;
 
     /**
      * Execute of adhoc task
@@ -55,68 +53,45 @@ class unplag_bulk_check_assign_files extends unplag_abstract_task {
     public function execute() {
         $data = $this->get_custom_data();
 
-        $assignfiles = unplag_assign::get_area_files($data->contextid);
-        if (empty($assignfiles)) {
+        $storedfiles = unplag_assign::get_area_files($data->contextid);
+        if (empty($storedfiles)) {
             return;
         }
 
-        foreach ($assignfiles as $this->assignfile) {
-            if (unplag_assign::is_draft($this->assignfile->get_itemid())) {
+        foreach ($storedfiles as $storedfile) {
+            if (unplag_assign::is_draft($storedfile->get_itemid())) {
                 continue;
             }
 
-            $this->ucore = new unplag_core($data->cmid, $this->assignfile->get_userid(), $this->get_modname($data));
+            $this->ucore = new unplag_core($data->cmid, $storedfile->get_userid(), $this->get_modname($data));
+            $plagiarismfile = $this->get_plagiarism_file($storedfile);
+            if (!$plagiarismfile || $plagiarismfile->state !== unplag_file_state::CREATED) {
+                continue;
+            }
 
-            $pattern = '%s with uuid ' . $this->assignfile->get_pathnamehash() . ' ready to send';
-            if (\plagiarism_unplag::is_archive($this->assignfile)) {
-                mtrace(sprintf($pattern, 'Archive'));
-                $this->handle_archive($data->cmid);
+            if (\plagiarism_unplag::is_archive($storedfile)) {
+                (new unplag_archive($storedfile, $this->ucore))->upload();
             } else {
-                mtrace(sprintf($pattern, 'File'));
-                $this->handle_non_archive();
+                unplag_adhoc::upload($storedfile, $this->ucore);
             }
         }
     }
 
     /**
-     * Process archives
+     * Get plagiarism file
      *
-     * @param int $contextid
+     * @param \stored_file $storedfile
+     * @return null|object
      */
-    private function handle_archive($contextid) {
-        if (!is_null(unplag_core::get_file_by_hash($contextid, $this->assignfile->get_pathnamehash()))) {
-            return;
+    private function get_plagiarism_file(\stored_file $storedfile) {
+        $plagiarismentity = $this->ucore->get_plagiarism_entity($storedfile);
+        $plagiarismfile = $plagiarismentity->get_internal_file();
+        if (!$plagiarismfile) {
+            mtrace("... Can't process stored file {$storedfile->get_id()}");
+
+            return null;
         }
 
-        (new unplag_archive($this->assignfile, $this->ucore))->upload();
-        mtrace('... archive send to Unicheck');
-    }
-
-    /**
-     * Process files besides archives
-     */
-    private function handle_non_archive() {
-        $plagiarismentity = $this->ucore->get_plagiarism_entity($this->assignfile);
-        $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-        if (!$internalfile) {
-            mtrace("... Can't process stored file {$this->assignfile->get_id()}");
-
-            return;
-        }
-
-        if (isset($internalfile->check_id)) {
-            return;
-        }
-
-        switch ($internalfile->state) {
-            case unplag_file_state::CREATED:
-                unplag_adhoc::upload($this->assignfile, $this->ucore);
-                mtrace('... file start uploading in Unicheck');
-                break;
-            case unplag_file_state::UPLOADED:
-                unplag_adhoc::check($internalfile);
-                mtrace('... file start checking in Unicheck');
-                break;
-        }
+        return $plagiarismfile;
     }
 }
