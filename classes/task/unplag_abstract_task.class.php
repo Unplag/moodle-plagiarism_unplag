@@ -18,7 +18,7 @@
  *
  * @package     plagiarism_unplag
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,14 +32,19 @@ if (!defined('MOODLE_INTERNAL')) {
 }
 
 /**
- * Interface unplag_abstract_task
- * @package classes\task
+ * Abstract unplag_abstract_task
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class unplag_abstract_task extends adhoc_task {
     /**
      * Add new task for execution
      *
-     * @param $data
+     * @param array $data
      *
      * @return bool
      */
@@ -49,5 +54,30 @@ abstract class unplag_abstract_task extends adhoc_task {
         $task->set_custom_data($data);
 
         return manager::queue_adhoc_task($task);
+    }
+
+    /**
+     * Get modname of executed task
+     *
+     * @param \object $data
+     *
+     * @return null|string
+     */
+    protected function get_modname($data) {
+
+        if (isset($data->modname)) {
+            return $data->modname;
+        }
+
+        if (!isset($data->cmid)) {
+            return null;
+        }
+
+        $cm = get_coursemodule_from_id('', $data->cmid);
+        if (!$cm) {
+            return null;
+        }
+
+        return $cm->modname;
     }
 }

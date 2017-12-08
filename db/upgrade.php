@@ -14,6 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * upgrade.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylec <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 use plagiarism_unplag\classes\unplag_core;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -24,7 +34,15 @@ require_once(dirname(__FILE__) . '/../constants.php');
 require_once(dirname(__FILE__) . '/../autoloader.php');
 
 /**
- * @param $oldversion
+ * Plugin upgrades
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylec <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @param int $oldversion
  *
  * @return bool
  * @throws ddl_exception
@@ -57,7 +75,7 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         $field = new xmldb_field('similarityscore', XMLDB_TYPE_NUMBER, '5,2', null, null, null, null, null);
         $dbman->change_field_type($table, $field);
 
-        // Unplag savepoint reached.
+        // Unicheck savepoint reached.
         upgrade_plugin_savepoint(true, 2016041600, 'plagiarism', 'unplag');
     }
 
@@ -79,7 +97,7 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Unplag savepoint reached.
+        // Unicheck savepoint reached.
         upgrade_plugin_savepoint(true, 2016100500, 'plagiarism', 'unplag');
     }
 
@@ -95,14 +113,61 @@ function xmldb_plagiarism_unplag_upgrade($oldversion) {
         $table->add_field('external_user_id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
         $table->add_field('external_token', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null, null, null);
 
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'), null, null);
-        $table->add_key('user_id', XMLDB_KEY_FOREIGN, array('user_id'), 'user', 'id');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id'], null, null);
+        $table->add_key('user_id', XMLDB_KEY_FOREIGN, ['user_id'], 'user', 'id');
 
         $dbman->create_table($table);
+        upgrade_plugin_savepoint(true, 2016112200, 'plagiarism', 'unplag');
     }
 
     if ($oldversion < 2017012300) {
         unplag_core::migrate_users_access();
+        upgrade_plugin_savepoint(true, 2017012300, 'plagiarism', 'unplag');
+    }
+
+    if ($oldversion < 2017120100) {
+
+        $table = new xmldb_table('plagiarism_unplag_files');
+
+        $field = new xmldb_field('state', XMLDB_TYPE_CHAR, '63', null, XMLDB_NOTNULL, null, 'CREATED', 'reportediturl');
+        // Conditionally launch add field type.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+
+            $files = $DB->get_recordset('plagiarism_unplag_files', null, 'id asc', '*');
+            foreach ($files as $file) {
+                switch ($file->statuscode) {
+                    case 200:
+                        $file->state = 'CHECKED';
+                        break;
+                    case 202:
+                        if ($file->check_id) {
+                            $file->state = 'CHECKING';
+
+                            break;
+                        }
+
+                        $file->state = 'UPLOADED';
+                        break;
+                    case 'pending':
+                        $file->state = 'CREATED';
+                        break;
+                    default:
+                        $file->state = 'HAS_ERROR';
+                        break;
+                }
+                $DB->update_record('plagiarism_unplag_files', $file);
+            }
+            $files->close(); // Don't forget to close the recordset!
+        }
+
+        $field = new xmldb_field('external_file_uuid', XMLDB_TYPE_CHAR, '63', null, null, null, null, 'state');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Unicheck savepoint reached.
+        upgrade_plugin_savepoint(true, 2017120100, 'plagiarism', 'unplag');
     }
 
     return true;

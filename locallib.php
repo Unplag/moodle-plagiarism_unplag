@@ -20,15 +20,17 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 use core\event\base;
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\event\unplag_event_validator;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\helpers\unplag_progress;
 use plagiarism_unplag\classes\helpers\unplag_translate;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 
@@ -42,6 +44,9 @@ require_once($CFG->libdir . '/filelib.php');
 
 /**
  * Class plagiarism_unplag
+ *
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class plagiarism_unplag {
     use unplag_translate;
@@ -90,6 +95,8 @@ class plagiarism_unplag {
     ];
 
     /**
+     * Handle all system events
+     *
      * @param base $event
      */
     public static function event_handler(base $event) {
@@ -100,7 +107,9 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $modname
+     * Verify supporting for modules like: assign, workshop, forum
+     *
+     * @param string $modname
      *
      * @return bool
      */
@@ -109,7 +118,9 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $filearea
+     * Verify supporting for file areas
+     *
+     * @param string $filearea
      *
      * @return bool
      */
@@ -118,7 +129,9 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $ext
+     * Verify supporting for file extension
+     *
+     * @param string $ext
      *
      * @return bool
      */
@@ -127,6 +140,8 @@ class plagiarism_unplag {
     }
 
     /**
+     * Verify supporting for file mimetype
+     *
      * @param stored_file $file
      *
      * @return bool
@@ -142,13 +157,15 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $obj
+     * Convert object to array
+     *
+     * @param object $obj
      *
      * @return array
      */
     public static function object_to_array($obj) {
         if (is_object($obj)) {
-            $obj = (array) $obj;
+            $obj = (array)$obj;
         }
         if (is_array($obj)) {
             $new = [];
@@ -163,7 +180,9 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param        $contextid
+     * Get list of files for current context
+     *
+     * @param int    $contextid
      * @param string $filearea
      * @param null   $itemid
      *
@@ -177,6 +196,8 @@ class plagiarism_unplag {
     }
 
     /**
+     * Check whether the plugin is enabled
+     *
      * @return null|false
      */
     public static function is_plugin_enabled() {
@@ -184,8 +205,10 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $context
-     * @param $linkarray
+     * Get forum topic results
+     *
+     * @param context $context
+     * @param array   $linkarray
      *
      * @return null|stored_file
      */
@@ -197,6 +220,8 @@ class plagiarism_unplag {
     }
 
     /**
+     * Error handler
+     *
      * @param string $errorresponse
      *
      * @return string
@@ -213,32 +238,45 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $data
+     * Track current file status
+     *
+     * @param string $data
      *
      * @return string
      */
     public function track_progress($data) {
-        global $DB;
-
         $data = unplag_core::parse_json($data);
-        $resp = null;
-        $records = $DB->get_records_list(UNPLAG_FILES_TABLE, 'id', $data->ids);
-
-        if ($records) {
+        $resp = [];
+        $records = unplag_file_provider::find_by_ids($data->ids);
+        if (!empty($records)) {
             $checkstatusforids = [];
-
-            foreach ($records as $record) {
-                $progressinfo = unplag_progress::get_file_progress_info($record, $data->cid, $checkstatusforids);
-
-                if ($progressinfo) {
-                    $resp[$record->id] = $progressinfo;
-                }
-            }
-
             try {
-                if (!empty($checkstatusforids)) {
-                    unplag_progress::check_real_file_progress($data->cid, $checkstatusforids, $resp);
+                foreach ($records as $record) {
+                    switch ($record->state) {
+                        case unplag_file_state::UPLOADING:
+                            unplag_progress::track_upload($record);
+                            break;
+                        case unplag_file_state::HAS_ERROR:
+                            $resp[$record->id] = [
+                                'file_id' => $record->id,
+                                'state'   => $record->state,
+                                'content' => unplag_progress::gen_row_content_score($data->cid, $record),
+                            ];
+                            break;
+                        default:
+                            $progressinfo = unplag_progress::get_check_progress_info($record, $data->cid, $checkstatusforids);
+                            if ($progressinfo) {
+                                $resp[$record->id] = $progressinfo;
+                            }
+
+                            if (!empty($checkstatusforids)) {
+                                unplag_progress::get_real_check_progress($data->cid, $checkstatusforids, $resp);
+                            }
+
+                            break;
+                    }
                 }
+
             } catch (\Exception $ex) {
                 header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
                 $resp['error'] = $ex->getMessage();
@@ -249,7 +287,9 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $token
+     * Callback handler
+     *
+     * @param string $token
      *
      * @throws moodle_exception
      */
@@ -270,7 +310,9 @@ class plagiarism_unplag {
     }
 
     /**
-     * @param $token
+     * Check access grunt
+     *
+     * @param string $token
      *
      * @return bool
      */

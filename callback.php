@@ -19,7 +19,7 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Aleksandr Kostylev <v.titov@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,24 +29,26 @@ define('AJAX_SCRIPT', true);
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 
-$action = required_param('action', PARAM_ALPHAEXT);
-$data = optional_param('data', array(), PARAM_RAW);
 $token = optional_param('token', '', PARAM_RAW);
-
 if (!$token) {
     require_login();
     require_sesskey();
 }
-$unplag = new plagiarism_unplag();
-if (!is_callable(array($unplag, $action))) {
-    echo json_encode('Called method does not exists');
 
-    return null;
+$body = \plagiarism_unplag\classes\unplag_core::parse_json(file_get_contents('php://input'));
+if (!is_object($body)) {
+    http_response_code(400);
+    echo 'Invalid callback body';
+
+    die;
 }
 
-if ($token) {
-    $data = $token;
+$callback = new \plagiarism_unplag\classes\unplag_callback();
+try {
+    $callback->handle($body, $token);
+} catch (\Exception $exception) {
+    http_response_code(400);
+    throw $exception;
 }
 
-echo $unplag->{$action}($data);
 die;

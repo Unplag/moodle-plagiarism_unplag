@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,6 +27,7 @@ namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
 use plagiarism_unplag\classes\entities\unplag_archive;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -36,14 +37,21 @@ if (!defined('MOODLE_INTERNAL')) {
 
 /**
  * Class unplag_event_group_submition
- * @package plagiarism_unplag\classes\event
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_group_submition extends unplag_abstract_event {
     /**
-     * @param unplag_core $unplagcore
+     * handle event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
+    public function handle_event(unplag_core $core, base $event) {
 
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
         if (!$submission) {
@@ -53,49 +61,45 @@ class unplag_event_group_submition extends unplag_abstract_event {
         $assign = unplag_assign::get($submission->assignment);
 
         /* Only for team submission */
-        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool) $assign->teamsubmission) {
+        if ($submission->status == unplag_event_submission_updated::DRAFT_STATUS || !(bool)$assign->teamsubmission) {
             return;
         }
 
         /* All users of group must confirm submission */
-        if ((bool) $assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
+        if ((bool)$assign->requireallteammemberssubmit && !$this->all_users_confirm_submition($assign)) {
             return;
         }
 
-        $unplagcore->enable_teamsubmission();
+        $core->enable_teamsubmission();
 
         $assignfiles = unplag_assign::get_area_files($event->contextid);
         foreach ($assignfiles as $assignfile) {
-            $plagiarismentity = $unplagcore->get_plagiarism_entity($assignfile);
+            $plagiarismentity = $core->get_plagiarism_entity($assignfile);
             $internalfile = $plagiarismentity->get_internal_file();
 
-            if ($internalfile->statuscode == UNPLAG_STATUSCODE_PROCESSED) {
+            if ($internalfile->state == unplag_file_state::CHECKED || $internalfile->check_id) {
                 continue;
             }
 
             if (\plagiarism_unplag::is_archive($assignfile)) {
-                $unplagarchive = new unplag_archive($assignfile, $unplagcore);
-                $unplagarchive->run_checks();
+                $unplagarchive = new unplag_archive($assignfile, $core);
+                $unplagarchive->upload();
 
-                continue;
-            }
-
-            if ($internalfile->check_id) {
                 continue;
             }
 
             if ($internalfile->external_file_id == null) {
-                $plagiarismentity->upload_file_on_unplag_server();
-                $this->add_after_handle_task($plagiarismentity);
+                $this->add_after_handle_task($assignfile);
             }
         }
 
-        $this->after_handle_event();
+        $this->after_handle_event($core);
     }
 
     /**
-     * @param $assign
+     * all_users_confirm_submition
      *
+     * @param \stdClass $assign
      * @return bool
      */
     private function all_users_confirm_submition($assign) {

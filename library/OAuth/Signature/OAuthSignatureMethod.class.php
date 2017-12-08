@@ -13,37 +13,63 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * OAuthSignatureMethod.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\library\OAuth\Signature;
 
 use plagiarism_unplag\library\OAuth\OAuthRequest;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class OAuthSignatureMethod
  *
- * @package plagiarism_unplag\library\OAuth\Signature
+ * @package     plagiarism_unplag
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class OAuthSignatureMethod {
     /**
-     * @param $request
-     * @param $consumer
-     * @param $token
-     * @param $signature
+     * Check signature
+     *
+     * @param OAuthRequest $request
+     * @param object       $consumer
+     * @param mixed        $token
+     * @param string       $signature
      *
      * @return bool
      */
-    public function check_signature(&$request, $consumer, $token, $signature) {
+    public function check_signature(OAuthRequest &$request, $consumer, $token, $signature) {
         $built = $this->build_signature($request, $consumer, $token);
 
         return $built == $signature;
     }
 
     /**
+     * Build signature
+     *
      * @param OAuthRequest $request
-     * @param              $consumer
-     * @param              $token
+     * @param object       $consumer
+     * @param mixed        $token
      *
      * @return mixed
      */
     abstract public function build_signature(OAuthRequest $request, $consumer, $token);
+
+    /**
+     * Get method name
+     *
+     * @return string
+     */
+    abstract public function get_name();
 }

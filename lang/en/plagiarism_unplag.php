@@ -15,10 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Translations
+ *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -121,3 +123,4 @@ $string['min_30_words'] = 'At least 30 words are required';
 $string['max_100000_words'] = 'File(s) should have no more than 100 000 words and be not larger than 70MB';
 $string['max_supported_archive_files_count'] = 'Max supported archive files';
 $string['max_supported_archive_files_count_help'] = 'The maximum number of supported files that will be extracted from the archives';
+$string['uploading'] = 'Uploading';

@@ -19,16 +19,17 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
-use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
-use plagiarism_unplag\classes\unplag_plagiarism_entity;
+use stored_file;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -37,17 +38,21 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_abstract_event
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class unplag_abstract_event {
     /** @var */
     protected static $instance;
-    /** @var array */
-    protected $tasks = array();
-    /** @var unplag_core */
-    protected $unplagcore;
+    /** @var stored_file[] */
+    protected $tasks = [];
 
     /**
+     * Get instance
+     *
      * @return static
      */
     public static function instance() {
@@ -61,6 +66,8 @@ abstract class unplag_abstract_event {
     }
 
     /**
+     * is_submition_draft
+     *
      * @param base $event
      *
      * @return bool
@@ -83,35 +90,51 @@ abstract class unplag_abstract_event {
     }
 
     /**
+     * after_handle_event
      *
+     * @param unplag_core $ucore
      */
-    protected function after_handle_event() {
+    protected function after_handle_event(unplag_core $ucore) {
         if (empty($this->tasks)) {
             // Skip this file check cause assign is draft.
             return;
         }
 
-        foreach ($this->tasks as $plagiarismentity) {
-            if ($plagiarismentity instanceof unplag_plagiarism_entity) {
-                $internalfile = $plagiarismentity->get_internal_file();
-                if (isset($internalfile->external_file_id) && !isset($internalfile->check_id)) {
-                    $checkresp = unplag_api::instance()->run_check($internalfile);
-                    $plagiarismentity->handle_check_response($checkresp);
-                }
+        foreach ($this->tasks as $storedfile) {
+            if (!$storedfile instanceof stored_file) {
+                continue;
+            }
+            $plagiarismentity = $ucore->get_plagiarism_entity($storedfile);
+            if (null === $plagiarismentity) {
+                continue;
+            }
+
+            $internalfile = $plagiarismentity->get_internal_file();
+            if (!isset($internalfile->external_file_uuid)) {
+                unplag_adhoc::upload($storedfile, $ucore);
+                continue;
+            }
+
+            if (!isset($internalfile->check_id)) {
+                unplag_adhoc::check($internalfile);
             }
         }
     }
 
     /**
-     * @param $plagiarismentity
+     * add_after_handle_task
+     *
+     * @param stored_file $file
      */
-    protected function add_after_handle_task($plagiarismentity) {
-        array_push($this->tasks, $plagiarismentity);
+    protected function add_after_handle_task(stored_file $file) {
+        array_push($this->tasks, $file);
     }
 
     /**
-     * @param unplag_core $unplagcore
+     * handle_event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    abstract public function handle_event(unplag_core $unplagcore, base $event);
+    abstract public function handle_event(unplag_core $core, base $event);
 }

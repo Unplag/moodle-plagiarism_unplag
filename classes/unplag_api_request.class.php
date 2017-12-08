@@ -20,9 +20,10 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace plagiarism_unplag\classes;
 
 use plagiarism_unplag\library\OAuth\OAuthConsumer;
@@ -36,7 +37,11 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_api_request
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_api_request {
     /**
@@ -45,7 +50,7 @@ class unplag_api_request {
     private static $instance = null;
 
     /**
-     * @var  string
+     * @var  string|array
      */
     private $requestdata;
 
@@ -65,6 +70,8 @@ class unplag_api_request {
     private $httpmethod = 'get';
 
     /**
+     * Get instance
+     *
      * @return null|static
      */
     final public static function instance() {
@@ -72,6 +79,8 @@ class unplag_api_request {
     }
 
     /**
+     * Set request method post
+     *
      * @return $this
      */
     public function http_post() {
@@ -81,6 +90,8 @@ class unplag_api_request {
     }
 
     /**
+     * Set request method get
+     *
      * @return $this
      */
     public function http_get() {
@@ -90,8 +101,10 @@ class unplag_api_request {
     }
 
     /**
-     * @param $method
-     * @param $data
+     * Make request
+     *
+     * @param string $method
+     * @param array  $data
      *
      * @return \stdClass
      * @throws \coding_exception
@@ -107,17 +120,19 @@ class unplag_api_request {
         $ch->setHeader($this->gen_oauth_headers());
         $ch->setHeader('Content-Type: application/json');
         $ch->setHeader('Plugin-Identifier: ' . $domain[1]);
-        $ch->setopt(array(
-                'CURLOPT_RETURNTRANSFER' => true,
-                'CURLOPT_CONNECTTIMEOUT' => 10,
-        ));
+        $ch->setopt([
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_CONNECTTIMEOUT' => 10,
+        ]);
         $resp = $ch->{$this->httpmethod}($this->url, $this->get_request_data());
 
         return $this->handle_response($resp);
     }
 
     /**
-     * @param $requestdata
+     * Set request data
+     *
+     * @param array $requestdata
      */
     private function set_request_data(&$requestdata) {
         if ($this->httpmethod === 'get') {
@@ -127,16 +142,22 @@ class unplag_api_request {
         }
     }
 
-    /* @param mixed $url */
+    /**
+     * Set action
+     *
+     * @param string $url
+     */
     private function set_action($url) {
         $this->url = UNPLAG_API_URL . $url;
     }
 
     /**
+     * Generate oauth headers
+     *
      * @return string
      */
     private function gen_oauth_headers() {
-        $oauthdata = array();
+        $oauthdata = [];
         if ($this->httpmethod == 'post') {
             $oauthdata['oauth_body_hash'] = $this->gen_oauth_body_hash();
         } else {
@@ -145,7 +166,7 @@ class unplag_api_request {
 
         $oauthconsumer = new OAuthConsumer(unplag_settings::get_settings('client_id'), unplag_settings::get_settings('api_secret'));
         $oauthreq = OAuthRequest::from_consumer_and_token(
-                $oauthconsumer, $this->get_token_secret(), $this->httpmethod, $this->get_url(), $oauthdata
+            $oauthconsumer, $this->get_token_secret(), $this->httpmethod, $this->get_url(), $oauthdata
         );
         $oauthreq->sign_request(new OAuthSignatureMethod_HMAC_SHA1(), $oauthconsumer, $this->get_token_secret());
 
@@ -153,6 +174,8 @@ class unplag_api_request {
     }
 
     /**
+     * gen_oauth_body_hash
+     *
      * @return string
      */
     private function gen_oauth_body_hash() {
@@ -160,6 +183,8 @@ class unplag_api_request {
     }
 
     /**
+     * get_request_data
+     *
      * @return string
      */
     public function get_request_data() {
@@ -167,6 +192,8 @@ class unplag_api_request {
     }
 
     /**
+     * get_token_secret
+     *
      * @return string
      */
     public function get_token_secret() {
@@ -174,6 +201,8 @@ class unplag_api_request {
     }
 
     /**
+     * Get request url
+     *
      * @return string
      */
     public function get_url() {
@@ -181,7 +210,9 @@ class unplag_api_request {
     }
 
     /**
-     * @param $resp
+     * Handle response
+     *
+     * @param string $resp
      *
      * @return \stdClass
      */

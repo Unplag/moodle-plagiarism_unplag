@@ -14,9 +14,6 @@ php:
  - 7.1
 
 env:
-  global:
-    - IGNORE_PATHS=library/OAuth
-
   matrix:
     - DB=pgsql MOODLE_BRANCH=MOODLE_27_STABLE
     - DB=pgsql MOODLE_BRANCH=MOODLE_28_STABLE

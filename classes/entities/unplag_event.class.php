@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -41,19 +41,26 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_archive
  *
- * @package plagiarism_unplag\classes\entities
- * @namespace plagiarism_unplag\classes\entities
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 class unplag_event {
 
     /**
+     * Process event
+     *
      * @param base $event
      */
     public function process(base $event) {
-        $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid);
-        if (self::is_upload_event($event)) {
 
+        $cm = get_coursemodule_from_id('', $event->get_context()->instanceid);
+        $unplagcore = new unplag_core($event->get_context()->instanceid, $event->userid, $cm->modname);
+
+        if (self::is_upload_event($event)) {
             switch ($event->component) {
                 case 'assignsubmission_onlinetext':
                     unplag_event_onlinetext_submited::instance()->handle_event($unplagcore, $event);
@@ -86,6 +93,8 @@ class unplag_event {
     }
 
     /**
+     * Check is upload event detected
+     *
      * @param base $event
      *
      * @return bool
@@ -102,6 +111,8 @@ class unplag_event {
     }
 
     /**
+     * Check is assign submitted
+     *
      * @param base $event
      *
      * @return bool
@@ -111,6 +122,8 @@ class unplag_event {
     }
 
     /**
+     * Check is workshop swiched
+     *
      * @param base $event
      *
      * @return bool

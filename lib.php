@@ -20,7 +20,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -44,28 +44,31 @@ require_once($CFG->libdir . '/accesslib.php');
 require_once(dirname(__FILE__) . '/autoloader.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 
-// There is a new UNPLAG API - The Integration Service - we only currently use this to verify the receiver address.
+// There is a new UNICHECK API - The Integration Service - we only currently use this to verify the receiver address.
 // If we convert the existing calls to send file/get score we should move this to a config setting.
 
 /**
  * Class plagiarism_plugin_unplag
+ *
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class plagiarism_plugin_unplag extends plagiarism_plugin {
     /**
+     * Get default_plugin_options
+     *
      * @return string[]
      */
-    public static function default_plagin_options() {
+    public static function default_plugin_options() {
         return ['unplag_use', 'unplag_enable_mod_assign', 'unplag_enable_mod_forum', 'unplag_enable_mod_workshop'];
     }
 
     /**
      * Hook to allow plagiarism specific information to be displayed beside a submission.
      *
-     * @param $linkarray
+     * @param array $linkarray all relevant information for the plugin to generate a link.
      *
      * @return string
-     * @internal param array $linkarraycontains all relevant information for the plugin to generate a link.
-     *
      */
     public function get_links($linkarray) {
 
@@ -80,9 +83,9 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         if (self::is_enabled_module('mod_' . $cm->modname)) {
             $file = unplag_linkarray::get_file_from_linkarray($cm, $linkarray);
             if ($file && plagiarism_unplag::is_support_filearea($file->get_filearea())) {
-                $ucore = new unplag_core($linkarray['cmid'], $file->get_userid());
+                $ucore = new unplag_core($linkarray['cmid'], $file->get_userid(), $cm->modname);
 
-                if ($cm->modname == UNPLAG_MODNAME_ASSIGN && (bool) unplag_assign::get($cm->instance)->teamsubmission) {
+                if ($cm->modname == UNPLAG_MODNAME_ASSIGN && (bool)unplag_assign::get($cm->instance)->teamsubmission) {
                     $ucore->enable_teamsubmission();
                 }
 
@@ -97,62 +100,66 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
-     *  hook to save plagiarism specific settings on a module settings page
+     * Hook to save plagiarism specific settings on a module settings page
      *
      * @param object $data - data from an mform submission.
      */
     public function save_form_elements($data) {
         global $DB;
 
+        if (!plagiarism_unplag::is_support_mod($data->modulename) || !isset($data->use_unplag)) {
+            return;
+        }
+
         if (isset($data->submissiondrafts) && !$data->submissiondrafts) {
             $data->use_unplag = 0;
         }
 
-        if (isset($data->use_unplag)) {
-            // First get existing values.
-            $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => $data->coursemodule], '', 'name, id');
-            // Array of possible plagiarism config options.
-            foreach (self::config_options() as $element) {
-                if ($element == unplag_settings::SENSITIVITY_SETTING_NAME
-                    && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
-                ) {
-                    if (isset($existingelements[$element])) {
-                        continue;
-                    }
-
-                    $data->$element = 0;
-                }
-
-                if ($element == unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
-                    && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
-                ) {
-                    if (isset($existingelements[$element])) {
-                        continue;
-                    }
-
-                    $data->$element = unplag_archive::DEFAULT_SUPPORTED_FILES_COUNT;
-                }
-
-                $newelement = new stdClass();
-                $newelement->cm = $data->coursemodule;
-                $newelement->name = $element;
-                $newelement->value = (isset($data->$element) ? $data->$element : 0);
-
+        // First get existing values.
+        $existingelements = $DB->get_records_menu(UNPLAG_CONFIG_TABLE, ['cm' => $data->coursemodule], '', 'name, id');
+        // Array of possible plagiarism config options.
+        foreach (self::config_options() as $element) {
+            if ($element == unplag_settings::SENSITIVITY_SETTING_NAME
+                && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
+            ) {
                 if (isset($existingelements[$element])) {
-                    $newelement->id = $existingelements[$element];
-                    $DB->update_record(UNPLAG_CONFIG_TABLE, $newelement);
-                } else {
-                    $DB->insert_record(UNPLAG_CONFIG_TABLE, $newelement);
+                    continue;
                 }
+
+                $data->$element = 0;
+            }
+
+            if ($element == unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
+                && (!is_numeric($data->$element) || $data->$element < 0 || $data->$element > 100)
+            ) {
+                if (isset($existingelements[$element])) {
+                    continue;
+                }
+
+                $data->$element = unplag_archive::DEFAULT_SUPPORTED_FILES_COUNT;
+            }
+
+            $newelement = new stdClass();
+            $newelement->cm = $data->coursemodule;
+            $newelement->name = $element;
+            $newelement->value = (isset($data->$element) ? $data->$element : 0);
+
+            if (isset($existingelements[$element])) {
+                $newelement->id = $existingelements[$element];
+                $DB->update_record(UNPLAG_CONFIG_TABLE, $newelement);
+            } else {
+                $DB->insert_record(UNPLAG_CONFIG_TABLE, $newelement);
             }
         }
 
         // Plugin is enabled.
         if ($data->use_unplag == 1) {
             if ($data->modulename == UNPLAG_MODNAME_ASSIGN && $data->check_all_submitted_assignments == 1) {
+                $cm = get_coursemodule_from_id('', $data->coursemodule);
                 unplag_bulk_check_assign_files::add_task([
                     'contextid' => $data->gradingman->get_context()->id,
                     'cmid'      => $data->coursemodule,
+                    'modname'   => $cm->modname
                 ]);
             }
         }
@@ -171,6 +178,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
+     * Checking whether module supported
+     *
      * @param string $modulename
      *
      * @return bool
@@ -180,7 +189,7 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         $modname = 'unplag_enable_' . $modulename;
 
         if (!$plagiarismsettings || empty($plagiarismsettings[$modname])) {
-            return false; // Return if unplag is not enabled for the module.
+            return false; // Return if UNICHECK is not enabled for the module.
         }
 
         return true;
@@ -189,15 +198,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     /**
      * hook to add plagiarism specific settings to a module settings page
      *
-     * @param object $mform   - Moodle form
-     * @param object $context - current context
-     * @param string $modulename
-     *
-     * @return null
+     * @param object  $mform   - Moodle form
+     * @param context $context - current context
+     * @param string  $modulename
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
         if ($modulename && !self::is_enabled_module($modulename)) {
-            return null;
+            return;
         }
 
         $cmid = optional_param('update', 0, PARAM_INT); // Get cm as $this->_cm is not available here.
@@ -222,9 +229,13 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         } else { // Add plagiarism settings as hidden vars.
             $this->add_plagiarism_hidden_vars($plagiarismelements, $mform);
         }
+
+        return;
     }
 
     /**
+     * Disable elements if not use
+     *
      * @param array  $plagiarismelements
      * @param object $mform - Moodle form
      */
@@ -238,6 +249,8 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
     }
 
     /**
+     * Add plagiarism hidden vars
+     *
      * @param array  $plagiarismelements
      * @param object $mform - Moodle form
      */
@@ -277,6 +290,9 @@ class plagiarism_plugin_unplag extends plagiarism_plugin {
         return $outputhtml;
     }
 
+    /**
+     * Workaround MDL-52702 before version 3.1.
+     */
     public function cron() {
         // Do nothing.
         // Workaround MDL-52702 before version 3.1.

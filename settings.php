@@ -20,7 +20,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 use plagiarism_unplag\classes\unplag_notification;
@@ -52,7 +52,7 @@ $currenttab = 'unplagsettings';
 require_once(dirname(__FILE__) . '/views/view_tabs.php');
 
 if (($data = $mform->get_data()) && confirm_sesskey()) {
-    foreach (plagiarism_plugin_unplag::default_plagin_options() as $option) {
+    foreach (plagiarism_plugin_unplag::default_plugin_options() as $option) {
         if (!isset($data->$option)) {
             $data->$option = 0;
         }

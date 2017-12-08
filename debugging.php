@@ -15,16 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * debugging.php - Displays default values to use inside assignments for UNPLAG
+ * debugging.php - Displays default values to use inside assignments
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\helpers\unplag_check_helper;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_api;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_notification;
@@ -75,19 +77,19 @@ if (!$table->is_downloading($download, $exportfilename)) {
         }
     } else {
         if ($resetuser == 2 && $id && confirm_sesskey()) {
-            $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
+            $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, ['id' => $id], '*', MUST_EXIST);
             $response = unplag_api::instance()->get_check_data($plagiarismfile->check_id);
             if ($response->result) {
                 unplag_check_helper::check_complete($plagiarismfile, $response->check);
             } else {
                 $plagiarismfile->errorresponse = json_encode($response->errors);
-                $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
+                unplag_file_provider::save($plagiarismfile);
             }
 
-            if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_ACCEPTED) {
+            if (in_array($plagiarismfile->state, [unplag_file_state::UPLOADED, unplag_file_state::CHECKING])) {
                 unplag_notification::error('scorenotavailableyet', true);
             } else {
-                if ($plagiarismfile->statuscode == UNPLAG_STATUSCODE_PROCESSED) {
+                if ($plagiarismfile->state == unplag_file_state::CHECKED) {
                     unplag_notification::error('scoreavailable', true);
                 } else {
                     unplag_notification::error('unknownwarning', true);
@@ -97,14 +99,13 @@ if (!$table->is_downloading($download, $exportfilename)) {
     }
 
     if (!empty($delete) && confirm_sesskey()) {
-        $DB->delete_records(UNPLAG_FILES_TABLE, array('id' => $id));
+        $DB->delete_records(UNPLAG_FILES_TABLE, ['id' => $id]);
         unplag_notification::success('filedeleted', true);
     }
 }
-$heldevents = array();
+$heldevents = [];
 
 // Now do sorting if specified.
-$orderby = '';
 switch ($sort) {
     case 'name':
         $orderby = " ORDER BY u.firstname, u.lastname";
@@ -115,7 +116,7 @@ switch ($sort) {
     case 'status':
         $orderby = " ORDER BY t.errorresponse";
         break;
-    case 'id':
+    default:
         $orderby = " ORDER BY t.id";
         break;
 }
@@ -125,56 +126,62 @@ if (!empty($orderby) && ($dir == 'asc' || $dir == 'desc')) {
 }
 
 // Now show files in an error state.
-$sql = sprintf('SELECT t.*, %1$s, m.name as moduletype, cm.course as courseid, cm.instance as cminstance
+$sql = "SELECT t.*, ?, m.name AS moduletype, cm.course AS courseid, cm.instance AS cminstance
     FROM {plagiarism_unplag_files} t, {user} u, {modules} m, {course_modules} cm
-    WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id AND t.parent_id iS NULL AND t.type = \'%3$s\'
-    AND t.errorresponse is not null
-    %2$s',
-        get_all_user_name_fields(true, 'u'), $orderby, unplag_plagiarism_entity::TYPE_DOCUMENT
-);
+    WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id AND t.parent_id IS NULL AND t.type = ?
+    AND (t.errorresponse IS NOT NULL OR t.state = ?)
+   {$orderby}";
 
 $limit = 20;
-$unplagfiles = $DB->get_records_sql($sql, null, $page * $limit, $limit);
+$unplagfiles = $DB->get_records_sql(
+    $sql,
+    [
+        get_all_user_name_fields(true, 'u'), unplag_plagiarism_entity::TYPE_DOCUMENT,
+        unplag_file_state::HAS_ERROR
+    ],
+    $page * $limit,
+    $limit
+);
 
-$table->define_columns(array('id', 'name', 'module', 'identifier', 'status', 'attempts', 'action'));
-$table->define_headers(array(
-        plagiarism_unplag::trans('id'),
-        get_string('user'),
-        plagiarism_unplag::trans('module'),
-        plagiarism_unplag::trans('identifier'),
-        plagiarism_unplag::trans('status'),
-        plagiarism_unplag::trans('attempts'), '',
-));
+$table->define_columns(['id', 'name', 'module', 'identifier', 'status', 'attempts', 'action']);
+$table->define_headers([
+    plagiarism_unplag::trans('id'),
+    get_string('user'),
+    plagiarism_unplag::trans('module'),
+    plagiarism_unplag::trans('identifier'),
+    plagiarism_unplag::trans('status'),
+    plagiarism_unplag::trans('attempts'), '',
+]);
 $table->define_baseurl('debugging.php');
 $table->sortable(true);
 $table->no_sorting('file', 'action');
 $table->collapsible(true);
 $table->set_attribute('cellspacing', '0');
 $table->set_attribute('class', 'generaltable generalbox');
-$table->show_download_buttons_at(array(TABLE_P_BOTTOM));
+$table->show_download_buttons_at([TABLE_P_BOTTOM]);
 $table->setup();
 
 $fs = get_file_storage();
 foreach ($unplagfiles as $tf) {
     if ($table->is_downloading()) {
-        $row = array(
-                $tf->id,
-                $tf->userid,
-                $tf->cm . ' ' . $tf->moduletype,
-                $tf->identifier,
-                $tf->statuscode,
-                $tf->attempt,
-                $tf->errorresponse,
-        );
+        $row = [
+            $tf->id,
+            $tf->userid,
+            $tf->cm . ' ' . $tf->moduletype,
+            $tf->identifier,
+            $tf->state,
+            $tf->attempt,
+            $tf->errorresponse,
+        ];
     } else {
 
         $builddebuglink = function($tf, $action, $transtext) {
             return sprintf('<a href="debugging.php?%4$s&id=%1$s&sesskey=%2$s">%3$s</a>',
-                    $tf->id, sesskey(), plagiarism_unplag::trans($transtext), $action
+                $tf->id, sesskey(), plagiarism_unplag::trans($transtext), $action
             );
         };
 
-        if ($tf->statuscode == UNPLAG_STATUSCODE_ACCEPTED) { // Sanity Check.
+        if (in_array($tf->state, [unplag_file_state::UPLOADED, unplag_file_state::CHECKING])) { // Sanity Check.
             $action = 'reset=2';
             $transtext = 'getscore';
         } else {
@@ -182,22 +189,22 @@ foreach ($unplagfiles as $tf) {
             $transtext = 'resubmit';
         }
         $user = "<a href='" . $CFG->wwwroot . "/user/profile.php?id=" . $tf->userid . "'>" . fullname($tf) . "</a>";
-        $cmurl = new moodle_url($CFG->wwwroot . '/mod/' . $tf->moduletype . '/view.php', array('id' => $tf->cm));
+        $cmurl = new moodle_url($CFG->wwwroot . '/mod/' . $tf->moduletype . '/view.php', ['id' => $tf->cm]);
         $coursemodule = get_coursemodule_from_id($tf->moduletype, $tf->cm);
-        $cmlink = html_writer::link($cmurl, shorten_text($coursemodule->name, 40, true), array('title' => $coursemodule->name));
+        $cmlink = html_writer::link($cmurl, shorten_text($coursemodule->name, 40, true), ['title' => $coursemodule->name]);
         $reset = $builddebuglink($tf, $action, $transtext);
         $reset .= ' | ';
         $reset .= $builddebuglink($tf, 'delete=1', 'delete');
 
-        $row = array(
-                $tf->id,
-                $user,
-                $cmlink,
-                $tf->identifier,
-                $tf->errorresponse,
-                $tf->attempt,
-                $reset,
-        );
+        $row = [
+            $tf->id,
+            $user,
+            $cmlink,
+            $tf->identifier,
+            $tf->errorresponse,
+            $tf->attempt,
+            $reset,
+        ];
     }
 
     $table->add_data($row);
@@ -206,17 +213,17 @@ foreach ($unplagfiles as $tf) {
 if ($table->is_downloading()) {
     // Include some extra debugging information in the table.
     // Add some extra lines first.
-    $table->add_data(array());
-    $table->add_data(array());
-    $table->add_data(array());
-    $table->add_data(array());
-    $table->add_data(array());
-    $table->add_data(array());
+    $table->add_data([]);
+    $table->add_data([]);
+    $table->add_data([]);
+    $table->add_data([]);
+    $table->add_data([]);
+    $table->add_data([]);
 
     $configrecords = $DB->get_records(UNPLAG_CONFIG_TABLE);
-    $table->add_data(array('id', 'cm', 'name', 'value'));
+    $table->add_data(['id', 'cm', 'name', 'value']);
     foreach ($configrecords as $cf) {
-        $table->add_data(array($cf->id, $cf->cm, $cf->name, $cf->value));
+        $table->add_data([$cf->id, $cf->cm, $cf->name, $cf->value]);
     }
 }
 

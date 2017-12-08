@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -38,7 +38,7 @@ if (AJAX_SCRIPT) {
     $PAGE->set_context(null);
 }
 
-// Normal situation - UNPLAG has successfully analyzed the file.
+// Normal situation - UNICHECK has successfully analyzed the file.
 $htmlparts = array('<span class="un_report">');
 
 if (empty($cid) && !empty($linkarray['cmid'])) {

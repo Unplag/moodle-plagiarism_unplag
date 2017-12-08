@@ -19,13 +19,14 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace plagiarism_unplag\classes;
 
-use plagiarism_unplag\classes\helpers\unplag_stored_file;
+use plagiarism_unplag\classes\helpers\unplag_response;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -34,10 +35,20 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_plagiarism_entity
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class unplag_plagiarism_entity {
+    /**
+     * TYPE_ARCHIVE
+     */
     const TYPE_ARCHIVE = 'archive';
+    /**
+     * TYPE_DOCUMENT
+     */
     const TYPE_DOCUMENT = 'document';
     /** @var unplag_core */
     protected $core;
@@ -45,16 +56,22 @@ abstract class unplag_plagiarism_entity {
     protected $plagiarismfile;
 
     /**
+     * get_internal_file
+     *
      * @return object
      */
     abstract public function get_internal_file();
 
     /**
+     * build_upload_data
+     *
      * @return array
      */
     abstract protected function build_upload_data();
 
     /**
+     * Get cmid
+     *
      * @return integer
      */
     protected function cmid() {
@@ -62,6 +79,8 @@ abstract class unplag_plagiarism_entity {
     }
 
     /**
+     * Get userid
+     *
      * @return integer
      */
     protected function userid() {
@@ -69,74 +88,15 @@ abstract class unplag_plagiarism_entity {
     }
 
     /**
-     * @param \stdClass $response
+     * Create new plagiarismfile
      *
-     * @return bool
-     */
-    protected function store_file_errors(\stdClass $response) {
-        global $DB;
-
-        $plagiarismfile = $this->get_internal_file();
-        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-        $plagiarismfile->errorresponse = json_encode($response->errors);
-
-        $result = $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
-
-        if ($result && $plagiarismfile->parent_id) {
-            $hasgoodchild = $DB->count_records_select(UNPLAG_FILES_TABLE, "parent_id = ? AND statuscode in (?,?,?)",
-                array(
-                    $plagiarismfile->parent_id, UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED,
-                    UNPLAG_STATUSCODE_PENDING,
-                ));
-
-            if (!$hasgoodchild) {
-                $parentplagiarismfile = unplag_stored_file::get_unplag_file($plagiarismfile->parent_id);
-                $parentplagiarismfile->statuscode = UNPLAG_STATUSCODE_INVALID_RESPONSE;
-                $parentplagiarismfile->errorresponse = json_encode($response->errors);
-
-                $DB->update_record(UNPLAG_FILES_TABLE, $parentplagiarismfile);
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param \stdClass $checkresp
-     */
-    public function handle_check_response(\stdClass $checkresp) {
-        if ($checkresp->result === true) {
-            $this->update_file_accepted($checkresp->check);
-        } else {
-            $this->store_file_errors($checkresp);
-        }
-    }
-
-    /**
-     * @param $check
-     *
-     * @return bool
-     */
-    protected function update_file_accepted($check) {
-        global $DB;
-
-        $plagiarismfile = $this->get_internal_file();
-        $plagiarismfile->attempt = 0; // Reset attempts for status checks.
-        $plagiarismfile->check_id = $check->id;
-        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_ACCEPTED;
-        $plagiarismfile->errorresponse = null;
-
-        return $DB->update_record(UNPLAG_FILES_TABLE, $plagiarismfile);
-    }
-
-    /**
-     * @param $data
+     * @param array $data
      *
      * @return null|\stdClass
      */
     public function new_plagiarismfile($data) {
 
-        foreach (array('cm', 'userid', 'identifier', 'filename') as $key) {
+        foreach (['cm', 'userid', 'identifier', 'filename'] as $key) {
             if (empty($data[$key])) {
                 print_error($key . ' value is empty');
 
@@ -149,7 +109,7 @@ abstract class unplag_plagiarism_entity {
         $plagiarismfile->userid = $data['userid'];
         $plagiarismfile->identifier = $data['identifier'];
         $plagiarismfile->filename = $data['filename'];
-        $plagiarismfile->statuscode = UNPLAG_STATUSCODE_PENDING;
+        $plagiarismfile->state = unplag_file_state::CREATED;
         $plagiarismfile->attempt = 0;
         $plagiarismfile->progress = 0;
         $plagiarismfile->timesubmitted = time();
@@ -159,6 +119,8 @@ abstract class unplag_plagiarism_entity {
     }
 
     /**
+     * Upload file on server
+     *
      * @return object
      */
     public function upload_file_on_unplag_server() {
@@ -170,33 +132,18 @@ abstract class unplag_plagiarism_entity {
         }
 
         // Check if $internalfile actually needs to be submitted.
-        if ($internalfile->statuscode !== UNPLAG_STATUSCODE_PENDING) {
+        if ($internalfile->state !== unplag_file_state::UPLOADING) {
             return $internalfile;
         }
 
         list($content, $name, $ext, $cmid, $owner) = $this->build_upload_data();
-        $uploadresponse = unplag_api::instance()->upload_file($content, $name, $ext, $cmid, $owner);
+        $uploadresponse = unplag_api::instance()->upload_file($content, $name, $ext, $cmid, $owner, $internalfile);
 
         // Increment attempt number.
         $internalfile->attempt++;
 
-        $this->process_after_upload($internalfile, $uploadresponse);
+        unplag_response::process_after_upload($uploadresponse, $internalfile);
 
         return $internalfile;
-    }
-
-    /**
-     * @param object $internalfile
-     * @param object $uploadresponse
-     */
-    private function process_after_upload(&$internalfile, $uploadresponse) {
-        global $DB;
-
-        if ($uploadresponse->result) {
-            $internalfile->external_file_id = $uploadresponse->file->id;
-            $DB->update_record(UNPLAG_FILES_TABLE, $internalfile);
-        } else {
-            $this->store_file_errors($uploadresponse);
-        }
     }
 }

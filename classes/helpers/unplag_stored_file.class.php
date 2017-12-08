@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,14 +32,20 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_stored_file
  *
- * @package plagiarism_unplag\classes\helpers
- * @namespace plagiarism_unplag\classes\helpers
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 class unplag_stored_file extends \stored_file {
 
     /**
+     * Get file pathname
+     *
      * @param \stored_file $file
+     *
      * @return string
      */
     public static function get_protected_pathname(\stored_file $file) {
@@ -47,24 +53,27 @@ class unplag_stored_file extends \stored_file {
     }
 
     /**
-     * @param $id
+     * Get file childs
+     *
+     * @param int $id
      *
      * @return array
      */
-    public static function get_childs($id) {
+    public static function get_plagiarism_file_childs_by_id($id) {
         global $DB;
 
-        return $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', array($id));
+        return $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$id]);
     }
 
     /**
-     * @param $id
+     * get_plagiarism_file_by_identifier
      *
+     * @param string $identifier
      * @return mixed
      */
-    public static function get_unplag_file($id) {
+    public static function get_plagiarism_file_by_identifier($identifier) {
         global $DB;
 
-        return $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
+        return $DB->get_record(UNPLAG_FILES_TABLE, ['identifier' => $identifier], '*', MUST_EXIST);
     }
 }

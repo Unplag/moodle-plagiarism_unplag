@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_api.class.php - SDK for working with unplag api.
+ * unplag_api.class.php - SDK for working with UNICHECK api.
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,16 +32,48 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_api
  *
- * @package plagiarism_unplag\classes
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_api {
+    /**
+     * ACCESS_SCOPE_WRITE
+     */
     const ACCESS_SCOPE_WRITE = 'w';
+    /**
+     * ACCESS_SCOPE_READ
+     */
     const ACCESS_SCOPE_READ = 'r';
+    /**
+     * CHECK_PROGRESS
+     */
     const CHECK_PROGRESS = 'check/progress';
+    /**
+     * CHECK_GET
+     */
     const CHECK_GET = 'check/get';
-    const FILE_UPLOAD = 'file/upload';
+    /**
+     * FILE_UPLOAD
+     */
+    const FILE_UPLOAD = 'file/async_upload';
+    /**
+     * TRACK_UPLOAD
+     */
+    const TRACK_UPLOAD = 'file/trackfileupload';
+    /**
+     * CHECK_CREATE
+     */
     const CHECK_CREATE = 'check/create';
+    /**
+     * CHECK_DELETE
+     */
     const CHECK_DELETE = 'check/delete';
+    /**
+     * USER_CREATE
+     */
     const USER_CREATE = 'user/create';
     /**
      * @var null|unplag_api
@@ -49,6 +81,8 @@ class unplag_api {
     private static $instance = null;
 
     /**
+     * Get instance
+     *
      * @return null|static
      */
     final public static function instance() {
@@ -56,27 +90,32 @@ class unplag_api {
     }
 
     /**
+     * Upload file
+     *
      * @param string|resource $content
      * @param string          $filename
      * @param string          $format
      * @param integer         $cmid
      * @param object|null     $owner
+     * @param \stdClass       $internalfile
      *
      * @return \stdClass
      */
-    public function upload_file(&$content, $filename, $format = 'html', $cmid, $owner = null) {
-
-        set_time_limit(UNPLAG_UPLOAD_TIME_LIMIT);
+    public function upload_file(&$content, $filename, $format = 'html', $cmid, $owner = null, $internalfile) {
+        global $CFG;
 
         if (is_resource($content)) {
             $content = stream_get_contents($content);
         }
 
         $postdata = [
-            'format'    => strtolower($format),
-            'file_data' => base64_encode($content),
-            'name'      => $filename,
-            'options'   => [
+            'format'       => strtolower($format),
+            'file_data'    => base64_encode($content),
+            'name'         => $filename,
+            'callback_url' => sprintf(
+                '%1$s%2$s?token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $internalfile->identifier
+            ),
+            'options'      => [
                 'utoken'        => unplag_core::get_external_token($cmid, $owner),
                 'submission_id' => $cmid,
             ],
@@ -90,7 +129,7 @@ class unplag_api {
 
         $response = unplag_api_request::instance()->http_post()->request(self::FILE_UPLOAD, $postdata);
         if (!is_object($response)) {
-            $response = (object) [
+            $response = (object)[
                 "result" => false,
                 "errors" => [
                     [
@@ -106,6 +145,8 @@ class unplag_api {
     }
 
     /**
+     * Run check
+     *
      * @param \stdClass $file
      *
      * @return \stdClass
@@ -125,7 +166,7 @@ class unplag_api {
         $postdata = [
             'type'         => is_null($checktype) ? UNPLAG_CHECK_TYPE_WEB : $checktype,
             'file_id'      => $file->external_file_id,
-            'callback_url' => sprintf('%1$s%2$s&token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
+            'callback_url' => sprintf('%1$s%2$s?token=%3$s', $CFG->wwwroot, UNPLAG_CALLBACK_URL, $file->identifier),
             'options'      => $options,
         ];
 
@@ -137,9 +178,11 @@ class unplag_api {
     }
 
     /**
+     * Get check progress
+     *
      * @param array $checkids
      *
-     * @return mixed
+     * @return \stdClass
      */
     public function get_check_progress(array $checkids) {
         if (empty($checkids)) {
@@ -152,7 +195,22 @@ class unplag_api {
     }
 
     /**
-     * @param $id
+     * Track file upload progress
+     *
+     * @param string $token
+     *
+     * @return \stdClass
+     */
+    public function get_file_upload_progress($token) {
+        return unplag_api_request::instance()->http_get()->request(self::TRACK_UPLOAD, [
+            'uuid' => $token
+        ]);
+    }
+
+    /**
+     * Get check data
+     *
+     * @param int $id
      *
      * @return \stdClass
      */
@@ -167,6 +225,8 @@ class unplag_api {
     }
 
     /**
+     * Delete check
+     *
      * @param \stdClass $file
      *
      * @return mixed
@@ -182,8 +242,10 @@ class unplag_api {
     }
 
     /**
-     * @param      $user
-     * @param bool $cancomment
+     * Create user
+     *
+     * @param object $user
+     * @param bool   $cancomment
      *
      * @return mixed
      */
@@ -200,8 +262,10 @@ class unplag_api {
     }
 
     /**
-     * @param $cmid
-     * @param $options
+     * Set advanced check options
+     *
+     * @param int   $cmid
+     * @param array $options
      */
     private function advanced_check_options($cmid, &$options) {
         $options['exclude_self_plagiarism'] = 1;

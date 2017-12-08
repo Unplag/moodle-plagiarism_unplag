@@ -13,14 +13,23 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_core.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes;
 
 use context_module;
 use core\event\base;
 use plagiarism_unplag;
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -30,11 +39,10 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_core
  *
- * @package     plagiarism_unplag\classes
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_core {
@@ -54,18 +62,27 @@ class unplag_core {
     public $cmid = null;
 
     /**
+     * @var string
+     */
+    public $modname = null;
+
+    /**
      * unplag_core constructor.
      *
-     * @param $cmid
-     * @param $userid
+     * @param int    $cmid
+     * @param int    $userid
+     * @param string $modname
      */
-    public function __construct($cmid, $userid) {
+    public function __construct($cmid, $userid, $modname) {
         $this->cmid = $cmid;
         $this->userid = $userid;
+        $this->modname = $modname;
     }
 
     /**
-     * @param $data
+     * Convert array to json
+     *
+     * @param array $data
      *
      * @return string
      */
@@ -74,42 +91,47 @@ class unplag_core {
     }
 
     /**
-     * @param $id
+     * resubmit_file
      *
-     * @return null
-     * @throws \coding_exception
+     * @param int $id
+     * @return bool
      */
     public static function resubmit_file($id) {
-        global $DB;
-
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
-        if (in_array($plagiarismfile->statuscode, array(UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED))) {
-            // Sanity Check.
-            return null;
+        $plagiarismfile = unplag_file_provider::get_by_id($id);
+        if (!unplag_file_provider::can_start_check($plagiarismfile)) {
+            return false;
         }
 
         $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
 
-        if (plagiarism_unplag::is_support_mod($cm->modname)) {
-            $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
-            $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
-
-            if (plagiarism_unplag::is_archive($file)) {
-                $unplagarchive = new unplag_archive($file, $ucore);
-                $unplagarchive->restart_check();
-
-                return;
-            }
-
-            $plagiarismentity = $ucore->get_plagiarism_entity($file);
-            $internalfile = $plagiarismentity->get_internal_file();
-
-            unplag_check_helper::run_plagiarism_detection($plagiarismentity, $internalfile);
+        if (!plagiarism_unplag::is_support_mod($cm->modname)) {
+            return false;
         }
+
+        $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
+        $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid, $cm->modname);
+
+        if (plagiarism_unplag::is_archive($file)) {
+            $unplagarchive = new unplag_archive($file, $ucore);
+            $unplagarchive->restart_check();
+
+            return true;
+        }
+
+        if ($plagiarismfile->check_id) {
+            unplag_api::instance()->delete_check($plagiarismfile);
+        }
+        unplag_adhoc::upload($file, $ucore);
+
+        unplag_notification::success('plagiarism_run_success', true);
+
+        return true;
     }
 
     /**
-     * @param      $file
+     * get_plagiarism_entity
+     *
+     * @param  \stored_file $file
      *
      * @return null|unplag_file|unplag_plagiarism_entity
      */
@@ -124,7 +146,9 @@ class unplag_core {
     }
 
     /**
-     * @param $data
+     * parse_json
+     *
+     * @param string $data
      *
      * @return mixed
      */
@@ -133,19 +157,21 @@ class unplag_core {
     }
 
     /**
-     * @param $contextid
-     * @param $contenthash
+     * get_file_by_hash
+     *
+     * @param int    $contextid
+     * @param string $contenthash
      *
      * @return null|\stored_file
      */
     public static function get_file_by_hash($contextid, $contenthash) {
         global $DB;
 
-        $filerecord = $DB->get_records('files', array(
+        $filerecord = $DB->get_records('files', [
             'contextid'   => $contextid,
             'component'   => UNPLAG_PLAGIN_NAME,
             'contenthash' => $contenthash,
-        ), 'id desc', '*', 0, 1);
+        ], 'id desc', '*', 0, 1);
 
         if (!$filerecord) {
             return null;
@@ -154,16 +180,19 @@ class unplag_core {
         return get_file_storage()->get_file_instance(array_shift($filerecord));
     }
 
+    /**
+     * migrate_users_access
+     */
     public static function migrate_users_access() {
         global $DB;
 
         $users = $DB->get_records_sql(sprintf('SELECT user_id
-            FROM {%s}
-            JOIN {%s} ON (user_id = userid)
+            FROM {%S}
+            JOIN {%S} ON (user_id = userid)
             GROUP BY user_id', UNPLAG_USER_DATA_TABLE, UNPLAG_FILES_TABLE));
 
         foreach ($users as $user) {
-            $user = $DB->get_record('user', array('id' => $user->user_id));
+            $user = $DB->get_record('user', ['id' => $user->user_id]);
             if ($user) {
                 unplag_api::instance()->user_create($user);
             }
@@ -171,21 +200,19 @@ class unplag_core {
     }
 
     /**
+     * create_file_from_content
+     *
      * @param base $event
-     *
-     * @return bool|\stored_file
-     *
-     * @throws \file_exception
-     * @throws \stored_file_creation_exception
+     * @return null|\stored_file
      */
     public function create_file_from_content(base $event) {
         global $USER;
 
         if (empty($event->other['content'])) {
-            return false;
+            return null;
         }
 
-        $filerecord = array(
+        $filerecord = [
             'component' => UNPLAG_PLAGIN_NAME,
             'filearea'  => $event->objecttable,
             'contextid' => $event->contextid,
@@ -197,7 +224,7 @@ class unplag_core {
             'userid'    => $USER->id,
             'license'   => 'allrightsreserved',
             'author'    => $USER->firstname . ' ' . $USER->lastname,
-        );
+        ];
 
         /** @var \stored_file $storedfile */
         $storedfile = get_file_storage()->get_file(
@@ -213,7 +240,9 @@ class unplag_core {
     }
 
     /**
-     * @param $content
+     * Get content hash
+     *
+     * @param mixed $content
      *
      * @return string
      */
@@ -222,6 +251,8 @@ class unplag_core {
     }
 
     /**
+     * inject_comment_token
+     *
      * @param string $url
      * @param int    $cmid
      */
@@ -230,7 +261,9 @@ class unplag_core {
     }
 
     /**
-     * @param             $cmid
+     * get_external_token
+     *
+     * @param int         $cmid
      * @param null|object $user
      *
      * @return mixed
@@ -240,7 +273,7 @@ class unplag_core {
 
         $user = $user ? $user : self::get_user();
 
-        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, array('user_id' => $user->id));
+        $storeduser = $DB->get_record(UNPLAG_USER_DATA_TABLE, ['user_id' => $user->id]);
 
         if ($storeduser) {
             return $storeduser->external_token;
@@ -258,10 +291,14 @@ class unplag_core {
                 return $externaluserdata->external_token;
             }
         }
+
+        return null;
     }
 
     /**
-     * @param $cmid
+     * is_teacher
+     *
+     * @param int $cmid
      *
      * @return bool
      */
@@ -270,8 +307,10 @@ class unplag_core {
     }
 
     /**
-     * @param $cmid
-     * @param $permission
+     * Check capability
+     *
+     * @param string $permission
+     * @param int    $cmid
      *
      * @return bool
      */
@@ -282,21 +321,25 @@ class unplag_core {
     }
 
     /**
+     * delete_old_file_from_content
+     *
      * @param \stored_file $storedfile
      */
     private function delete_old_file_from_content(\stored_file $storedfile) {
         global $DB;
 
-        $DB->delete_records(UNPLAG_FILES_TABLE, array(
+        $DB->delete_records(UNPLAG_FILES_TABLE, [
             'cm'         => $this->cmid,
             'userid'     => $storedfile->get_userid(),
             'identifier' => $storedfile->get_pathnamehash(),
-        ));
+        ]);
 
         $storedfile->delete();
     }
 
     /**
+     * enable_teamsubmission
+     *
      * @return $this
      */
     public function enable_teamsubmission() {
@@ -306,6 +349,8 @@ class unplag_core {
     }
 
     /**
+     * is_teamsubmission_mode
+     *
      * @return bool
      */
     public function is_teamsubmission_mode() {
@@ -313,6 +358,8 @@ class unplag_core {
     }
 
     /**
+     * Get user
+     *
      * @param null|int $uid
      *
      * @return object
@@ -321,7 +368,7 @@ class unplag_core {
         global $USER, $DB;
 
         if ($uid !== null) {
-            return $DB->get_record('user', array('id' => $uid));
+            return $DB->get_record('user', ['id' => $uid]);
         }
 
         return $USER;

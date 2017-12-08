@@ -38,7 +38,9 @@
                 <FIELD NAME="timesubmitted" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0"
                        SEQUENCE="false" PREVIOUS="errorresponse"/>
                 <FIELD NAME="external_file_id" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"/>
-                <FIELD NAME="reportediturl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="reportediturl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" NEXT="state"/>
+                <FIELD NAME="state" TYPE="char" LENGTH="63" NOTNULL="true" SEQUENCE="false" DEFAULT="CREATED" PREVIOUS="reportediturl" NEXT="external_file_uuid"/>
+                <FIELD NAME="external_file_uuid" TYPE="char" LENGTH="63" NOTNULL="false" SEQUENCE="false" PREVIOUS="state"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="cm"/>

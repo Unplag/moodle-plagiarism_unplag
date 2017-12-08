@@ -14,56 +14,53 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_event_onlinetext_submited.class.php
+ * unplag_file_state.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace plagiarism_unplag\classes\event;
-
-use core\event\base;
-use plagiarism_unplag\classes\unplag_core;
-use stored_file;
+namespace plagiarism_unplag\classes\services\storage;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
 /**
- * Class unplag_event_onlinetext_submited
+ * Class unplag_file_state
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class unplag_event_onlinetext_submited extends unplag_abstract_event {
+class unplag_file_state {
     /**
-     * handle_event
-     *
-     * @param unplag_core $core
-     * @param base        $event
+     * CREATED
      */
-    public function handle_event(unplag_core $core, base $event) {
-        if (empty($event->other['content'])) {
-            return;
-        }
-
-        $file = $core->create_file_from_content($event);
-
-        if (self::is_submition_draft($event)) {
-            return;
-        }
-
-        if ($file instanceof stored_file) {
-            $this->add_after_handle_task($file);
-        }
-
-        $this->after_handle_event($core);
-    }
+    const CREATED = 'CREATED';
+    /**
+     * UPLOADING
+     */
+    const UPLOADING = 'UPLOADING';
+    /**
+     * UPLOADED
+     */
+    const UPLOADED = 'UPLOADED';
+    /**
+     * CHECKING
+     */
+    const CHECKING = 'CHECKING';
+    /**
+     * CHECKED
+     */
+    const CHECKED = 'CHECKED';
+    /**
+     * HAS_ERROR
+     */
+    const HAS_ERROR = 'HAS_ERROR';
 }

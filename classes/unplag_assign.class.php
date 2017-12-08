@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * unplag_assign.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\classes;
 
@@ -20,8 +29,8 @@ use assign;
 use coding_exception;
 use context_module;
 use plagiarism_unplag;
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\helpers\unplag_check_helper;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -30,18 +39,22 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_assign
  *
- * @package     plagiarism_unplag\classes
+ * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @namespace   plagiarism_unplag\classes
  * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_assign {
+    /**
+     * Mod name in DB
+     */
     const DB_NAME = 'assign';
 
     /**
-     * @param      $cmid
+     * get_user_submission_by_cmid
+     *
+     * @param int  $cmid
      * @param null $userid
      *
      * @return bool|\stdClass
@@ -60,33 +73,37 @@ class unplag_assign {
     }
 
     /**
-     * @param $id
+     * check_submitted_assignment
+     *
+     * @param int $id
      *
      * @throws coding_exception
      */
     public static function check_submitted_assignment($id) {
-        global $DB;
-
-        $plagiarismfile = $DB->get_record(UNPLAG_FILES_TABLE, array('id' => $id), '*', MUST_EXIST);
-        if (in_array($plagiarismfile->statuscode, array(UNPLAG_STATUSCODE_PROCESSED, UNPLAG_STATUSCODE_ACCEPTED))) {
-            // Sanity Check.
+        $plagiarismfile = unplag_file_provider::get_by_id($id);
+        if (!unplag_file_provider::can_start_check($plagiarismfile)) {
             return;
         }
 
         $cm = get_coursemodule_from_id('', $plagiarismfile->cm);
-
         if (plagiarism_unplag::is_support_mod($cm->modname)) {
-
             $file = get_file_storage()->get_file_by_hash($plagiarismfile->identifier);
             if ($file->is_directory()) {
                 return;
             }
 
-            self::run_process_detection($file, $plagiarismfile);
+            $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid, $cm->modname);
+            if (plagiarism_unplag::is_archive($file)) {
+                (new unplag_archive($file, $ucore))->upload();
+            } else {
+                unplag_adhoc::upload($file, $ucore);
+            }
         }
     }
 
     /**
+     * get_area_files
+     *
      * @param int  $contextid
      * @param bool $itemid
      *
@@ -97,7 +114,9 @@ class unplag_assign {
     }
 
     /**
-     * @param $id
+     * Check is draft
+     *
+     * @param int $id
      *
      * @return bool
      */
@@ -106,21 +125,25 @@ class unplag_assign {
 
         $sql = 'SELECT COUNT(id) FROM {assign_submission} WHERE id = ? AND status = ?';
 
-        return (bool) $DB->count_records_sql($sql, array($id, 'draft'));
+        return (bool)$DB->count_records_sql($sql, [$id, 'draft']);
     }
 
     /**
-     * @param $id
+     * Get assign
+     *
+     * @param int $id
      *
      * @return \stdClass
      */
     public static function get($id) {
         global $DB;
 
-        return $DB->get_record(self::DB_NAME, array('id' => $id), '*', MUST_EXIST);
+        return $DB->get_record(self::DB_NAME, ['id' => $id], '*', MUST_EXIST);
     }
 
     /**
+     * Get assign by cmid
+     *
      * @param integer $cmid
      *
      * @return \stdClass
@@ -129,22 +152,5 @@ class unplag_assign {
         $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
 
         return self::get($cm->instance);
-    }
-
-    /**
-     * @param \stored_file $file
-     * @param              $plagiarismfile
-     */
-    private static function run_process_detection(\stored_file $file, $plagiarismfile) {
-
-        $ucore = new unplag_core($plagiarismfile->cm, $plagiarismfile->userid);
-
-        if (plagiarism_unplag::is_archive($file)) {
-            (new unplag_archive($file, $ucore))->run_checks();
-        } else {
-            $plagiarismentity = $ucore->get_plagiarism_entity($file);
-            $internalfile = $plagiarismentity->upload_file_on_unplag_server();
-            unplag_check_helper::run_plagiarism_detection($plagiarismentity, $internalfile);
-        }
     }
 }

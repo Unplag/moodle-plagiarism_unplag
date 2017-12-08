@@ -19,7 +19,7 @@
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
  * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -36,36 +36,49 @@ if (!defined('MOODLE_INTERNAL')) {
 /**
  * Class unplag_event_submission_updated
  *
- * @package   plagiarism_unplag\classes\event
- * @namespace plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 class unplag_event_submission_updated extends unplag_abstract_event {
+    /**
+     * DRAFT_STATUS
+     */
     const DRAFT_STATUS = 'draft';
 
     /**
-     * @param unplag_core $unplagcore
+     * handle event
+     *
+     * @param unplag_core $core
      * @param base        $event
      *
      * @return bool
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
+    public function handle_event(unplag_core $core, base $event) {
 
         global $DB;
         if (!isset($event->other['newstatus'])) {
             return false;
         }
         $newstatus = $event->other['newstatus'];
-        $unplagcore->userid = $event->relateduserid;
+        if (!$event->relateduserid) {
+            $core->enable_teamsubmission();
+        } else {
+            $core->userid = $event->relateduserid;
+        }
+
         if ($newstatus == self::DRAFT_STATUS) {
             $unplagfiles = \plagiarism_unplag::get_area_files($event->contextid, UNPLAG_DEFAULT_FILES_AREA, $event->objectid);
             $assignfiles = unplag_assign::get_area_files($event->contextid, $event->objectid);
 
             $files = array_merge($unplagfiles, $assignfiles);
 
-            $ids = array();
+            $ids = [];
             foreach ($files as $file) {
-                $plagiarismentity = $unplagcore->get_plagiarism_entity($file);
+                $plagiarismentity = $core->get_plagiarism_entity($file);
                 $internalfile = $plagiarismentity->get_internal_file();
                 $ids[] = $internalfile->id;
             }

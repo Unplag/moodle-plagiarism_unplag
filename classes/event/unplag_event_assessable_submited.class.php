@@ -18,8 +18,8 @@
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
- * @copyright   UKU Group, LTD, https://www.unplag.com
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,7 +28,7 @@ namespace plagiarism_unplag\classes\event;
 use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\helpers\unplag_check_helper;
+use plagiarism_unplag\classes\unplag_adhoc;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -41,17 +41,20 @@ require_once(dirname(__FILE__) . '/../../locallib.php');
 /**
  * Class unplag_event_file_submited
  *
- * @package plagiarism_unplag\classes\event
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unplag_event_assessable_submited extends unplag_abstract_event {
     /**
-     * @param unplag_core $unplagcore
+     * handle event
+     *
+     * @param unplag_core $core
      * @param base        $event
      */
-    public function handle_event(unplag_core $unplagcore, base $event) {
-
-        $this->unplagcore = $unplagcore;
-
+    public function handle_event(unplag_core $core, base $event) {
         $submission = unplag_assign::get_user_submission_by_cmid($event->contextinstanceid);
         $submissionid = (!empty($submission->id) ? $submission->id : false);
 
@@ -61,26 +64,13 @@ class unplag_event_assessable_submited extends unplag_abstract_event {
         $files = array_merge($unplagfiles, $assignfiles);
         if (!empty($files)) {
             foreach ($files as $file) {
-                $this->handle_file_plagiarism($file);
+                if (\plagiarism_unplag::is_archive($file)) {
+                    (new unplag_archive($file, $core))->upload();
+                    continue;
+                }
+
+                unplag_adhoc::upload($file, $core);
             }
         }
-    }
-
-    /**
-     * @param \stored_file $file
-     *
-     * @return bool
-     */
-    private function handle_file_plagiarism(\stored_file $file) {
-        if (\plagiarism_unplag::is_archive($file)) {
-            $unplagarchive = new unplag_archive($file, $this->unplagcore);
-            $unplagarchive->run_checks();
-
-            return true;
-        }
-
-        $plagiarismentity = $this->unplagcore->get_plagiarism_entity($file);
-
-        return unplag_check_helper::upload_and_run_detection($plagiarismentity);
     }
 }

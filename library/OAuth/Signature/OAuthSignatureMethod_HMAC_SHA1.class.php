@@ -13,19 +13,36 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * OAuthSignatureMethod_HMAC_SHA1.class.php
+ *
+ * @package     plagiarism_unplag
+ * @subpackage  plagiarism
+ * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace plagiarism_unplag\library\OAuth\Signature;
 
 use plagiarism_unplag\library\OAuth\OAuthRequest;
 use plagiarism_unplag\library\OAuth\OAuthUtil;
 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
+}
+
 /**
  * Class OAuthSignatureMethod_HMAC_SHA1
  *
- * @package plagiarism_unplag\library\OAuth\Signature
+ * @package     plagiarism_unplag
+ * @copyright   UKU Group, LTD, https://www.unicheck.com
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class OAuthSignatureMethod_HMAC_SHA1 extends OAuthSignatureMethod {
     /**
+     * Get method name
+     *
      * @return string
      */
     public function get_name() {
@@ -33,30 +50,28 @@ class OAuthSignatureMethod_HMAC_SHA1 extends OAuthSignatureMethod {
     }
 
     /**
-     * @param $request
-     * @param $consumer
-     * @param $token
+     * Build signature
+     *
+     * @param OAuthRequest $request
+     * @param object       $consumer
+     * @param mixed        $token
      *
      * @return string
      */
     public function build_signature(OAuthRequest $request, $consumer, $token) {
-        global $oauth_last_computed_signature;
-        $oauth_last_computed_signature = false;
+        $basestring = $request->get_signature_base_string();
+        $request->basestring = $basestring;
 
-        $base_string = $request->get_signature_base_string();
-        $request->base_string = $base_string;
-
-        $key_parts = array(
-                $consumer->secret,
-                ($token) ? $token->secret : "",
+        $keyparts = array(
+            $consumer->secret,
+            ($token) ? $token->secret : "",
         );
 
-        $key_parts = OAuthUtil::urlencode_rfc3986($key_parts);
-        $key = implode('&', $key_parts);
+        $keyparts = OAuthUtil::urlencode_rfc3986($keyparts);
+        $key = implode('&', $keyparts);
 
-        $computed_signature = base64_encode(hash_hmac('sha1', $base_string, $key, true));
-        $oauth_last_computed_signature = $computed_signature;
+        $computedsignature = base64_encode(hash_hmac('sha1', $basestring, $key, true));
 
-        return $computed_signature;
+        return $computedsignature;
     }
 }
