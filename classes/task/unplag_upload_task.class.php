@@ -150,10 +150,11 @@ class unplag_upload_task extends unplag_abstract_task {
             $this->internalfile->id
         );
         $internalfile = $plagiarismentity->get_internal_file();
-        $internalfile->state = unplag_file_state::UPLOADING;
-        unplag_file_provider::save($internalfile);
-
-        $plagiarismentity->upload_file_on_unplag_server();
+        if ($internalfile->state == unplag_file_state::CREATED) {
+            $internalfile->state = unplag_file_state::UPLOADING;
+            unplag_file_provider::save($internalfile);
+            $plagiarismentity->upload_file_on_unplag_server();
+        }
 
         unset($plagiarismentity, $content);
 
@@ -166,6 +167,12 @@ class unplag_upload_task extends unplag_abstract_task {
      * @param \stored_file $file
      */
     protected function process_single_file(\stored_file $file) {
+        if ($this->internalfile->external_file_uuid) {
+            mtrace("File already uploaded. Skipped. Plugin file id: {$this->internalfile->id}");
+
+            return;
+        }
+
         $plagiarismentity = $this->ucore->get_plagiarism_entity($file);
         $plagiarismentity->upload_file_on_unplag_server();
     }

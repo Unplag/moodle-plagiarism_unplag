@@ -64,7 +64,12 @@ class unplag_event_submission_updated extends unplag_abstract_event {
             return false;
         }
         $newstatus = $event->other['newstatus'];
-        $core->userid = $event->relateduserid;
+        if (!$event->relateduserid) {
+            $core->enable_teamsubmission();
+        } else {
+            $core->userid = $event->relateduserid;
+        }
+
         if ($newstatus == self::DRAFT_STATUS) {
             $unplagfiles = \plagiarism_unplag::get_area_files($event->contextid, UNPLAG_DEFAULT_FILES_AREA, $event->objectid);
             $assignfiles = unplag_assign::get_area_files($event->contextid, $event->objectid);
