@@ -24,6 +24,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 use core\event\base;
 use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\event\unplag_event_validator;
@@ -34,14 +36,13 @@ use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_core;
 use plagiarism_unplag\classes\unplag_settings;
 
-require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-require_once(dirname(__FILE__) . '/constants.php');
-require_once(dirname(__FILE__) . '/autoloader.php');
 
 global $CFG;
 
 require_once($CFG->libdir . '/filelib.php');
 
+require_once(dirname(__FILE__) . '/constants.php');
+require_once(dirname(__FILE__) . '/autoloader.php');
 /**
  * Class plagiarism_unplag
  *

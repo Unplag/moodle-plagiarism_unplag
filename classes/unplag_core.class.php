@@ -278,7 +278,7 @@ class unplag_core {
         if ($storeduser) {
             return $storeduser->external_token;
         } else {
-            $resp = unplag_api::instance()->user_create($user, self::is_teacher($cmid));
+            $resp = unplag_api::instance()->user_create($user, self::is_teacher($cmid, $user->id));
 
             if ($resp && $resp->result) {
                 $externaluserdata = new \stdClass;
@@ -299,11 +299,12 @@ class unplag_core {
      * is_teacher
      *
      * @param int $cmid
+     * @param int $userid
      *
      * @return bool
      */
-    public static function is_teacher($cmid) {
-        return self::can('moodle/grade:edit', $cmid);
+    public static function is_teacher($cmid, $userid) {
+        return self::can('moodle/grade:edit', $cmid, $userid);
     }
 
     /**
@@ -311,13 +312,12 @@ class unplag_core {
      *
      * @param string $permission
      * @param int    $cmid
+     * @param int    $userid
      *
      * @return bool
      */
-    public static function can($permission, $cmid) {
-        global $USER;
-
-        return has_capability($permission, context_module::instance($cmid), $USER->id);
+    public static function can($permission, $cmid, $userid) {
+        return has_capability($permission, context_module::instance($cmid), $userid);
     }
 
     /**

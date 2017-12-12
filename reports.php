@@ -62,7 +62,7 @@ echo $OUTPUT->header();
 
 $tabs = [];
 $fileinfos = [];
-$canvieweditreport = unplag_core::can('plagiarism/unplag:vieweditreport', $cmid);
+$canvieweditreport = unplag_core::can('plagiarism/unplag:vieweditreport', $cmid, $USER->id);
 foreach ($childs as $child) {
 
     switch ($child->state) {
