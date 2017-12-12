@@ -66,7 +66,7 @@ M.plagiarismUnplag.init = function(Y, contextid) {
                 success: function(tid, response) {
                     var jsondata = Y.JSON.parse(response.responseText);
                     if (!jsondata) {
-                        return false;
+                        return;
                     }
 
                     Y.each(jsondata, handleRecord);

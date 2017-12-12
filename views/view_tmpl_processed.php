@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * view_tmpl_processed.php
  *
@@ -39,7 +40,7 @@ if (AJAX_SCRIPT) {
 }
 
 // Normal situation - UNICHECK has successfully analyzed the file.
-$htmlparts = array('<span class="un_report">');
+$htmlparts = ['<span class="un_report">'];
 
 if (empty($cid) && !empty($linkarray['cmid'])) {
     $cid = $linkarray['cmid'];
@@ -53,7 +54,7 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
     );
 
     // This is a teacher viewing the responses.
-    $canviewsimilarity = unplag_core::can('plagiarism/unplag:viewsimilarity', $cid);
+    $canviewsimilarity = unplag_core::can('plagiarism/unplag:viewsimilarity', $cid, $USER->id);
     $assigncfg = unplag_settings::get_assign_settings($cid, null, true);
 
     if (isset($fileobj->similarityscore)) {
@@ -82,9 +83,9 @@ if (!empty($cid) && !empty($fileobj->reporturl) || !empty($fileobj->similaritysc
             unplag_core::inject_comment_token($editreporturl, $cid);
         }
 
-        $canviewreport = unplag_core::can('plagiarism/unplag:viewreport', $cid);
+        $canviewreport = unplag_core::can('plagiarism/unplag:viewreport', $cid, $USER->id);
         if ($canviewreport || $assigncfg['unplag_show_student_report']) {
-            $canvieweditreport = unplag_core::can('plagiarism/unplag:vieweditreport', $cid);
+            $canvieweditreport = unplag_core::can('plagiarism/unplag:vieweditreport', $cid, $USER->id);
             // Display opt-out link.
             $htmlparts[] = '&nbsp;<span class"plagiarismoptout">';
             $htmlparts[] = sprintf('<a title="%s" href="%s" target="_blank">',
