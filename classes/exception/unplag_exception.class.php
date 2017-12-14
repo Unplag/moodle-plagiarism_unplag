@@ -52,4 +52,8 @@ class unplag_exception extends \Exception {
      * UNSUPPORTED_MIMETYPE
      */
     const UNSUPPORTED_MIMETYPE = 'Unsupported mimetype';
+    /**
+     * FILE_NOT_FOUND
+     */
+    const FILE_NOT_FOUND = 'File not found';
 }

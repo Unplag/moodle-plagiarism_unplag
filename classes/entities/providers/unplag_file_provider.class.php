@@ -133,6 +133,22 @@ class unplag_file_provider {
     }
 
     /**
+     * Set files to error state by pathnamehash
+     *
+     * @param string $pathnamehash
+     * @param string $reason
+     */
+    public static function to_error_state_by_pathnamehash($pathnamehash, $reason) {
+        global $DB;
+
+        $files = $DB->get_recordset(UNPLAG_FILES_TABLE, ['identifier' => $pathnamehash], 'id asc', '*');
+        foreach ($files as $plagiarismfile) {
+            self::to_error_state($plagiarismfile, $reason);
+        }
+        $files->close(); // Don't forget to close the recordset!
+    }
+
+    /**
      * Get file list by parent id
      *
      * @param int $parentid

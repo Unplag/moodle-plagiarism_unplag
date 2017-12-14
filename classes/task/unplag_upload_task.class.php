@@ -80,24 +80,23 @@ class unplag_upload_task extends unplag_abstract_task {
             return;
         }
 
-        $modname = $this->get_modname($data->ucore);
-        $this->ucore = new unplag_core($data->ucore->cmid, $data->ucore->userid, $modname);
-        if ($modname == UNPLAG_MODNAME_ASSIGN
-            && (bool)unplag_assign::get_by_cmid($this->ucore->cmid)->teamsubmission) {
-            $this->ucore->enable_teamsubmission();
-        }
-
-        $file = get_file_storage()->get_file_by_hash($data->pathnamehash);
-        $this->internalfile = $this->ucore->get_plagiarism_entity($file)->get_internal_file();
-
-        if (!\plagiarism_unplag::is_archive($file)) {
-            $this->process_single_file($file);
-            unset($this->ucore, $file);
-
-            return;
-        }
-
         try {
+            $modname = $this->get_modname($data->ucore);
+            $this->ucore = new unplag_core($data->ucore->cmid, $data->ucore->userid, $modname);
+            if ($modname == UNPLAG_MODNAME_ASSIGN
+                && (bool)unplag_assign::get_by_cmid($this->ucore->cmid)->teamsubmission) {
+                $this->ucore->enable_teamsubmission();
+            }
+
+            $file = get_file_storage()->get_file_by_hash($data->pathnamehash);
+            $this->internalfile = $this->ucore->get_plagiarism_entity($file)->get_internal_file();
+
+            if (!\plagiarism_unplag::is_archive($file)) {
+                $this->process_single_file($file);
+
+                return;
+            }
+
             $maxsupportedcount = unplag_settings::get_assign_settings(
                 $this->ucore->cmid,
                 unplag_settings::MAX_SUPPORTED_ARCHIVE_FILES_COUNT
@@ -128,11 +127,14 @@ class unplag_upload_task extends unplag_abstract_task {
                 throw new unplag_exception(unplag_exception::ARCHIVE_IS_EMPTY);
             }
         } catch (\Exception $e) {
-            unplag_file_provider::to_error_state($this->internalfile, $e->getMessage());
-            mtrace('Archive error ' . $e->getMessage());
-        }
+            if ($this->internalfile) {
+                unplag_file_provider::to_error_state($this->internalfile, $e->getMessage());
+            } else {
+                unplag_file_provider::to_error_state_by_pathnamehash($data->pathnamehash, $e->getMessage());
+            }
 
-        unset($this->ucore, $file);
+            mtrace("File {$data->pathnamehash}(pathnamehash) processing error: " . $e->getMessage());
+        }
     }
 
     /**
