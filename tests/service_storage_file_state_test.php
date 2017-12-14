@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_exception.class.php
+ * plagiarism_unplag_basic_testcase.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -23,37 +23,36 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace plagiarism_unplag\classes\exception;
-
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
+global $CFG;
+
+require_once($CFG->dirroot . '/plagiarism/unplag/classes/services/storage/unplag_file_state.class.php');
+
 /**
- * Class UnplagException
+ * Class plagiarism_unplag_basic_testcase
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- *
- * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class unplag_exception extends \Exception {
+class plagiarism_unplag_basic_testcase extends \basic_testcase {
     /**
-     * ARCHIVE_IS_EMPTY
+     * Test file states exist
      */
-    const ARCHIVE_IS_EMPTY = 'Archive is empty or contains document(s) with no text';
-    /**
-     * ARCHIVE_CANT_BE_OPEN
-     */
-    const ARCHIVE_CANT_BE_OPEN = 'Can\'t open zip archive';
-    /**
-     * UNSUPPORTED_MIMETYPE
-     */
-    const UNSUPPORTED_MIMETYPE = 'Unsupported mimetype';
-    /**
-     * FILE_NOT_FOUND
-     */
-    const FILE_NOT_FOUND = 'File not found';
+    public function test_state_exist() {
+        $class = new ReflectionClass('plagiarism_unplag\classes\services\storage\unplag_file_state');
+        $states = $class->getConstants();
+
+        $this->assertTrue(in_array('CREATED', $states));
+        $this->assertTrue(in_array('UPLOADING', $states));
+        $this->assertTrue(in_array('UPLOADED', $states));
+        $this->assertTrue(in_array('CHECKING', $states));
+        $this->assertTrue(in_array('CHECKED', $states));
+        $this->assertTrue(in_array('HAS_ERROR', $states));
+    }
 }

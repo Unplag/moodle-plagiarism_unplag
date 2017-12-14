@@ -30,6 +30,7 @@ use core\event\base;
 use plagiarism_unplag;
 use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\entities\unplag_archive;
+use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\plagiarism\unplag_file;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -131,13 +132,14 @@ class unplag_core {
     /**
      * get_plagiarism_entity
      *
-     * @param  \stored_file $file
+     * @param $file
      *
-     * @return null|unplag_file|unplag_plagiarism_entity
+     * @return unplag_file|unplag_plagiarism_entity
+     * @throws unplag_exception
      */
     public function get_plagiarism_entity($file) {
         if (empty($file)) {
-            return null;
+            throw new unplag_exception(unplag_exception::FILE_NOT_FOUND);
         }
 
         $this->unplagplagiarismentity = new unplag_file($this, $file);
