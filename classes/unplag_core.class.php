@@ -132,8 +132,7 @@ class unplag_core {
     /**
      * get_plagiarism_entity
      *
-     * @param $file
-     *
+     * @param \stored_file $file
      * @return unplag_file|unplag_plagiarism_entity
      * @throws unplag_exception
      */
