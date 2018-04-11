@@ -28,6 +28,7 @@ use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\exception\unplag_exception;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
+use plagiarism_unplag\classes\services\storage\filesize_checker;
 use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
@@ -167,8 +168,13 @@ class unplag_upload_task extends unplag_abstract_task {
      * Process single stored file
      *
      * @param \stored_file $file
+     * @throws unplag_exception
      */
     protected function process_single_file(\stored_file $file) {
+        if (filesize_checker::file_is_to_large($file)) {
+            throw new unplag_exception(unplag_exception::FILE_IS_TOO_LARGE);
+        }
+
         if ($this->internalfile->external_file_uuid) {
             mtrace("File already uploaded. Skipped. Plugin file id: {$this->internalfile->id}");
 
