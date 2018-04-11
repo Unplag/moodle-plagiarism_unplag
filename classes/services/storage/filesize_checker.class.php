@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_exception.class.php
+ * filesize_checker.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
@@ -23,41 +23,52 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace plagiarism_unplag\classes\exception;
+namespace plagiarism_unplag\classes\services\storage;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
 /**
- * Class UnplagException
+ * Class filesize_checker
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- *
- * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @author      Aleksandr Kostylev <a.kostylev@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class unplag_exception extends \Exception {
+class filesize_checker {
     /**
-     * ARCHIVE_IS_EMPTY
+     * MAX_FILESIZE
      */
-    const ARCHIVE_IS_EMPTY = 'Archive is empty or contains document(s) with no text';
+    const MAX_FILESIZE = '70M';
+
     /**
-     * ARCHIVE_CANT_BE_OPEN
+     * Check if file is too large
+     *
+     * @param \stored_file $file
+     * @return bool
      */
-    const ARCHIVE_CANT_BE_OPEN = 'Can\'t open zip archive';
+    public static function file_is_to_large(\stored_file $file) {
+        if ($file->get_filesize() > get_real_size(self::MAX_FILESIZE)) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
-     * UNSUPPORTED_MIMETYPE
+     * Check if filesize is too large
+     *
+     * @param int $filesize In bytes
+     * @return bool
      */
-    const UNSUPPORTED_MIMETYPE = 'Unsupported mimetype';
-    /**
-     * FILE_NOT_FOUND
-     */
-    const FILE_NOT_FOUND = 'File not found';
-    /**
-     * FILE_IS_TOO_LARGE
-     */
-    const FILE_IS_TOO_LARGE = 'File is too large for similarity checking';
+    public static function is_too_large($filesize) {
+        if ($filesize > get_real_size(self::MAX_FILESIZE)) {
+            return true;
+        }
+
+        return false;
+    }
 }

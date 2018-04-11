@@ -27,6 +27,7 @@ namespace plagiarism_unplag\classes\entities\extractors;
 
 use plagiarism_unplag\classes\entities\unplag_archive;
 use plagiarism_unplag\classes\exception\unplag_exception;
+use plagiarism_unplag\classes\services\storage\filesize_checker;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -92,6 +93,10 @@ class unplag_zip_extractor implements unplag_extractor_interface {
         $extracted = [];
         foreach ($this->ziparch as $file) {
             if ($file->is_directory) {
+                continue;
+            }
+
+            if (filesize_checker::is_too_large($file->size)) {
                 continue;
             }
 

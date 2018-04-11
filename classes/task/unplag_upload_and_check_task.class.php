@@ -26,6 +26,7 @@ namespace plagiarism_unplag\classes\task;
 
 use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\plagiarism\unplag_content;
+use plagiarism_unplag\classes\services\storage\filesize_checker;
 use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
@@ -54,6 +55,14 @@ class unplag_upload_and_check_task extends unplag_abstract_task {
             if ((bool)unplag_assign::get_by_cmid($ucore->cmid)->teamsubmission) {
                 $ucore->enable_teamsubmission();
             }
+
+            $filesize = filesize($data->tmpfile);
+            if (!$filesize || filesize_checker::is_too_large($filesize)) {
+                mtrace('File ' . $data->tmpfile . ' if too large for similarity checking');
+
+                return;
+            }
+
             $content = file_get_contents($data->tmpfile);
             $plagiarismentity = new unplag_content($ucore, $content, $data->filename, $data->format, $data->parent_id);
 
