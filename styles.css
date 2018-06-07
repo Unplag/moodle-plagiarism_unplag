@@ -1,0 +1,31 @@
+span.un_report span.rank1 {
+    color: inherit;
+    font-weight: bold;
+    padding: 2px;
+}
+
+span.un_report a {
+    text-decoration: none;
+}
+
+span.un_report img,
+div.un_report img {
+    margin-right: 5px;
+    position: relative;
+    vertical-align: middle;
+}
+
+div.un_report .un_progress {
+    width: 30px;
+}
+
+div.un_report img.un_progress {
+    margin-left: 5px;
+    margin-right: 5px;
+    vertical-align: middle;
+    width: 25px;
+}
+
+div.un_report div:first-child {
+    display: none;
+}
