@@ -14,23 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * version.php
+ * tasks.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @author      Andrew Chirskiy <a.chirskiy@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
-if (!isset($plugin)) {
-    $plugin = new stdClass();
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.');
 }
 
-$plugin->version = 2017121404; // YYYYMMDDVV.
-$plugin->requires = 2014051200; // Requires Moodle 2.7.
-$plugin->maturity = MATURITY_STABLE;
-
-$plugin->component = 'plagiarism_unplag';
-$plugin->release = '3.0.4 (Build: 20180607)';
+$tasks = [
+    [
+        'classname' => '\plagiarism_unplag\task\sync_broken_task',
+        'blocking'  => 0,
+        'minute'    => '*/1',
+        'hour'      => '*',
+        'day'       => '*',
+        'dayofweek' => '*',
+        'month'     => '*'
+    ]
+];
