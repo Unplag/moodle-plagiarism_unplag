@@ -31,7 +31,7 @@ $tasks = [
     [
         'classname' => '\plagiarism_unplag\task\sync_broken_task',
         'blocking'  => 0,
-        'minute'    => '*/1',
+        'minute'    => '*/5',
         'hour'      => '*',
         'day'       => '*',
         'dayofweek' => '*',

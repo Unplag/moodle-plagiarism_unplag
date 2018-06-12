@@ -72,7 +72,7 @@ class sync_frozen_task extends \core\task\scheduled_task
         $offset = 0;
         $limit = 1000;
 
-        $querywhere = "(state <> '" . unplag_file_state::CHECKED . "' OR check_id IS NULL) AND DATE_SUB(NOW(), INTERVAL 1 HOUR) > `timesubmitted` ";
+        $querywhere = "(state <> '" . unplag_file_state::CHECKED . "' OR check_id IS NULL) AND DATE_SUB(NOW(), INTERVAL 5 HOUR) > `timesubmitted` ";
 
         $frozenFiles = $DB->get_records_select(
             'plagiarism_unplag_files',
