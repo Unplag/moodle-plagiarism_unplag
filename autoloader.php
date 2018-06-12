@@ -53,6 +53,7 @@ class unplag_autoloader {
         $class = str_replace('\\', '/', $class);
 
         $autoload = sprintf('%s%s.class.php', __DIR__, str_replace('plagiarism_unplag', '', $class));
+
         require_once($autoload);
     }
 }
