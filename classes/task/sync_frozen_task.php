@@ -24,11 +24,10 @@
 
 namespace plagiarism_unplag\task;
 
-use plagiarism_unplag\classes\entities\unplag_archive;
-use plagiarism_unplag\classes\helpers\unplag_progress;
-use plagiarism_unplag\classes\services\storage\unplag_file_state;
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
+use plagiarism_unplag\classes\services\api\unplag_check_api;
+use plagiarism_unplag\classes\services\api\unplag_file_api;
 use plagiarism_unplag\classes\unplag_adhoc;
-use plagiarism_unplag\classes\unplag_api;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -50,7 +49,7 @@ require_once($CFG->dirroot . '/plagiarism/unplag/constants.php');
 class sync_frozen_task extends \core\task\scheduled_task
 {
     const CHECK = 'frozen_check';
-    const FILE = 'frozen_file';
+    const FILE  = 'frozen_file';
 
     /**
      * @return string
@@ -61,56 +60,71 @@ class sync_frozen_task extends \core\task\scheduled_task
         return get_string('sync_failed', 'plagiarism_unplag');
     }
 
-    /**
-     * Do the job.
-     * Throw exceptions on errors (the job will be retried).
-     */
     public function execute()
     {
-        global $DB;
-
-        $offset = 0;
-        $limit = 1000;
-
-        $querywhere = "(state <> '" . unplag_file_state::CHECKED . "' OR check_id IS NULL) AND DATE_SUB(NOW(), INTERVAL 5 HOUR) > `timesubmitted` ";
-
-        $frozenFiles = $DB->get_records_select(
-            'plagiarism_unplag_files',
-            $querywhere,
-            null,
-            null,
-            '*',
-            $offset,
-            $limit
-        );
-
         $files = [
             self::FILE        => [],
             self::CHECK       => []
         ];
 
-        foreach ($frozenFiles as $id => $file) {
-            if (!is_null($file->check_id)) {
-                $files[self::CHECK][$file->check_id] = $file;
-            } else if (!is_null($file->external_file_id)) {
-                $files[self::FILE][$id] = $file;
-            }
-        }
-
-
-
-        if ($files[self::CHECK]) {
-            $check_keys = array_keys($files[self::CHECK]);
-            $progresses = unplag_api::instance()->get_check_progress($check_keys);
-            if (isset($progresses->progress)) {
-                foreach ($check_keys as $check_key) {
-                    $data = unplag_progress::update_file_progress($check_key, $progresses->progress->$check_key * 100);
+        $frozenfiles = unplag_file_provider::get_frozen_files();
+        if ($frozenfiles) {
+            foreach ($frozenfiles as $id => $file) {
+                if (!is_null($file->check_id)) {
+                    $files[self::CHECK][$file->check_id] = $file;
+                } else if (!is_null($file->external_file_id)) {
+                    $files[self::FILE][$file->id] = $file;
                 }
             }
         }
 
-        foreach ($files[self::FILE] as $fileForUpdate) {
-            unplag_progress::track_upload($fileForUpdate);
+        if ($files[self::CHECK]) {
+            $checkservice = new unplag_check_api();
+            $cheklist = $checkservice->get_finished_check_by_ids(array_keys($files[self::CHECK]));
+            if ($cheklist) {
+                $this->fix_check($cheklist, $files[self::CHECK]);
+            }
+        }
+
+        if ($files[self::FILE]) {
+            $checkservice = new unplag_file_api();
+            $filelist = $checkservice->get_uploaded_file_by_dbfiles($files[self::FILE]);
+            if ($filelist) {
+                $this->fix_file($filelist, $files[self::FILE]);
+            }
+        }
+
+    }
+
+    /**
+     * @param $externalcheklist
+     * @param $dbchecklist
+     */
+    protected function fix_check($externalcheklist, $dbchecklist) {
+        foreach ($externalcheklist as $externalcheck) {
+            if (isset($dbchecklist[$externalcheck->check->id])) {
+                unplag_file_provider::update_frozen_check(
+                    $dbchecklist[$externalcheck->check->id],
+                    $externalcheck->check
+                );
+            }
+        }
+    }
+
+    protected function fix_file($externalfiles, $dbfiles) {
+        if ($externalfiles[unplag_file_api::FOR_UPDATE]) {
+            foreach ($externalfiles[unplag_file_api::FOR_UPDATE] as $key => $check) {
+                unplag_file_provider::update_frozen_check(
+                    $dbfiles[$key],
+                    $check
+                );
+            }
+        }
+
+        if ($externalfiles[unplag_file_api::FOR_CREATE]) {
+            foreach ($externalfiles[unplag_file_api::FOR_CREATE] as $file) {
+                unplag_adhoc::check($file);
+            }
         }
     }
 }

@@ -25,6 +25,7 @@
 
 namespace plagiarism_unplag\classes\entities\providers;
 
+use plagiarism_unplag\classes\helpers\unplag_check_helper;
 use plagiarism_unplag\classes\services\storage\unplag_file_state;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -158,5 +159,34 @@ class unplag_file_provider {
         global $DB;
 
         return $DB->get_records_list(UNPLAG_FILES_TABLE, 'parent_id', [$parentid]);
+    }
+
+    /**
+     * @return array
+     */
+    public static function get_frozen_files() {
+        global $DB;
+
+        $querywhere = "(state <> '"
+            . unplag_file_state::CHECKED
+            . "' OR check_id IS NULL) AND DATE_SUB(NOW(), INTERVAL "
+            . UNPLAG_TASK_FREEZE_CHECK_TIME
+            . ") > `timesubmitted` AND external_file_id IS NOT NULL";
+
+        return $DB->get_records_select(
+            UNPLAG_FILES_TABLE,
+            $querywhere
+        );
+    }
+
+    /**
+     * @param $dbobjectfile
+     * @param $apiobjectcheck
+     */
+    public static function update_frozen_check($dbobjectfile, $apiobjectcheck) {
+        if (is_null($dbobjectfile->check_id)) {
+            $dbobjectfile->check_id = $apiobjectcheck->id;
+        }
+        unplag_check_helper::check_complete($dbobjectfile, $apiobjectcheck);
     }
 }

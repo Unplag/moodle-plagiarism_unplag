@@ -29,10 +29,10 @@ if (!defined('MOODLE_INTERNAL')) {
 
 $tasks = [
     [
-        'classname' => '\plagiarism_unplag\task\sync_broken_task',
+        'classname' => '\plagiarism_unplag\task\sync_frozen_task',
         'blocking'  => 0,
-        'minute'    => '*/5',
-        'hour'      => '*',
+        'minute'    => '*',
+        'hour'      => '*/5',
         'day'       => '*',
         'dayofweek' => '*',
         'month'     => '*'
