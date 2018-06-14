@@ -43,6 +43,8 @@ if (!defined('MOODLE_INTERNAL')) {
 class unplag_check_api {
 
     /**
+     * Get checks throw API
+     *
      * @param array $ids
      *
      * @return array

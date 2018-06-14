@@ -59,10 +59,7 @@ class unplag_api {
      * FILE_UPLOAD
      */
     const FILE_UPLOAD = 'file/async_upload';
-    /**
-     * Get file info
-     */
-    const FILE_GET = 'file/get';
+
     /**
      * TRACK_UPLOAD
      */
@@ -208,19 +205,6 @@ class unplag_api {
     public function get_file_upload_progress($token) {
         return unplag_api_request::instance()->http_get()->request(self::TRACK_UPLOAD, [
             'uuid' => $token
-        ]);
-    }
-
-    /**
-     * Get file info
-     *
-     * @param int $id
-     *
-     * @return \stdClass
-     */
-    public function get_file_info($id) {
-        return unplag_api_request::instance()->http_get()->request(self::FILE_GET, [
-            'id' => $id
         ]);
     }
 

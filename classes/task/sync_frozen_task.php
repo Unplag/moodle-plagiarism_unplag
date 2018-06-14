@@ -48,20 +48,32 @@ require_once($CFG->dirroot . '/plagiarism/unplag/constants.php');
  */
 class sync_frozen_task extends \core\task\scheduled_task
 {
+    /**
+     * Identify frozen check
+     */
     const CHECK = 'frozen_check';
+
+    /**
+     * Identify frozen file
+     */
     const FILE  = 'frozen_file';
 
     /**
+     * Get name for this task
+     *
      * @return string
      * @throws \coding_exception
      */
-    public function get_name()
-    {
+    public function get_name() {
         return get_string('sync_failed', 'plagiarism_unplag');
     }
 
-    public function execute()
-    {
+    /**
+     * Do the job.
+     *
+     * Throw exceptions on errors (the job will be retried).
+     */
+    public function execute() {
         $files = [
             self::FILE        => [],
             self::CHECK       => []
@@ -97,8 +109,10 @@ class sync_frozen_task extends \core\task\scheduled_task
     }
 
     /**
-     * @param $externalcheklist
-     * @param $dbchecklist
+     * Fix frozen check
+     *
+     * @param array $externalcheklist
+     * @param array $dbchecklist
      */
     protected function fix_check($externalcheklist, $dbchecklist) {
         foreach ($externalcheklist as $externalcheck) {
@@ -111,6 +125,12 @@ class sync_frozen_task extends \core\task\scheduled_task
         }
     }
 
+    /**
+     * Fix frozen file
+     *
+     * @param array $externalfiles
+     * @param array $dbfiles
+     */
     protected function fix_file($externalfiles, $dbfiles) {
         if ($externalfiles[unplag_file_api::FOR_UPDATE]) {
             foreach ($externalfiles[unplag_file_api::FOR_UPDATE] as $key => $check) {

@@ -26,6 +26,7 @@
 namespace plagiarism_unplag\classes\services\api;
 
 use plagiarism_unplag\classes\unplag_api;
+use plagiarism_unplag\classes\unplag_api_request;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -42,11 +43,25 @@ if (!defined('MOODLE_INTERNAL')) {
  */
 class unplag_file_api {
 
+    /**
+     * Handle documents that need to be updated
+     */
     const FOR_UPDATE = 'check_to_update';
+
+    /**
+     * Handle documents that need to be created
+     */
     const FOR_CREATE = 'check_to_create';
 
     /**
-     * @param $dbfiles
+     * File info
+     */
+    const FILE_GET = 'file/get';
+
+    /**
+     * Get documents throw API
+     *
+     * @param array $dbfiles
      *
      * @return array
      */
@@ -59,15 +74,28 @@ class unplag_file_api {
         foreach ($dbfiles as $file) {
             $resultfileprogress = $apirequest->get_file_upload_progress($file->external_file_uuid);
             if ($resultfileprogress->result && $resultfileprogress->progress->percentage == 100) {
-                $externalfile = $apirequest->get_file_info($file->external_file_id);
+                $externalfile = $this->get_file_info($file->external_file_id);
                 if ($externalfile->result && $externalfile->file && $externalfile->file->checks) {
                     $fileforupdatelist[self::FOR_UPDATE][$file->id] = $externalfile->file->checks[0];
-                } elseif ($externalfile->result && $externalfile->file) {
+                } else if ($externalfile->result && $externalfile->file) {
                     $fileforupdatelist[self::FOR_CREATE][$file->id] = $externalfile->file;
                 }
             }
         }
 
         return $fileforupdatelist;
+    }
+
+    /**
+     * Get file info
+     *
+     * @param int $id
+     *
+     * @return \stdClass
+     */
+    public function get_file_info($id) {
+        return unplag_api_request::instance()->http_get()->request(self::FILE_GET, [
+            'id' => $id
+        ]);
     }
 }

@@ -162,6 +162,8 @@ class unplag_file_provider {
     }
 
     /**
+     * Get all frozen documents fron database
+     *
      * @return array
      */
     public static function get_frozen_files() {
@@ -169,9 +171,8 @@ class unplag_file_provider {
 
         $querywhere = "(state <> '"
             . unplag_file_state::CHECKED
-            . "' OR check_id IS NULL) AND DATE_SUB(NOW(), INTERVAL "
-            . UNPLAG_TASK_FREEZE_CHECK_TIME
-            . ") > `timesubmitted` AND external_file_id IS NOT NULL";
+            . "' OR check_id IS NULL) AND UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY)) > timesubmitted"
+            . " AND external_file_id IS NOT NULL";
 
         return $DB->get_records_select(
             UNPLAG_FILES_TABLE,
@@ -180,8 +181,10 @@ class unplag_file_provider {
     }
 
     /**
-     * @param $dbobjectfile
-     * @param $apiobjectcheck
+     * Update frozen documents in database
+     *
+     * @param \stdClass $dbobjectfile
+     * @param \stdClass $apiobjectcheck
      */
     public static function update_frozen_check($dbobjectfile, $apiobjectcheck) {
         if (is_null($dbobjectfile->check_id)) {
