@@ -125,3 +125,4 @@ $string['max_supported_archive_files_count'] = 'Max supported archive files';
 $string['max_supported_archive_files_count_help'] = 'The maximum number of supported files that will be extracted from the archives';
 $string['uploading'] = 'Uploading';
 $string['sync_failed'] = 'Try to synchronize unprocessed files';
+$string['upload_error'] = 'File upload error';

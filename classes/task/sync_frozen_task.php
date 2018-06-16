@@ -27,6 +27,7 @@ namespace plagiarism_unplag\task;
 use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\services\api\unplag_check_api;
 use plagiarism_unplag\classes\services\api\unplag_file_api;
+use plagiarism_unplag\classes\services\storage\unplag_file_state;
 use plagiarism_unplag\classes\unplag_adhoc;
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -80,32 +81,32 @@ class sync_frozen_task extends \core\task\scheduled_task
         ];
 
         $frozenfiles = unplag_file_provider::get_frozen_files();
+
         if ($frozenfiles) {
             foreach ($frozenfiles as $id => $file) {
                 if (!is_null($file->check_id)) {
                     $files[self::CHECK][$file->check_id] = $file;
-                } else if (!is_null($file->external_file_id)) {
-                    $files[self::FILE][$file->id] = $file;
+                } else if (!is_null($file->external_file_uuid)) {
+                    $files[self::FILE][$file->external_file_uuid] = $file;
+                }
+            }
+
+            if ($files[self::CHECK]) {
+                $checkservice = new unplag_check_api();
+                $cheklist = $checkservice->get_finished_check_by_ids(array_keys($files[self::CHECK]));
+                if ($cheklist) {
+                    $this->fix_check($cheklist, $files[self::CHECK]);
+                }
+            }
+
+            if ($files[self::FILE]) {
+                $checkservice = new unplag_file_api();
+                $filelist = $checkservice->get_uploaded_file_by_dbfiles($files[self::FILE]);
+                if ($filelist) {
+                    $this->fix_file($filelist, $files[self::FILE]);
                 }
             }
         }
-
-        if ($files[self::CHECK]) {
-            $checkservice = new unplag_check_api();
-            $cheklist = $checkservice->get_finished_check_by_ids(array_keys($files[self::CHECK]));
-            if ($cheklist) {
-                $this->fix_check($cheklist, $files[self::CHECK]);
-            }
-        }
-
-        if ($files[self::FILE]) {
-            $checkservice = new unplag_file_api();
-            $filelist = $checkservice->get_uploaded_file_by_dbfiles($files[self::FILE]);
-            if ($filelist) {
-                $this->fix_file($filelist, $files[self::FILE]);
-            }
-        }
-
     }
 
     /**
@@ -132,8 +133,8 @@ class sync_frozen_task extends \core\task\scheduled_task
      * @param array $dbfiles
      */
     protected function fix_file($externalfiles, $dbfiles) {
-        if ($externalfiles[unplag_file_api::FOR_UPDATE]) {
-            foreach ($externalfiles[unplag_file_api::FOR_UPDATE] as $key => $check) {
+        if ($externalfiles[unplag_file_api::TO_UPDATE]) {
+            foreach ($externalfiles[unplag_file_api::TO_UPDATE] as $key => $check) {
                 unplag_file_provider::update_frozen_check(
                     $dbfiles[$key],
                     $check
@@ -141,9 +142,18 @@ class sync_frozen_task extends \core\task\scheduled_task
             }
         }
 
-        if ($externalfiles[unplag_file_api::FOR_CREATE]) {
-            foreach ($externalfiles[unplag_file_api::FOR_CREATE] as $file) {
+        if ($externalfiles[unplag_file_api::TO_CREATE]) {
+            foreach ($externalfiles[unplag_file_api::TO_CREATE] as $file) {
                 unplag_adhoc::check($file);
+            }
+        }
+
+        if ($externalfiles[unplag_file_api::TO_ERROR]) {
+            foreach ($externalfiles[unplag_file_api::TO_ERROR] as $file) {
+                unplag_file_provider::to_error_state(
+                    $file,
+                    get_string('upload_error', 'plagiarism_unplag')
+                );
             }
         }
     }
