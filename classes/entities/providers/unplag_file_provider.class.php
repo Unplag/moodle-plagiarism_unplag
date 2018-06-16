@@ -173,7 +173,7 @@ class unplag_file_provider {
             . unplag_file_state::CHECKED
             . "'AND state <> '"
             . unplag_file_state::HAS_ERROR
-            . "' OR check_id IS NULL) AND UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MINUTE)) > timesubmitted"
+            . "' OR check_id IS NULL) AND UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY)) > timesubmitted"
             . " AND external_file_uuid IS NOT NULL";
 
         return $DB->get_records_select(
@@ -191,6 +191,9 @@ class unplag_file_provider {
     public static function update_frozen_check($dbobjectfile, $apiobjectcheck) {
         if (is_null($dbobjectfile->check_id)) {
             $dbobjectfile->check_id = $apiobjectcheck->id;
+        }
+        if (is_null($dbobjectfile->external_file_id)) {
+            $dbobjectfile->external_file_id = $apiobjectcheck->file_id;
         }
         unplag_check_helper::check_complete($dbobjectfile, $apiobjectcheck);
     }

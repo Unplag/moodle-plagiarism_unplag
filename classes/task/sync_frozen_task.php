@@ -87,7 +87,7 @@ class sync_frozen_task extends \core\task\scheduled_task
                 if (!is_null($file->check_id)) {
                     $files[self::CHECK][$file->check_id] = $file;
                 } else if (!is_null($file->external_file_uuid)) {
-                    $files[self::FILE][$file->external_file_uuid] = $file;
+                    $files[self::FILE][$file->id] = $file;
                 }
             }
 
