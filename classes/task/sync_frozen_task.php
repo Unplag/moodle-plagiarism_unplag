@@ -107,6 +107,8 @@ class sync_frozen_task extends \core\task\scheduled_task
                 }
             }
         }
+
+        $this->fix_archive();
     }
 
     /**
@@ -154,6 +156,47 @@ class sync_frozen_task extends \core\task\scheduled_task
                     $file,
                     get_string('upload_error', 'plagiarism_unplag')
                 );
+            }
+        }
+    }
+
+    /**
+     * Fix frozen archive
+     */
+    protected function fix_archive() {
+        $fronzenarchive = unplag_file_provider::get_frozen_archive();
+
+        foreach ($fronzenarchive as $archive) {
+            $trackedfiles = unplag_file_provider::get_file_list_by_parent_id($archive->id);
+            if (count($trackedfiles)) {
+                $checkedcount = 0;
+                $haserrorcount = 0;
+                $similarity = 0;
+                foreach ($trackedfiles as $file) {
+                    if ($file->state == unplag_file_state::CHECKED) {
+                        $checkedcount++;
+                        $similarity += $file->similarityscore;
+                    } else if ($file->state == unplag_file_state::HAS_ERROR) {
+                        $haserrorcount++;
+                    }
+                }
+                if (($checkedcount == count($trackedfiles))
+                    OR ($checkedcount != 0 AND ($checkedcount + $haserrorcount) == count($trackedfiles))) {
+                    $reporturl = new \moodle_url('/plagiarism/unplag/reports.php', [
+                        'cmid' => $archive->cm,
+                        'pf'   => $archive->id,
+                    ]);
+                    $archivesimilarity = round($similarity / $checkedcount, 2, PHP_ROUND_HALF_DOWN);
+                    $archive->progress = 100;
+                    $archive->reporturl = (string)$reporturl->out_as_local_url();
+                    $archive->reportediturl = (string)$reporturl->out_as_local_url();
+                    $archive->similarityscore = $archivesimilarity;
+                    $archive->state = unplag_file_state::CHECKED;
+                    unplag_file_provider::save($archive);
+                } else if ($haserrorcount == count($trackedfiles)) {
+                    $archive->state = unplag_file_state::HAS_ERROR;
+                    unplag_file_provider::save($archive);
+                }
             }
         }
     }
