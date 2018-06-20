@@ -75,6 +75,7 @@ class sync_frozen_task extends \core\task\scheduled_task
      * Throw exceptions on errors (the job will be retried).
      */
     public function execute() {
+        file_put_contents('/var/tmp/moodle_log', 'run');
         $files = [
             self::FILE        => [],
             self::CHECK       => []
