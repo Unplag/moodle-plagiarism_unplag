@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * unplag_sync_failed_check_task.class.php
+ * sync_frozen_task.php
  *
  * @package     plagiarism_unplag
  * @author      Andrew Chirskiy <a.chirskiy@p1k.co.uk>
@@ -39,6 +39,7 @@ global $CFG;
 
 require_once($CFG->dirroot . '/plagiarism/unplag/autoloader.php');
 require_once($CFG->dirroot . '/plagiarism/unplag/constants.php');
+require_once($CFG->libdir  . '/filelib.php');
 
 /**
  * Class failed_task

@@ -196,7 +196,7 @@ class unplag_file_provider {
             . "'AND state <> '"
             . unplag_file_state::HAS_ERROR
             . "'
-            ) AND UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY )) > timesubmitted "
+            ) AND UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY)) > timesubmitted "
             . "AND type = '"
             . unplag_plagiarism_entity::TYPE_ARCHIVE
             ."'";
