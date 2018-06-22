@@ -14,48 +14,54 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * autoloader.php
+ * unplag_check_api.class.php
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>
+ * @author      Andrew Chirskiy <a.chirskiy@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace plagiarism_unplag\library;
+namespace plagiarism_unplag\classes\services\api;
+
+use plagiarism_unplag\classes\unplag_api;
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
 /**
- * Class unplag_autoloader
+ * Class unplag_check_api
  *
  * @package     plagiarism_unplag
  * @subpackage  plagiarism
- * @author      Vadim Titov <v.titov@p1k.co.uk>, Aleksandr Kostylev <a.kostylev@p1k.co.uk>
+ * @author      Andrew Chirskiy <a.chirskiy@p1k.co.uk>
  * @copyright   UKU Group, LTD, https://www.unicheck.com
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class unplag_autoloader {
+class unplag_check_api {
+
     /**
-     * init autoloader
+     * Get checks throw API
      *
-     * @param string $class
+     * @param array $ids
+     *
+     * @return array
      */
-    public static function init($class) {
-        if (strpos($class, 'plagiarism_unplag') === false) {
-            return;
+    public function get_finished_check_by_ids($ids) {
+        $checklist = [];
+        $apirequest = new unplag_api();
+        $checkprogresslist = $apirequest->get_check_progress($ids);
+        if ($checkprogresslist->progress && $checkprogresslist->result) {
+            foreach ($ids as $checkid) {
+                if (isset($checkprogresslist->progress->$checkid) && ($checkprogresslist->progress->$checkid == 1)) {
+                    $check = $apirequest->get_check_data($checkid);
+                    array_push($checklist, $check);
+                }
+            }
         }
 
-        $class = str_replace('plagiarism_unplag', '', $class);
-        $class = str_replace('\\', '/', $class);
-
-        $autoload = sprintf('%s%s.class.php', __DIR__, str_replace('plagiarism_unplag', '', $class));
-
-        require_once($autoload);
+        return $checklist;
     }
 }
-
-spl_autoload_register(['plagiarism_unplag\library\unplag_autoloader', 'init']);

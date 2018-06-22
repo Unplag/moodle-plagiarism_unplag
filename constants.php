@@ -28,8 +28,10 @@ if (!defined('MOODLE_INTERNAL')) {
 }
 
 define('UNPLAG_PLAGIN_NAME', 'plagiarism_unplag');
+
 define('UNPLAG_DOMAIN', 'https://corp.unicheck.com/');
 define('UNPLAG_API_URL', 'https://corpapi.unicheck.com/api/v2/');
+
 define('UNPLAG_CALLBACK_URL', '/plagiarism/unplag/callback.php');
 
 define('UNPLAG_PROJECT_PATH', dirname(__FILE__) . '/');

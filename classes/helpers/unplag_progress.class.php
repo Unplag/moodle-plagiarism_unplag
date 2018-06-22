@@ -102,6 +102,7 @@ class unplag_progress {
             }
 
             $response = unplag_api::instance()->get_file_upload_progress($trackedfile->external_file_uuid);
+
             if (!$response->result) {
                 unplag_response::store_errors($response->errors, $plagiarismfile);
                 continue;
@@ -206,7 +207,7 @@ class unplag_progress {
      * @return mixed
      * @throws unplag_exception
      */
-    private static function update_file_progress($id, $progress) {
+    public static function update_file_progress($id, $progress) {
         $record = unplag_file_provider::find_by_check_id($id);
         if ($record->progress <= $progress) {
             $record->progress = $progress;
