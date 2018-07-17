@@ -126,7 +126,7 @@ if (!empty($orderby) && ($dir == 'asc' || $dir == 'desc')) {
 }
 
 // Now show files in an error state.
-$sql = "SELECT t.*, 
+$sql = "SELECT t.*,
     u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename, u.firstname, u.lastname,
     m.name AS moduletype, cm.course AS courseid, cm.instance AS cminstance
     FROM {plagiarism_unplag_files} t, {user} u, {modules} m, {course_modules} cm
