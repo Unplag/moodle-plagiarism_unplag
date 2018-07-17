@@ -126,7 +126,9 @@ if (!empty($orderby) && ($dir == 'asc' || $dir == 'desc')) {
 }
 
 // Now show files in an error state.
-$sql = "SELECT t.*, ?, m.name AS moduletype, cm.course AS courseid, cm.instance AS cminstance
+$sql = "SELECT t.*, 
+    u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename, u.firstname, u.lastname,
+    m.name AS moduletype, cm.course AS courseid, cm.instance AS cminstance
     FROM {plagiarism_unplag_files} t, {user} u, {modules} m, {course_modules} cm
     WHERE m.id=cm.module AND cm.id=t.cm AND t.userid=u.id AND t.parent_id IS NULL AND t.type = ?
     AND (t.errorresponse IS NOT NULL OR t.state = ?)
@@ -136,7 +138,7 @@ $limit = 20;
 $unplagfiles = $DB->get_records_sql(
     $sql,
     [
-        get_all_user_name_fields(true, 'u'), unplag_plagiarism_entity::TYPE_DOCUMENT,
+        unplag_plagiarism_entity::TYPE_DOCUMENT,
         unplag_file_state::HAS_ERROR
     ],
     $page * $limit,
@@ -174,7 +176,6 @@ foreach ($unplagfiles as $tf) {
             $tf->errorresponse,
         ];
     } else {
-
         $builddebuglink = function($tf, $action, $transtext) {
             return sprintf('<a href="debugging.php?%4$s&id=%1$s&sesskey=%2$s">%3$s</a>',
                 $tf->id, sesskey(), plagiarism_unplag::trans($transtext), $action
