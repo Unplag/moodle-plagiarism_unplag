@@ -120,8 +120,16 @@ class unplag_upload_task extends unplag_abstract_task {
                     continue;
                 }
 
-                $this->process_archive_item($item);
-                $supportedcount++;
+                try {
+                    $this->process_archive_item($item);
+                    $supportedcount++;
+                } catch (\Exception $exception) {
+                    mtrace("File " . $item['filename'] . " processing error: " . $exception->getMessage());
+
+                    continue;
+                } finally {
+                    unplag_archive::unlink($item['path']);
+                }
             }
 
             if ($supportedcount < 1) {
@@ -160,8 +168,6 @@ class unplag_upload_task extends unplag_abstract_task {
         }
 
         unset($plagiarismentity, $content);
-
-        unplag_archive::unlink($item['path']);
     }
 
     /**

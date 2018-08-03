@@ -57,3 +57,5 @@ define('UNPLAG_WORKSHOP_GRADING_PHASE', 40);
 define('UNPLAG_MODNAME_WORKSHOP', 'workshop');
 define('UNPLAG_MODNAME_FORUM', 'forum');
 define('UNPLAG_MODNAME_ASSIGN', 'assign');
+
+define('UNPLAG_DEBUG_MODE', true);

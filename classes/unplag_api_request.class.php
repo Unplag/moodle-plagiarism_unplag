@@ -124,6 +124,14 @@ class unplag_api_request {
             'CURLOPT_RETURNTRANSFER' => true,
             'CURLOPT_CONNECTTIMEOUT' => 10,
         ]);
+
+        if (UNPLAG_DEBUG_MODE) {
+            $ch->setopt([
+                'CURLOPT_SSL_VERIFYHOST' => false,
+                'CURLOPT_SSL_VERIFYPEER' => false,
+            ]);
+        }
+
         $resp = $ch->{$this->httpmethod}($this->url, $this->get_request_data());
 
         return $this->handle_response($resp);
