@@ -62,4 +62,19 @@ class unplag_workshop {
 
         return ($workshop->get_submission_by_author(($userid !== null) ? $userid : $USER->id));
     }
+
+    /**
+     * get_area_files
+     *
+     * @param int  $contextid
+     * @param bool $itemid
+     *
+     * @return \stored_file[]
+     */
+    public static function get_area_files($contextid, $itemid = false) {
+
+        return get_file_storage()->get_area_files($contextid,
+            'mod_workshop', 'submission_attachment', $itemid, null, false
+        );
+    }
 }

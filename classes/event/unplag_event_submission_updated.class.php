@@ -26,6 +26,7 @@
 namespace plagiarism_unplag\classes\event;
 
 use core\event\base;
+use plagiarism_unplag\classes\entities\providers\unplag_file_provider;
 use plagiarism_unplag\classes\unplag_assign;
 use plagiarism_unplag\classes\unplag_core;
 
@@ -58,8 +59,6 @@ class unplag_event_submission_updated extends unplag_abstract_event {
      * @return bool
      */
     public function handle_event(unplag_core $core, base $event) {
-
-        global $DB;
         if (!isset($event->other['newstatus'])) {
             return false;
         }
@@ -83,8 +82,7 @@ class unplag_event_submission_updated extends unplag_abstract_event {
                 $ids[] = $internalfile->id;
             }
 
-            $allrecordssql = implode(',', $ids);
-            $DB->delete_records_select(UNPLAG_FILES_TABLE, "id IN ($allrecordssql) OR parent_id IN ($allrecordssql)");
+            unplag_file_provider::delete_by_ids($ids);
         }
 
         return true;

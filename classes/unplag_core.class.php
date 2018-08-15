@@ -233,7 +233,11 @@ class unplag_core {
             $filerecord['itemid'], $filerecord['filepath'], $filerecord['filename']
         );
 
-        if ($storedfile && $storedfile->get_contenthash() != self::content_hash($event->other['content'])) {
+        if ($storedfile) {
+            if ($storedfile->get_contenthash() == self::content_hash($event->other['content'])) {
+                return $storedfile;
+            }
+
             $this->delete_old_file_from_content($storedfile);
         }
 
