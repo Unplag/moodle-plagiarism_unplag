@@ -54,8 +54,14 @@ class unplag_adhoc {
      */
     public static function upload(\stored_file $file, unplag_core $ucore) {
         $plagiarismfile = $ucore->get_plagiarism_entity($file)->get_internal_file();
-        // Check if file already uploaded.
+        // Check if document file already uploaded.
         if (isset($plagiarismfile->external_file_uuid) && $plagiarismfile->external_file_uuid) {
+            return false;
+        }
+
+        // Check if archive file already uploaded.
+        if ($plagiarismfile->type === unplag_plagiarism_entity::TYPE_ARCHIVE
+            && $plagiarismfile->state !== unplag_file_state::CREATED) {
             return false;
         }
 
