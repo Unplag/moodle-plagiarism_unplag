@@ -123,12 +123,12 @@ class unplag_upload_task extends unplag_abstract_task {
                 try {
                     $this->process_archive_item($item);
                     $supportedcount++;
+                    unplag_archive::unlink($item['path']);
                 } catch (\Exception $exception) {
                     mtrace("File " . $item['filename'] . " processing error: " . $exception->getMessage());
+                    unplag_archive::unlink($item['path']);
 
                     continue;
-                } finally {
-                    unplag_archive::unlink($item['path']);
                 }
             }
 
